@@ -1,0 +1,1052 @@
+/* ==============================
+   Base Reset & Fonts
+============================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ==============================
+   Login Page & Common Container
+============================== */
+.gradient-form {
+  height: 90vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  background: #f5f5f5;
+  padding-top: 30px;
+}
+
+.gradient-form .row {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 110%;
+  max-width: 1200px;
+  height: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #fff;
+}
+/* ==============================
+   Right Info
+============================== */
+.right-info {
+  flex: 1;
+  min-width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+  color: #fff;
+  text-align: center;
+}
+
+.right-info h4 {
+  margin-bottom: 20px;
+}
+
+.right-info p {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(80vh - 100px);
+}
+
+/* ==============================
+   Top-right SGTIME / WELCOME
+============================== */
+.top-right-info {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.top-right-info div {
+  background-color: rgb(6, 5, 59);
+  padding: 6px 12px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.top-right-info .text-light {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: rgb(43, 35, 35);
+}
+
+.top-right-info div button {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.sg-time {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+.user-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.user-dropdown button {
+  cursor: pointer;
+}
+
+.logout-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background-color: rgb(6, 5, 59);
+  color: rgb(43, 35, 35);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.logout-menu:hover {
+  background-color: rgb(10, 10, 80);
+  color: white;
+}
+
+.back-button {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  background-color: rgb(6, 5, 59);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1000;
+}
+
+.back-button:hover {
+  background-color: rgb(10, 10, 90);
+}
+
+/* ==============================
+   Navbar
+============================== */
+.navbar {
+  width: 100%;
+  background: linear-gradient(
+    to left,
+    rgba(14, 90, 121, 0.9),
+    rgba(247, 123, 125, 0.9)
+  );
+  padding: 8px 20px;
+  display: flex;
+  justify-content: flex-start;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.navbar-buttons {
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-buttons li {
+  display: flex;
+}
+
+.navbar-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-weight: 500;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navbar-btn::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 1px;
+  bottom: 2px;
+  left: 0;
+  transition: width 0.2s ease;
+}
+
+.navbar-btn:hover::after {
+  width: 100%;
+}
+
+.navbar-btn:hover {
+  text-decoration: underline;
+}
+
+/* ==============================
+   Main Content Area
+============================== */
+.main-content {
+  padding: 30px;
+  font-size: 1rem;
+}
+
+/* ==============================
+   Inputs, Buttons & Form Styles
+============================== */
+.left-form {
+  flex: 1;
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 30px;
+  background-color: #fff;
+  transition: margin-left 0.3s ease;
+}
+
+.left-form img {
+  width: 120px;
+  margin: 0 auto 20px auto;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #01445e;
+  box-shadow: 0 0 8px rgba(1, 68, 94, 0.3);
+}
+.form-control-mandatory{
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  background-color: #b9c2c5;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+  position: relative;
+  font-size: 0.9rem;
+}
+
+.form-check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #01445e;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.form-check input[type="checkbox"]:hover {
+  border-color: #182b47;
+}
+
+.form-check input[type="checkbox"]:checked {
+  background-color: #1a2349;
+  border-color: #d8363a;
+}
+
+.form-check input[type="checkbox"]:checked::after {
+  content: "✔";
+  color: #fff;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 0px;
+  left: 3px;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ==============================
+   Login - Button
+============================== */
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background-color: #d8363a;
+}
+
+.error-msg {
+  color: #ff4d4f;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+/* ==============================
+   Index container /
+============================== */
+.index-container {
+  width: 500px;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  text-align: center;
+  margin: 0 auto;
+}
+/* ==============================
+   Index Card / Dropdown
+============================== */
+.index-card {
+  width: 400px;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  color: white;
+}
+
+.index-title {
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.custom-dropdown,
+.Dropdown,
+.inputStyle {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.custom-dropdown:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.custom-dropdown option {
+  text-align: center;
+  color: black;
+}
+
+.selected-info {
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.HighLight {
+  background-color: #f7f7f7;
+  color: #000;
+}
+
+.mandatory {
+  background-color: #b9c2c5;
+}
+/* ==============================
+   Filters Section
+============================== */
+.filters,
+.declaration-filters ul {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.7rem;
+  margin-bottom: 15px;
+}
+
+.filters li,
+.declaration-filters ul li {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #333;
+}
+
+.filters select.Dropdown,
+.declaration-filters .Dropdown {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-color: #f9f9f9;
+}
+
+.filters input[type="text"].inputStyle,
+.declaration-filters .inputStyle {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+}
+
+.filters input[type="checkbox"],
+.declaration-filters .inputStyleCheckBox {
+  cursor: pointer;
+}
+
+.filters .btn1,
+.declaration-filters .btn1 {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filters .btn1:hover,
+.declaration-filters .btn1:hover {
+  background-color: #d8363a;
+}
+
+/* ==============================
+   INNON PAYMENT Section
+============================== */
+#OnclickInnonPayMent,
+.declaration-filters .innon-payment {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+/* ==============================
+   Table Styles
+============================== */
+
+#inpaymentTable,
+.declaration-filters #inpaymentTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-top: 15px;
+}
+
+#inpaymentTable th,
+#inpaymentTable td {
+  border: 1px solid #ccc;
+  padding: 5px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#inpaymentTable th {
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+}
+
+#inpaymentTable tfoot input {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+#inpaymentTable tbody tr:hover {
+  background-color: rgba(1, 68, 94, 0.05);
+}
+
+/* ==============================
+   Top-level tab row & Buttons
+============================== */
+.top-level-tab-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.NewBtnsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 10px 0;
+  background-color: #fff;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.NextpageBtns {
+  padding: 6px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 300;
+  font-size: 0.7rem;
+  cursor: pointer;
+  flex: 0 1 auto;
+}
+
+.NextpageBtns:hover {
+  background-color: #f84c4f;
+}
+
+.NewBtns:hover::after {
+  color: #fc5557;
+}
+
+.HeadTabStyleChange {
+  background-color: #f75a5c;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.NewBtns.hidden {
+  display: none;
+}
+
+.NewBtns {
+  padding: 6px 20px;
+  border: none;
+  border-radius: 8px;
+  /* background-color: #01445e;
+  color: #fff; */
+  font-weight: 300;
+  font-size: 0.7rem;
+  cursor: pointer;
+  flex: 0 1 auto;
+}
+
+.NewBtns:hover {
+  /* background-color: #f75a5c; */
+  color: black;
+  text-decoration: underline;
+}
+
+.NewBtns:hover::after {
+  color: #f75a5c;
+}
+
+.HeadTabStyleChange {
+  background-color: #f75a5c;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.NewBtns.hidden {
+  display: none;
+}
+
+/* ==============================
+   Standard right-side buttons
+============================== */
+.StdBtns {
+  padding: 3px 10px;
+  min-width: auto;
+  border: 1px solid #01445e;
+  border-radius: 6px;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 300;
+  font-size: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.StdBtns:hover {
+  background-color: #f8070b;
+  color: #fff;
+}
+
+.StdBtnActive {
+  background-color: #f75a5c;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tab-content {
+  font-size: 0.7rem;
+  width: 100%;
+  background-color: #d2e2f5;
+  padding: 20px;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: -15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tab-content .action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.tab-content .action-buttons button {
+  min-width: 120px;
+  padding: 8px 20px;
+  font-weight: 300;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-content .action-buttons .btn-primary {
+  background-color: #01445e;
+  color: #fff;
+}
+
+.tab-content .action-buttons .btn-primary:hover {
+  background-color: #d8363a;
+}
+
+.tab-content .action-buttons .btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.tab-content .action-buttons .btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.tab-content input,
+.tab-content select {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.6rem;
+  box-sizing: border-box;
+}
+
+.tab-content input:focus,
+.tab-content select:focus {
+  outline: none;
+  border-color: #01445e;
+  box-shadow: 0 0 6px rgba(1, 68, 94, 0.3);
+}
+/* ==============================
+   Buttons inside content
+============================== */
+.MoveOnButtons {
+  background-color: #01445e;
+  color: #fff;
+  padding: 6px 15px;
+  font-weight: 300;
+  font-size: 0.7rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.MoveOnButtons:hover {
+  background-color: #f75a5c;
+}
+
+.ErrorColor {
+  font-size: 0.7rem;
+  color: red;
+  display: block;
+  margin-top: 2px;
+}
+
+.hidden {
+  display: none;
+}
+
+.mb-3 {
+  margin-bottom: 0.5rem;
+}
+
+.InpaymentNewStyles .compact-row {
+  margin-bottom: 0.35rem !important;
+}
+
+.InpaymentNewStyles .compact-row .col-form-label {
+  margin-bottom: 0;
+}
+
+.InpaymentNewStyles .compact-row input,
+.InpaymentNewStyles .compact-row select {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+.InpaymentNewStyles .full-width-title {
+  width: 95%;
+  text-align: center;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 300;
+  font-size: 0.7rem;
+  padding: 6px 0;
+  border-radius: 6px;
+  margin: 8px 0 6px 0;
+}
+
+.ContainerInfoTitle {
+  width: 90%;
+  text-align: center;
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 6px 0;
+  border-radius: 6px;
+  margin: 8px auto 12px auto;
+}
+
+#ConatinerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-top: 10px;
+}
+
+#ConatinerTable th,
+#ConatinerTable td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.7rem;
+}
+
+#ConatinerTable th {
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+}
+
+#ConatinerTable tbody tr:nth-child(even) {
+  background-color: rgba(1, 68, 94, 0.05);
+}
+
+#ConatinerTable tbody tr:hover {
+  background-color: rgba(1, 68, 94, 0.1);
+}
+
+#ConatinerTable input.inputStyle,
+#ConatinerTable select.Dropdown {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+#ConatinerTable input:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+.ButtonClick.SaveContainer {
+  background-color: #01445e;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ButtonClick.SaveContainer:hover {
+  background-color: #027716;
+}
+
+.AddContainerBtn {
+  font-size: 1.2rem;
+  color: #28a745;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.AddContainerBtn:hover {
+  color: #218838;
+}
+
+.DeleteContainerBtn {
+  background-color: #d8363a;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.DeleteContainerBtn:hover {
+  background-color: #c9302c;
+}
+
+#ConatinerTable input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.CompactTableRow {
+  margin-bottom: 0.35rem;
+}
+
+/* ==============================
+   Invoice Calculation Table
+============================== */
+
+#InvoiceCalculationTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-top: 10px;
+}
+
+#InvoiceCalculationTable th,
+#InvoiceCalculationTable td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.7rem;
+}
+
+#InvoiceCalculationTable th {
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+}
+
+#InvoiceCalculationTable tbody tr:nth-child(even) {
+  background-color: rgba(1, 68, 94, 0.05);
+}
+
+#InvoiceCalculationTable tbody tr:hover {
+  background-color: rgba(1, 68, 94, 0.1);
+}
+
+#InvoiceCalculationTable input.inputStyle,
+#InvoiceCalculationTable select.Dropdown {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.7rem;
+  box-sizing: border-box;
+}
+
+#InvoiceCalculationTable input:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+/* Highlight CIF row */
+.InvoiceTotalRow {
+  background-color: rgba(1, 68, 94, 0.08);
+  font-weight: 600;
+}
+/* Prevent line break inside first column */
+.nowrap-cell {
+  white-space: nowrap;
+}
+
+/* Align checkbox nicely inline */
+.inline-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#InvoiceTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-top: 15px;
+}
+
+#InvoiceTable th,
+#InvoiceTable td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#InvoiceTable th {
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+#InvoiceTable tbody tr:nth-child(even) {
+  background-color: rgba(1, 68, 94, 0.05);
+}
+
+#InvoiceTable tbody tr:hover {
+  background-color: rgba(1, 68, 94, 0.1);
+}
+
+#InvoiceTable input,
+#InvoiceTable select {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 0.75rem;
+}
+
+#InvoiceTable input:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+#ItemTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  margin-top: 10px;
+}
+
+#ItemTable th,
+#ItemTable td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.7rem;
+}
+
+#ItemTable th {
+  background-color: #01445e;
+  color: #fff;
+  font-weight: 600;
+}
+
+#ItemTable tbody tr:nth-child(even) {
+  background-color: rgba(1, 68, 94, 0.05);
+}
+
+#ItemTable tbody tr:hover {
+  background-color: rgba(1, 68, 94, 0.1);
+}
+
+#ItemTable input,
+#ItemTable select {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  font-size: 0.7rem;
+}
+
+#ItemTable input:disabled {
+  background-color: #f2f2f2;
+  cursor: not-allowed;
+}
+
+.DisableClass {
+  display: none !important;
+}
+
+.summarycheck {
+  background-color: #d0e4f8;
+  padding: 10px;
+  border-radius: 4px;
+}
+/* party page dropdown-suggestions */
+.dropdown-suggestions {
+  position: absolute;
+  top: 100%;              /* directly below input */
+  left: 0;
+  width: 250px;           /* or 100% */
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 9999;          /* stay above other rows */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.dropdown-item:hover {
+  background-color: #234263;
+  color: white;
+}
+.ErrColor{
+  color: red;
+}
