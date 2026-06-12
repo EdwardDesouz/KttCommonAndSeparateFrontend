@@ -1,26 +1,32 @@
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import API from "../../../api/api";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../../userContex/userContex";
+import { useInpayment } from "../context/inpaymentContext";
+import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import {
   currentPopup,
   fetchPopupData,
   SearchPopup,
   useCargoDate,
 } from "./cargoFunctions";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { UserContext } from "../../../userContex/userContex";
-import { useInpayment } from "../context/inpaymentContext";
 
 // =================== DateField ===================
 export const DateField = ({ value, setValue }) => {
   const { error, parseDate, handleBlur, handleKeyDown } = useCargoDate();
+
   return (
     <div className="col-sm-7">
       <DatePicker
-        selected={parseDate(value)}
+        selected={value && value.length === 10 ? parseDate(value) : null}
         onChange={(date) => {
-          if (!date) return;
+          if (!date) {
+            setValue("");
+            return;
+          }
           const day = String(date.getDate()).padStart(2, "0");
           const month = String(date.getMonth() + 1).padStart(2, "0");
           const year = date.getFullYear();
@@ -30,6 +36,7 @@ export const DateField = ({ value, setValue }) => {
         placeholderText="DD/MM/YYYY"
         className={`form-control ${error ? "is-invalid" : ""}`}
         wrapperClassName="w-100"
+        onChangeRaw={(e) => setValue(e.target.value)}
         onBlur={() => handleBlur(value, setValue, () => {})}
         onKeyDown={(e) => handleKeyDown(e, setValue)}
         showMonthDropdown
@@ -42,10 +49,12 @@ export const DateField = ({ value, setValue }) => {
   );
 };
 
-function Cargo({ setActiveTab }) {
+function Cargo({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
-
+  const navigate = useNavigate();
   const {
+    permitDetails,
+    updatePermitDetails,
     // Header States
     showCargoType,
     setShowCargoType,
@@ -73,24 +82,38 @@ function Cargo({ setActiveTab }) {
     setShowNotRequired,
     totalOuterPackValue,
     setTotalOuterPackValue,
+    showTotalOuterPackValueError,
+    setShowTotalOuterPackValueError,
     totalOuterPackName,
     setTotalOuterPackName,
+    showTotalOuterPackUomError,
+    setShowTotalOuterPackUomError,
     totalGrossWeight,
     setTotalGrossWeight,
     grossUOM,
     setGrossUOM,
+    showTotalGrossWeightError,
+    setShowTotalGrossWeightError,
+    showGrossUOMError,
+    setShowGrossUOMError,
     permitGrossWeight,
     setPermitGrossWeight,
     receiptCode,
     setReceiptCode,
+    showReceiptCodeError,
+    setShowReceiptCodeError,
     receiptLocationDescription,
     setReceiptLocationDescription,
     releaseCode,
     setReleaseCode,
+    showReleaseCodeError,
+    setShowReleaseCodeError,
     releaseLocationDescription,
     setReleaseLocationDescription,
     loadingPortCode,
     setLoadingPortCode,
+    showLoadingPortCodeError,
+    setShowLoadingPortCodeError,
     loadingPortName,
     setLoadingPortName,
     cargoHawb,
@@ -99,6 +122,8 @@ function Cargo({ setActiveTab }) {
     setCargoHawbList,
     arrivalDate,
     setArrivalDate,
+    showArriavalDateError,
+    setShowArrivalDateError,
     blanketStartDate,
     setBlanketStartDate,
     voyageNumber,
@@ -119,6 +144,20 @@ function Cargo({ setActiveTab }) {
     setMawbNumber,
     containers,
     setContainers,
+    // EXISTING STATES FOR SAVE AS DRAFT
+    decType,
+    prevPermitNo,
+    cargo, // already exists as CargoPackType
+    bgInd,
+    supplyInd,
+    refDocs,
+    declFor,
+    Licence,
+    Recipients,
+    importerCode,
+    inwardCode,
+    freightForwarderCode,
+    claimantCode,
   } = useInpayment();
 
   //  Calculate permit gross weight based on total gross weight and UOM
@@ -212,6 +251,12 @@ function Cargo({ setActiveTab }) {
     if (!val) {
       setShowReleaseLocationDropdown(false);
       return;
+    }
+    if (!val) {
+      setShowReleaseCodeError(true);
+      return;
+    } else {
+      setShowReleaseCodeError(false);
     }
     const filtered = releaseLocationSuggestions.filter((i) =>
       i.toLowerCase().startsWith(val.toLowerCase()),
@@ -336,6 +381,12 @@ function Cargo({ setActiveTab }) {
       setShowReceiptLocationDropdown(false);
       return;
     }
+    if (!val) {
+      setShowReceiptCodeError(true);
+      return;
+    } else {
+      setShowReceiptCodeError(false);
+    }
     const filtered = receiptLocationSuggestions.filter((i) =>
       i.toLowerCase().includes(val.toLowerCase()),
     );
@@ -450,6 +501,12 @@ function Cargo({ setActiveTab }) {
     if (!val) {
       setShowLoadingPortDropdown(false);
       return;
+    }
+    if (!val) {
+      setShowLoadingPortCodeError(true);
+      return;
+    } else {
+      setShowLoadingPortCodeError(false);
     }
 
     const filtered = loadingPortSuggestions.filter((i) =>
@@ -586,7 +643,7 @@ function Cargo({ setActiveTab }) {
   // ====================== Delete Single Container ======================
   const deleteContainer = async (container) => {
     const rowNo = getRowNo(container);
-    const payload = { PermitId: "PERMIT104", RowNo: rowNo };
+    const payload = { PermitId: permitDetails?.PermitId, RowNo: rowNo };
 
     try {
       setLoading(true);
@@ -622,7 +679,7 @@ function Cargo({ setActiveTab }) {
       // delete each container
       for (let container of sortedSelected) {
         await API.post("/deleteContainer/", {
-          PermitId: "PERMIT103",
+          PermitId: permitDetails?.PermitId,
           RowNo: container.RowNo,
         });
       }
@@ -657,7 +714,7 @@ function Cargo({ setActiveTab }) {
       return;
     }
     const payload = {
-      PermitId: "PERMIT104",
+      PermitId: permitDetails?.PermitId,
       RowNo: rowNo,
       ContainerNo: String(container.number).trim(),
       Size:
@@ -667,7 +724,7 @@ function Cargo({ setActiveTab }) {
       Weight: Number(container.weight),
       SealNo: String(container.seal).trim(),
       MessageType: "IPTDEC",
-      TouchUser: user.username,
+      TouchUser: user.username.toUpperCase(),
       TouchTime: new Date().toISOString(),
     };
 
@@ -718,6 +775,251 @@ function Cargo({ setActiveTab }) {
     if (!transportMode) return "HAWB";
     return "HBL";
   };
+
+  // =======================SAVE AS DRAFT MODEL================
+  // =======================STATES==================
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
+  const [draftReasonError, setDraftReasonError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // ===================== OPEN MODAL ONLY =====================
+  const handleSaveAsDraftClick = () => {
+    setDraftReason("");
+    setDraftReasonError(false);
+    setShowDraftModal(true);
+  };
+  // ===================== CANCEL MODAL =====================
+  const handleCancelDraftModal = () => {
+    setShowDraftModal(false);
+    setDraftReason("");
+    setDraftReasonError(false);
+  };
+
+  const handleConfirmSaveAsDraft = async () => {
+    if (!draftReason.trim()) {
+      setDraftReasonError(true);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const TouchUser = (user?.username || "").toUpperCase();
+      const TouchTime = new Date().toISOString();
+
+      const formatDate = (dateStr) => {
+        if (!dateStr || dateStr.trim() === "") return null;
+        const parts = dateStr.split("/");
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return dateStr;
+      };
+
+      const payload = {
+        PermitId: permitDetails?.PermitId || "",
+        Refid: permitDetails?.RefId || "",
+        JobId: permitDetails?.JobId || "",
+        MSGId: permitDetails?.MsgId || "",
+        TradeNetMailboxID:
+          permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+        MessageType: "IPTDEC",
+
+        // ── Header fields ──────────────────────────────────
+        DeclarationType: decType || "",
+        PreviousPermit: prevPermitNo || "",
+        CargoPackType: cargo || "",
+        InwardTransportMode: transportMode || "",
+        BGIndicator: bgInd || "",
+        SupplyIndicator: supplyInd ? "true" : "false",
+        ReferenceDocuments: refDocs ? "true" : "false",
+        DeclarningFor: declFor || "",
+        License: Licence || "",
+        Recipient: Recipients || "",
+        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+
+        // ── Party fields ───────────────────────────────────
+        ImporterCompanyCode: importerCode || "",
+        InwardCarrierAgentCode: inwardCode || "",
+        FreightForwarderCode: freightForwarderCode || "",
+        ClaimantPartyCode: claimantCode || "",
+
+        // ── Transport (from Header) ────────────────────────
+        VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+        VesselName: showVesselName ? vesselName || "" : "",
+        OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+        ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+        TransportId: showTransportDetails ? transportDetails || "" : "",
+        FlightNO: showFlightNumber ? flightNumber || "" : "",
+        AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+        MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+
+        // ── Cargo fields ───────────────────────────────────
+        HBL: cargoHawb || "",
+        ArrivalDate: formatDate(arrivalDate) || null,
+        LoadingPortCode: loadingPortCode || "",
+        ReleaseLocation: releaseCode || "",
+        ResLoaName: releaseLocationDescription || "",
+        RecepitLocation: receiptCode || "",
+        RecepitLocName: receiptLocationDescription || "",
+        TotalOuterPack: totalOuterPackValue || "",
+        TotalOuterPackUOM: totalOuterPackName || "",
+        TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeightUOM: grossUOM || "",
+        BlanketStartDate: formatDate(blanketStartDate) || null,
+
+        // ── Status & Meta ──────────────────────────────────
+        Message: draftReason.trim().toUpperCase(),
+        Status: "SAVEASDRF",
+        prmtStatus: "SAVEASDRF",
+        TouchUser,
+        TouchTime,
+        MRDate: null,
+        MRTime: "",
+      };
+
+      const response = await API.post("/postCommonHeaderTable/", [payload]);
+
+      if (response?.data) {
+        const updatedPermit = {
+          ...permitDetails,
+          JobId: response.data.JobId || permitDetails?.JobId,
+          MsgId: response.data.MSGId || permitDetails?.MsgId,
+        };
+        updatePermitDetails(updatedPermit);
+        sessionStorage.setItem("currentPermit", JSON.stringify(updatedPermit));
+
+        setShowDraftModal(false);
+        setDraftReason("");
+        setDraftReasonError(false);
+
+        alert("Draft Saved Successfully!");
+        navigate("/inpayment");
+      }
+    } catch (err) {
+      console.error("SAVE AS DRAFT ERROR:", err);
+      alert("Error saving draft. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // =====================Auto save every filling Details==============================
+
+  const formatDate = (dateStr) => {
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  // const autoSavePayload = useMemo(() => {
+  //   if (!permitDetails?.PermitId) return null;
+  //   return {
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     Refid: permitDetails?.RefId || "",
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     TradeNetMailboxID: permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     DeclarningFor: declFor || "",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     // party fields
+  //     ImporterCompanyCode: importerCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+  //     // ── Transport (from Header) ────────────────────────
+  //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+  //     VesselName: showVesselName ? vesselName || "" : "",
+  //     OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+  //     ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: showFlightNumber ? flightNumber || "" : "",
+  //     AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+  //     MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+  //     // ── Cargo fields ───────────────────────────────────
+  //     HBL: cargoHawb || "",
+  //     ArrivalDate: formatDate(arrivalDate) || null,
+  //     LoadingPortCode: loadingPortCode || "",
+  //     ReleaseLocation: releaseCode || "",
+  //     ResLoaName: releaseLocationDescription || "",
+  //     RecepitLocation: receiptCode || "",
+  //     RecepitLocName: receiptLocationDescription || "",
+  //     TotalOuterPack: totalOuterPackValue || "",
+  //     TotalOuterPackUOM: totalOuterPackName || "",
+  //     TotalGrossWeight: totalGrossWeight || "",
+  //     TotalGrossWeightUOM: grossUOM || "",
+  //     BlanketStartDate: formatDate(blanketStartDate) || null,
+  //     // reamining
+  //     Status: "DISCONNECT",
+  //     prmtStatus: "DISCONNECT",
+  //     TouchUser: (user?.username || "").toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Message: "AUTO-SAVED|TAB:CargoPage",
+  //     MRTime: "",
+  //   };
+  // }, [
+  //   permitDetails,
+  //   decType,
+  //   prevPermitNo,
+  //   cargo,
+  //   transportMode,
+  //   bgInd,
+  //   supplyInd,
+  //   refDocs,
+  //   declFor,
+  //   Licence,
+  //   Recipients,
+  //   // Party page Reamainig
+  //   importerCode,
+  //   inwardCode,
+  //   freightForwarderCode,
+  //   claimantCode,
+  //   // Cargo Page & Remaining
+  //   voyageNumber,
+  //   vesselName,
+  //   obl,
+  //   conveyanceNumber,
+  //   transportDetails,
+  //   flightNumber,
+  //   airCraftRegNumber,
+  //   mawbNumber,
+  //   showVoyageNumber,
+  //   showVesselName,
+  //   showOblNumber,
+  //   showconveyanceNumber,
+  //   showTransportDetails,
+  //   showFlightNumber,
+  //   showAirCraftRegNumber,
+  //   showMawbNumber,
+  //   cargoHawb,
+  //   arrivalDate,
+  //   loadingPortCode,
+  //   releaseCode,
+  //   releaseLocationDescription,
+  //   receiptCode,
+  //   receiptLocationDescription,
+  //   totalOuterPackValue,
+  //   totalOuterPackName,
+  //   totalGrossWeight,
+  //   grossUOM,
+  //   blanketStartDate,
+  //   user,
+  // ]);
+
+  // useDebounceAutoSave({
+  //   payload: autoSavePayload,
+  //   enabled: !isViewMode,
+  //   delay: 2000,
+  // });
+
   // ====================== UI======================
 
   return (
@@ -735,22 +1037,39 @@ function Cargo({ setActiveTab }) {
 
             {/* TOTAL OUTER PACK */}
             <div className="row align-items-center compact-row">
-              <label className="col-sm-4 col-form-label">
+              <label className="col-sm-4 mt-1 col-form-label">
                 TOTAL OUTER PACK
               </label>
               <div className="col-sm-2">
                 <input
                   type="text"
-                  className="form-control-mandatory"
+                  className="pack-input"
                   value={totalOuterPackValue}
-                  onChange={(e) => setTotalOuterPackValue(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTotalOuterPackValue(val);
+                    if (val.trim()) {
+                      setShowTotalOuterPackValueError(false);
+                    }
+                  }}
                 />
+                {showTotalOuterPackValueError && (
+                  <span className="ErrorColor">
+                    Please enter a valid total outer pack value.
+                  </span>
+                )}
               </div>
               <div className="col-sm-5">
                 <select
-                  className="Dropdown HighLight mandatory"
+                  className="pack-select"
                   value={totalOuterPackName}
-                  onChange={(e) => setTotalOuterPackName(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTotalOuterPackName(val);
+                    if (val) {
+                      setShowTotalOuterPackUomError(false);
+                    }
+                  }}
                 >
                   <option>--Select--</option>
                   {totalOuterPack.map((tooupack) => (
@@ -759,27 +1078,49 @@ function Cargo({ setActiveTab }) {
                     </option>
                   ))}
                 </select>
+                {showTotalOuterPackUomError && (
+                  <span className="ErrorColor">
+                    Please select a total outer pack UOM.
+                  </span>
+                )}
               </div>
             </div>
 
             {/* TOTAL GROSS WEIGHT */}
             <div className="row align-items-center compact-row">
-              <label className="col-sm-4 col-form-label">
+              <label className="col-sm-4 mt-1 col-form-label">
                 TOTAL GROSS WEIGHT
               </label>
               <div className="col-sm-2">
                 <input
                   type="text"
-                  className="form-control-mandatory"
+                  className="pack-input"
                   value={totalGrossWeight}
-                  onChange={(e) => setTotalGrossWeight(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTotalGrossWeight(val);
+                    if (val.trim()) {
+                      setShowTotalGrossWeightError(false);
+                    }
+                  }}
                 />
+                {showTotalGrossWeightError && (
+                  <span className="ErrorColor">
+                    Please enter a valid total gross weight.
+                  </span>
+                )}
               </div>
               <div className="col-sm-5">
                 <select
-                  className="Dropdown HighLight mandatory"
+                  className="pack-select"
                   value={grossUOM}
-                  onChange={(e) => setGrossUOM(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setGrossUOM(val);
+                    if (val) {
+                      setShowGrossUOMError(false);
+                    }
+                  }}
                 >
                   <option>--Select--</option>
                   {totalGrossWeightOptions.map((opt, i) => (
@@ -788,6 +1129,11 @@ function Cargo({ setActiveTab }) {
                     </option>
                   ))}
                 </select>
+                {showGrossUOMError && (
+                  <span className="ErrorColor">
+                    Please select a gross weight UOM.
+                  </span>
+                )}
               </div>
             </div>
 
@@ -836,6 +1182,11 @@ function Cargo({ setActiveTab }) {
                   onBlur={handleReleaseLocationFocusOut}
                   onFocus={() => setReleaseLocationError(false)}
                 />
+                {showReleaseCodeError && (
+                  <span className="ErrorColor">
+                    Please enter a valid release location code.
+                  </span>
+                )}
                 {showReleaseLocationDropdown &&
                   filteredReleaseLocationSuggestions.length > 0 && (
                     <div className="dropdown-suggestions">
@@ -874,9 +1225,11 @@ function Cargo({ setActiveTab }) {
               <div className="col-sm-5">
                 <input
                   type="text"
-                  id="releaseLocationText"
                   className="form-control"
                   value={releaseLocationDescription}
+                  onChange={(e) =>
+                    setReleaseLocationDescription(e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -902,6 +1255,11 @@ function Cargo({ setActiveTab }) {
                   onBlur={handleReceiptLocationFocusOut}
                   onFocus={() => setReceiptLocationError(false)}
                 />
+                {showReceiptCodeError && (
+                  <span className="ErrorColor">
+                    Please enter a valid receipt location code.
+                  </span>
+                )}
                 {showReceiptLocationDropdown &&
                   filteredReceiptLocationSuggestions.length > 0 && (
                     <div className="dropdown-suggestions">
@@ -943,6 +1301,9 @@ function Cargo({ setActiveTab }) {
                   id="receiptLocationText"
                   className="form-control"
                   value={receiptLocationDescription}
+                  onChange={(e) =>
+                    setReceiptLocationDescription(e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -992,6 +1353,11 @@ function Cargo({ setActiveTab }) {
                     onBlur={handleLoadingPortFocusOut}
                     onFocus={() => setLoadingPortError(false)}
                   />
+                  {showLoadingPortCodeError && (
+                    <span className="ErrorColor">
+                      Please select a valid loading port.
+                    </span>
+                  )}
                   {showLoadingPortDropdown &&
                     filteredLoadingPortSuggestions.length > 0 && (
                       <div className="dropdown-suggestions">
@@ -1057,7 +1423,18 @@ function Cargo({ setActiveTab }) {
             {showNotRequired && (
               <div className="row align-items-center compact-row mb-3">
                 <label className="col-sm-4 col-form-label">ARRIVAL DATE</label>
-                <DateField value={arrivalDate} setValue={setArrivalDate} />
+                <DateField
+                  value={arrivalDate}
+                  setValue={(val) => {
+                    setArrivalDate(val);
+                    if (val) setShowArrivalDateError(false);
+                  }}
+                />
+                {showArriavalDateError && (
+                  <span className="ErrorColor">
+                    Please select a valid arrival date.
+                  </span>
+                )}
               </div>
             )}
 
@@ -1072,9 +1449,8 @@ function Cargo({ setActiveTab }) {
               />
             </div>
           </div>
-
+          {/* VOYAGE NUMBER */}
           <div className="col-6">
-            {/* VOYAGE NUMBER */}
             {showVoyageNumber && (
               <div className="row align-items-center compact-row mb-3">
                 <label className="col-sm-4 col-form-label">VOYAGE NUMBER</label>
@@ -1283,6 +1659,7 @@ function Cargo({ setActiveTab }) {
                       <td>
                         {/* Edit */}
                         <FaEdit
+                          className="view-show"
                           style={{ width: "20px", cursor: "pointer" }}
                           onClick={() =>
                             setContainers((prev) =>
@@ -1420,18 +1797,207 @@ function Cargo({ setActiveTab }) {
       {/* BOTTOM BUTTONS */}
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
-          className="NextpageBtns"
+          className="NextpageBtns view-nav-btn"
+          tabIndex="17"
+          id="PartySaveDraft"
+          onClick={handleSaveAsDraftClick}
+        >
+          SAVE AS DRAFT
+        </button>
+        <button
+          className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("PartyTab")}
         >
           PREVIOUS
         </button>
         <button
-          className="NextpageBtns"
+          className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("InvoiceTab")}
         >
           NEXT
         </button>
       </div>
+      {/* DRAFT MODEL */}
+      {showDraftModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 1040,
+            }}
+            onClick={handleCancelDraftModal}
+          />
+          {/* Modal */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              zIndex: 1050,
+              width: "460px",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                backgroundColor: "#1a6db5",
+                color: "#fff",
+                padding: "14px 20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                SAVE AS DRAFT
+              </span>
+              <span
+                style={{
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                }}
+                onClick={handleCancelDraftModal}
+              >
+                ✕
+              </span>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "24px 24px 16px 24px" }}>
+              <div
+                style={{
+                  backgroundColor: "#fff8e1",
+                  border: "1px solid #ffe082",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
+                  marginBottom: "18px",
+                  fontSize: "13px",
+                  color: "#7b5800",
+                }}
+              >
+                This permit will be saved as <strong>DRAFT (DRF)</strong>. You
+                can continue filling the remaining details later.
+              </div>
+
+              <label
+                style={{
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  marginBottom: "6px",
+                  display: "block",
+                  color: "#333",
+                }}
+              >
+                WHY ARE YOU SAVING AS DRAFT?{" "}
+                <span style={{ color: "red" }}>*</span>
+              </label>
+
+              <textarea
+                rows={4}
+                className="form-control"
+                value={draftReason}
+                onChange={(e) => {
+                  setDraftReason(e.target.value);
+                  if (e.target.value.trim()) setDraftReasonError(false);
+                }}
+                style={{
+                  resize: "vertical",
+                  fontSize: "13px",
+                  border: draftReasonError
+                    ? "1px solid red"
+                    : "1px solid #ced4da",
+                  borderRadius: "4px",
+                  padding: "8px",
+                  width: "100%",
+                }}
+                autoFocus
+              />
+
+              {draftReasonError && (
+                <span
+                  style={{
+                    color: "red",
+                    fontSize: "12px",
+                    marginTop: "4px",
+                    display: "block",
+                  }}
+                >
+                  Please provide a reason before saving as draft.
+                </span>
+              )}
+
+              <div
+                style={{
+                  textAlign: "right",
+                  fontSize: "11px",
+                  color: draftReason.length > 200 ? "red" : "#888",
+                  marginTop: "4px",
+                }}
+              >
+                {draftReason.length} / 200
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "12px 24px 20px 24px",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                className="NextpageBtns"
+                onClick={handleCancelDraftModal}
+                disabled={isSaving}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                CANCEL
+              </button>
+
+              <button
+                className="NextpageBtns"
+                onClick={handleConfirmSaveAsDraft}
+                disabled={isSaving || draftReason.length > 200}
+                style={{
+                  backgroundColor: isSaving ? "#90caf9" : "#1a6db5",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                }}
+              >
+                {isSaving ? "SAVING..." : "💾 SAVE AS DRAFT"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Popup */}
       {popupType && currentPopupConfig && (
         <SearchPopup

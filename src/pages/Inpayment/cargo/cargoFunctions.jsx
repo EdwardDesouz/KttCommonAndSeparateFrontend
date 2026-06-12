@@ -205,7 +205,8 @@ export const currentPopup = (popupType, setters) => {
         setReceiptLocationCode(item.LocationCode);
         setReceiptLocationDescription(item.Description);
       },
-    },loadingport: { 
+    },
+    loadingport: {
       title: "LOADING PORT",
       columns: ["PortCode", "PortName", "Country"],
       onSelect: (item) => {
@@ -240,41 +241,34 @@ export const useCargoDate = (initialDate = "") => {
   };
 
   const handleBlur = (value, setValue, setErrorFunc) => {
-    let val = value.replace(/\D/g, "");
-    setErrorFunc(false);
-
-    if (!val) {
-      setValue(getTodayDate());
+    if (!value || value.trim() === "") {
       return;
     }
 
-    if (val.length === 8) {
-      const day = parseInt(val.slice(0, 2), 10);
-      const month = parseInt(val.slice(2, 4), 10);
-      const year = val.slice(4, 8);
+    const raw = value.replace(/\D/g, "");
 
-      if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
-        setValue(
-          `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`
-        );
+    if (raw.length === 8) {
+      const dd = raw.slice(0, 2);
+      const mm = raw.slice(2, 4);
+      const yyyy = raw.slice(4, 8);
+
+      if (
+        parseInt(dd) >= 1 &&
+        parseInt(dd) <= 31 &&
+        parseInt(mm) >= 1 &&
+        parseInt(mm) <= 12
+      ) {
+        setValue(`${dd}/${mm}/${yyyy}`);
+        setErrorFunc(false);
       } else {
         setValue(getTodayDate());
         setErrorFunc(true);
       }
-    } else if (val.length === 10) {
-      const [dayStr, monthStr, yearStr] = val.split("/");
-      const day = parseInt(dayStr, 10);
-      const month = parseInt(monthStr, 10);
-
-      if (!(day >= 1 && day <= 31 && month >= 1 && month <= 12)) {
-        setValue(getTodayDate());
-        setErrorFunc(true);
-      } else {
-        setValue(value);
-      }
+    } else if (value.length === 10 && value.includes("/")) {
+      setErrorFunc(false);
     } else {
       setValue(getTodayDate());
-      setErrorFunc(true);
+      setErrorFunc(false);
     }
   };
 

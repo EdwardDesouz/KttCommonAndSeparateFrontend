@@ -5,7 +5,7 @@ function BackPage() {
   const navigate = useNavigate();
 
   return (
-    <button className="back-button" onClick={() => navigate(-1)}>
+    <button className="back-button" onClick={() => navigate(`/index`)}>
       <RiArrowGoBackFill size={18} /> Back
     </button>
   );

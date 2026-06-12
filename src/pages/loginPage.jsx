@@ -113,31 +113,31 @@ function LoginPage() {
 
         <MDBCol col="6" className="right-info gradient-custom-2">
           <div className="p-4 text-white text-center">
-            <h4 className="mb-4">We are more than just a company</h4>
-             <p>
-               Founded in 2026, Raven PTE LTD has quickly become a leading
-               provider of Trade Net Front-end Solutions in Singapore. With our
-               proprietary software, including Trade Net Frontend Solution
-               version 4.1, we have earned recognition and accreditation from
-               Singapore Customs. Our Trade Net Frontend Solution is a
-               cloud-based platform built with the latest technologies. It is
-               designed to be user-friendly and efficient, offering features such
-               as auto-completion, searchable table listings, and comprehensive
-               reporting to make permit management easier for our clients. Raven
-               provides a wide range of services to support businesses in import
-               and export operations. These include processing all types of
-               permits at standard prices, ensuring strict compliance with
-               customs regulations, supporting electronic Certificates of Origin
-               (COO), and offering timely and accurate permit processing. We
-               guarantee cost and time savings on permit preparation, provide
-               24/7 premium support including public holidays, and maintain AED
-               (Automated Export Declaration) compliance. Our dedicated staff
-               manages end-to-end client accounts, prepares customized reports on
-               a weekly or monthly basis, and ensures seamless handling of all
-               permit declarations. Additionally, we offer on-site and off-site
-               customs declaration services 24/7, acting as the declaring agent
-               for our customers to simplify the entire customs process.
-             </p>
+            <h4 className="mb-4">We are more than Just a company</h4>
+            <p>
+              Founded in 2026, Raven PTE LTD has quickly become a leading
+              provider of Trade Net Front-end Solutions in Singapore. With our
+              proprietary software, including Trade Net Frontend Solution
+              version 4.1, we have earned recognition and accreditation from
+              Singapore Customs. Our Trade Net Frontend Solution is a
+              cloud-based platform built with the latest technologies. It is
+              designed to be user-friendly and efficient, offering features such
+              as auto-completion, searchable table listings, and comprehensive
+              reporting to make permit management easier for our clients. Raven
+              provides a wide range of services to support businesses in import
+              and export operations. These include processing all types of
+              permits at standard prices, ensuring strict compliance with
+              customs regulations, supporting electronic Certificates of Origin
+              (COO), and offering timely and accurate permit processing. We
+              guarantee cost and time savings on permit preparation, provide
+              24/7 premium support including public holidays, and maintain AED
+              (Automated Export Declaration) compliance. Our dedicated staff
+              manages end-to-end client accounts, prepares customized reports on
+              a weekly or monthly basis, and ensures seamless handling of all
+              permit declarations. Additionally, we offer on-site and off-site
+              customs declaration services 24/7, acting as the declaring agent
+              for our customers to simplify the entire customs process.
+            </p>
           </div>
         </MDBCol>
       </MDBRow>

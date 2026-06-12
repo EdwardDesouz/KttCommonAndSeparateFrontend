@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import SgTime from "../../components/sgTime";
 import BackPage from "../../components/backPage";
 import Header from "./header/header";
@@ -8,14 +8,34 @@ import Cargo from "./cargo/cargo";
 import Invoice from "./invoice/invoice";
 import Item from "./item/item";
 import Cpc from "./cpc/cpc";
+import Amend from "./amend/amend";
+import Refund from "./reFund/reFund";
+import Cancel from "./cancel/cancel";
 import Summary from "./summary/summary";
 import { InpaymentProvider } from "./context/inpaymentContext";
+import InpaymentEditLoader from "./inpaymentEditLoader";
+import { useInpayment } from "./context/inpaymentContext";
 
-
-
-function InpaymentNew() {
+// ── Inner component has access to both location AND context ──────────────────
+function InpaymentNewInner({ permitId, isEditMode, isViewMode }) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("HeaderTab");
+  const location = useLocation();
+  const { permitDetails } = useInpayment();
+
+  const [activeTab, setActiveTab] = useState(
+    location.state?.openTab || "HeaderTab",
+  );
+
+  useEffect(() => {
+    if (location.state?.openTab) {
+      setActiveTab(location.state.openTab);
+    }
+  }, [permitDetails?.prmtStatus]);
+
+  const isAmd = permitDetails?.prmtStatus === "AMD";
+  const isRfd = permitDetails?.prmtStatus === "RFD";
+  const isCnl = permitDetails?.prmtStatus === "CNL";
+
   const tabs = [
     { id: "HeaderTab", label: "HEADER" },
     { id: "PartyTab", label: "PARTY" },
@@ -24,9 +44,9 @@ function InpaymentNew() {
     { id: "ItemTab", label: "ITEM" },
     { id: "CpcTab", label: "CPC" },
     { id: "SummaryTab", label: "SUMMARY" },
-    { id: "RefundTab", label: "AMEND", hidden: true },
-    { id: "AmendTab", label: "CANCEL", hidden: true },
-    { id: "CancelTab", label: "REFUND", hidden: true },
+    { id: "RefundTab", label: "REFUND", hidden: !isRfd },
+    { id: "AmendTab", label: "AMEND", hidden: !isAmd },
+    { id: "CancelTab", label: "CANCEL", hidden: !isCnl },
   ];
 
   const buttons_std = [
@@ -36,82 +56,116 @@ function InpaymentNew() {
   ];
 
   return (
-     <InpaymentProvider>
-    <div className="InpaymentNewStyles mt-5 container px-4">
-      <BackPage />
-      <SgTime />
-      <div className="top-level-tab-row g-0">
-        <section
-          className="NewBtnsContainer"
-          style={{ backgroundColor: "white", padding: "10px" }}
-        >
-          <div className="d-flex gap-2 flex-wrap">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                id={tab.id}
-                className={`NewBtns ${activeTab === tab.id ? "HeadTabStyleChange" : ""} ${tab.hidden ? "hidden" : ""}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+    <>
+      <InpaymentEditLoader
+        permitId={permitId}
+        isEditMode={isEditMode || isViewMode}
+      />
+      <div className="InpaymentNewStyles mt-5 container px-4">
+        {/* <BackPage /> */}
+        <SgTime />
+        <div className="top-level-tab-row g-0">
+          <section
+            className="NewBtnsContainer"
+            style={{ backgroundColor: "white", padding: "10px" }}
+          >
+            <div className="d-flex gap-2 flex-wrap">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  id={tab.id}
+                  className={`NewBtns ${activeTab === tab.id ? "HeadTabStyleChange" : ""} ${tab.hidden ? "hidden" : ""}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-          <div className="d-flex gap-2 flex-wrap ms-auto">
-            {buttons_std.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                id={tab.id}
-                className={`StdBtns  ${activeTab === tab.id ? "StdBtnActive" : ""} ${tab.hidden ? "hidden" : ""}`}
-                onClick={() => {
-                  if (tab.id === "ExitForm") {
-                    navigate(-1);
-                  } else {
-                    setActiveTab(tab.id);
-                  }
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          
-        </section>
+            <div className="d-flex gap-2 flex-wrap ms-auto">
+              {isViewMode ? (
+                <button
+                  type="button"
+                  className="StdBtns"
+                  onClick={() => window.close()}
+                >
+                  CLOSE
+                </button>
+              ) : (
+                buttons_std.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    id={tab.id}
+                    className={`StdBtns ${activeTab === tab.id ? "StdBtnActive" : ""} ${tab.hidden ? "hidden" : ""}`}
+                    onClick={() => {
+                      if (tab.id === "ExitForm") {
+                        navigate(-1);
+                      } else {
+                        setActiveTab(tab.id);
+                      }
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className={`tab-content ${isViewMode ? "view-mode" : ""}`}>
+          {activeTab === "HeaderTab" && (
+            <Header setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "PartyTab" && (
+            <Party setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "CargoTab" && (
+            <Cargo setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "InvoiceTab" && (
+            <Invoice setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "ItemTab" && (
+            <Item setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "CpcTab" && (
+            <Cpc setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "SummaryTab" && (
+            <Summary setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "AmendTab" && (
+            <Amend setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "RefundTab" && (
+            <Refund setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+          {activeTab === "CancelTab" && (
+            <Cancel setActiveTab={setActiveTab} isViewMode={isViewMode} />
+          )}
+        </div>
       </div>
-      <div className="tab-content">
-        {activeTab === "HeaderTab" && <Header setActiveTab={setActiveTab} />}
-        {activeTab === "PartyTab" && <Party setActiveTab={setActiveTab} />}
-        {activeTab === "CargoTab" && <Cargo setActiveTab={setActiveTab} />}
-        {activeTab === "InvoiceTab" && <Invoice setActiveTab={setActiveTab} />}
-        {activeTab === "ItemTab" && <Item setActiveTab={setActiveTab} />}
-        {activeTab === "CpcTab" && <Cpc setActiveTab={setActiveTab} />}
-        {activeTab === "SummaryTab" && <Summary setActiveTab={setActiveTab} />}
+    </>
+  );
+}
 
-        {activeTab === "RefundTab" && (
-          <div>
-            <h3>Amend</h3>
-            <p>Refund/Amend details go here.</p>
-          </div>
-        )}
-        {activeTab === "AmendTab" && (
-          <div>
-            <h3>Cancel</h3>
-            <p>Cancel details go here.</p>
-          </div>
-        )}
-        {activeTab === "CancelTab" && (
-          <div>
-            <h3>Refund</h3>
-            <p>Refund details go here.</p>
-          </div>
-        )}
+// ── Outer wrapper provides the context ───────────────────────────────────────
+function InpaymentNew() {
+  const { permitId } = useParams();
+  const location = useLocation();
+  const isViewMode = location.pathname.includes("/inpayment/view/");
+  const isEditMode = Boolean(permitId) && !isViewMode;
 
-
-      </div>
-    </div>
+  return (
+    <InpaymentProvider key={permitId || "new"}>
+      <InpaymentNewInner
+        permitId={permitId}
+        isEditMode={isEditMode}
+        isViewMode={isViewMode}
+      />
     </InpaymentProvider>
   );
 }

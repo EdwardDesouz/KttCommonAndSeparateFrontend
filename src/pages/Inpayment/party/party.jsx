@@ -1,15 +1,19 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef, useMemo } from "react";
 import { FaSearch, FaPlus } from "react-icons/fa";
 import { fetchPopupData, SearchPopup, currentPopup } from "./partyFunctions";
 import API from "../../../api/api";
+import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../userContex/userContex";
 import { useInpayment } from "../context/inpaymentContext";
+import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 
-function Party({ setActiveTab }) {
+function Party({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
-
+  const navigate = useNavigate();
   // Get global states and setters from context
   const {
+    permitDetails,
+    updatePermitDetails,
     importerCode,
     setImporterCode,
     importerCruei,
@@ -18,6 +22,10 @@ function Party({ setActiveTab }) {
     setImporterName,
     importerName1,
     setImporterName1,
+    showImporterCrueiError,
+    setShowImporterCrueiError,
+    showImporterNameError,
+    setShowImporterNameError,
     setInvoiceImporterCode,
     setInvoiceImporterCruei,
     setInvoiceImporterName,
@@ -34,6 +42,10 @@ function Party({ setActiveTab }) {
     setInwardName,
     inwardName1,
     setInwardName1,
+    showInwardCrueiError,
+    setShowInwardCrueiError,
+    showInwardNameError,
+    setShowInwardNameError,
     freightForwarderCode,
     setFreightForwarderCode,
     freightForwarderCruei,
@@ -54,59 +66,46 @@ function Party({ setActiveTab }) {
     setShowClaimantPartyShow,
     transportMode,
     setTransportMode,
+    // Apart from party page for save as draft mode
+    decType,
+    prevPermitNo,
+    cargo,
+    bgInd,
+    supplyInd,
+    refDocs,
+    declFor,
+    Licence,
+    Recipients,
+    showVoyageNumber,
+    voyageNumber,
+    showVesselName,
+    vesselName,
+    showOblNumber,
+    obl,
+    showconveyanceNumber,
+    conveyanceNumber,
+    showTransportDetails,
+    transportDetails,
+    showFlightNumber,
+    flightNumber,
+    showAirCraftRegNumber,
+    airCraftRegNumber,
+    showMawbNumber,
+    mawbNumber,
   } = useInpayment();
-  useEffect(() => {
-    console.log("Party Component -  State Changed:", {
-      importerCode,
-      importerCruei,
-      importerName,
-      importerName1,
-      inwardCode,
-      inwardCruei,
-      inwardName,
-      inwardName1,
-      freightForwarderCode,
-      freightForwarderCruei,
-      freightForwardName,
-      freightForwardName1,
-      claimantCode,
-      setClaimantCode,
-      claimantCruei,
-      setClaimantCruei,
-      claimantName,
-      setClaimantName,
-      claimantName1,
-      setClaimantName1,
-      showClaimantPartyShow,
-      setShowClaimantPartyShow,
-    });
-  }, [
-    importerCode,
-    importerCruei,
-    importerName,
-    importerName1,
-    inwardCode,
-    inwardCruei,
-    inwardName,
-    inwardName1,
-    freightForwarderCode,
-    freightForwarderCruei,
-    freightForwardName,
-    freightForwardName1,
-    claimantCode,
-    setClaimantCode,
-    claimantCruei,
-    setClaimantCruei,
-    claimantName,
-    setClaimantName,
-    claimantName1,
-    setClaimantName1,
-    showClaimantPartyShow,
-    setShowClaimantPartyShow,
-  ]);
 
-  // ===== States =====
-  // ui styles
+  useEffect(() => {
+    if (!permitDetails?.PermitId) {
+      const stored = sessionStorage.getItem("currentPermit");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        updatePermitDetails(parsed); // sync into context on page load
+      }
+    }
+  }, []);
+
+  //======= States   ==========
+  //======= Ui Styles==========
   const isSea = transportMode === "1 : Sea";
   const isAir = transportMode === "4 : Air";
 
@@ -155,6 +154,13 @@ function Party({ setActiveTab }) {
     if (!val) {
       setShowImporterDropdown(false);
       return;
+    }
+    if (!val) {
+      setShowImporterCrueiError(true);
+      setShowImporterNameError(true);
+    } else {
+      setShowImporterCrueiError(false);
+      setShowImporterNameError(false);
     }
 
     const filtered = importerSuggestions.filter((i) =>
@@ -865,6 +871,198 @@ function Party({ setActiveTab }) {
     setShowFreightForwarderDropdown(false);
     setShowClaimantDropdown(false);
   };
+
+  // =======================SAVE AS DRAFT MODEL===========================
+  // ===================== STATES =====================
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
+  const [draftReasonError, setDraftReasonError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAsDraftClick = () => {
+    setDraftReason("");
+    setDraftReasonError(false);
+    setShowDraftModal(true);
+  };
+
+  const handleCancelDraftModal = () => {
+    setShowDraftModal(false);
+    setDraftReason("");
+    setDraftReasonError(false);
+  };
+
+  const handleConfirmSaveAsDraft = async () => {
+    if (!draftReason.trim()) {
+      setDraftReasonError(true);
+      return;
+    }
+    setIsSaving(true);
+
+    try {
+      const TouchUser = (user?.username || "").toUpperCase();
+      const TouchTime = new Date().toISOString();
+      const payload = {
+        PermitId: permitDetails?.PermitId || "",
+        Refid: permitDetails?.RefId || "",
+        JobId: permitDetails?.JobId || "",
+        MSGId: permitDetails?.MsgId || "",
+        TradeNetMailboxID:
+          permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+        MessageType: "IPTDEC",
+
+        DeclarationType: decType,
+        PreviousPermit: prevPermitNo,
+        CargoPackType: cargo,
+        InwardTransportMode: transportMode,
+        BGIndicator: bgInd,
+        SupplyIndicator: supplyInd ? "true" : "false",
+        ReferenceDocuments: refDocs ? "true" : "false",
+        DeclarningFor: declFor,
+        License: Licence || "",
+        Recipient: Recipients || "",
+        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+        // party fields
+        ImporterCompanyCode: importerCode || "",
+        InwardCarrierAgentCode: inwardCode || "",
+        FreightForwarderCode: freightForwarderCode || "",
+        ClaimantPartyCode: claimantCode || "",
+
+        // Transport fields
+        VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+        VesselName: showVesselName ? vesselName || "" : "",
+        OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+        ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+        TransportId: showTransportDetails ? transportDetails || "" : "",
+        FlightNO: showFlightNumber ? flightNumber || "" : "",
+        AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+        MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+        //
+        Message: draftReason.trim().toUpperCase(),
+        Status: "SAVEASDRF",
+        prmtStatus: "SAVEASDRF",
+        TouchUser,
+        TouchTime,
+        ArrivalDate: null,
+        BlanketStartDate: null,
+        MRDate: null,
+        MRTime: "",
+      };
+      console.log("payload:", payload);
+      const response = await API.post("/postCommonHeaderTable/", [payload]);
+
+      if (response?.data) {
+        const updatedPermit = {
+          ...permitDetails,
+          JobId: response.data.JobId || permitDetails?.JobId,
+          MsgId: response.data.MSGId || permitDetails?.MsgId,
+        };
+        updatePermitDetails(updatedPermit);
+        sessionStorage.setItem("currentPermit", JSON.stringify(updatedPermit));
+
+        setShowDraftModal(false);
+        setDraftReason("");
+        setDraftReasonError(false);
+
+        alert("Draft Saved Successfully!");
+        navigate("/inpayment");
+      }
+    } catch (err) {
+      console.error("SAVE AS DRAFT ERROR:", err);
+      console.error("ERROR RESPONSE DATA:", err.response?.data);
+      alert("Error saving draft. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // =====================Auto save every filling Details===================
+  // const autoSavePayload = useMemo(() => {
+  //   if (!permitDetails?.PermitId) return null;
+  //   return {
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     Refid: permitDetails?.RefId || "",
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     TradeNetMailboxID:
+  //       permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     DeclarningFor: declFor || "",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     // party fields
+  //     ImporterCompanyCode: importerCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+  //     // transport fields
+  //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+  //     VesselName: showVesselName ? vesselName || "" : "",
+  //     OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+  //     ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: showFlightNumber ? flightNumber || "" : "",
+  //     AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+  //     MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+  //     Status: "DISCONNECT",
+  //     prmtStatus: "DISCONNECT",
+  //     TouchUser: (user?.username || "").toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Message: "AUTO-SAVED|TAB:PartyPage",
+  //     ArrivalDate: null,
+  //     BlanketStartDate: null,
+  //     MRDate: null,
+  //     MRTime: "",
+  //   };
+  // }, [
+  //   permitDetails,
+  //   decType,
+  //   prevPermitNo,
+  //   cargo,
+  //   transportMode,
+  //   bgInd,
+  //   supplyInd,
+  //   refDocs,
+  //   declFor,
+  //   Licence,
+  //   Recipients,
+  //   // Party page Reamainig
+  //   importerCode,
+  //   inwardCode,
+  //   freightForwarderCode,
+  //   claimantCode,
+  //   // Cargo Page & Remaining
+  //   voyageNumber,
+  //   vesselName,
+  //   obl,
+  //   conveyanceNumber,
+  //   transportDetails,
+  //   flightNumber,
+  //   airCraftRegNumber,
+  //   mawbNumber,
+  //   showVoyageNumber,
+  //   showVesselName,
+  //   showOblNumber,
+  //   showconveyanceNumber,
+  //   showTransportDetails,
+  //   showFlightNumber,
+  //   showAirCraftRegNumber,
+  //   showMawbNumber,
+  //   user,
+  // ]);
+
+  // useDebounceAutoSave({
+  //   payload: autoSavePayload,
+  //   enabled: !isViewMode,
+  //   delay: 2000,
+  // });
   // ------------------------------UI---------------------
   return (
     <div className="row g-2">
@@ -874,16 +1072,33 @@ function Party({ setActiveTab }) {
           <label className="col-sm-2 col-form-label">DECLARANT COMPANY</label>
           <div className="col-sm-1"></div>
           <div className="col-sm-1">
-            <input className="form-control" value="headdata" disabled />
+            <input
+              className="form-control"
+              value={permitDetails?.Code || ""}
+              readOnly
+            />
           </div>
           <div className="col-sm-2">
-            <input className="form-control" value="headCrueiNo" disabled />
+            <input
+              className="form-control"
+              value={permitDetails?.CRUEI || ""}
+              readOnly
+            />
           </div>
           <div className="col-sm-3">
-            <input className="form-control" value="headname" disabled />
+            <input
+              className="form-control"
+              value={permitDetails?.name || ""}
+              readOnly
+            />
           </div>
           <div className="col-sm-3">
-            <input className="form-control" value="headname1" disabled />
+            <input
+              className="form-control"
+              placeholder="Name1"
+              value={permitDetails?.name1 || ""}
+              readOnly
+            />
           </div>
         </div>
 
@@ -943,7 +1158,11 @@ function Party({ setActiveTab }) {
               value={importer?.CRUEI || importerCruei || ""}
               onChange={(e) => setImporterCruei(e.target.value)}
             />
+            {showImporterCrueiError && (
+              <span className="ErrorColor">CRUEI is required</span>
+            )}
           </div>
+
           <div className="col-sm-3">
             <input
               id="importerName"
@@ -952,6 +1171,9 @@ function Party({ setActiveTab }) {
               value={importer?.Name || importerName || ""}
               onChange={(e) => setImporterName(e.target.value)}
             />
+            {showImporterNameError && (
+              <span className="ErrorColor">Name is required</span>
+            )}
           </div>
           <div className="col-sm-3">
             <input
@@ -1025,8 +1247,13 @@ function Party({ setActiveTab }) {
               }
               placeholder="CRUEI"
               value={inwardAgent?.CRUEI || inwardCruei || ""}
-              onChange={(e) => setInwardCruei(e.target.value)}
+              onChange={(e) => {
+                setInwardCruei(e.target.value);
+              }}
             />
+            {showInwardCrueiError && (
+              <span className="ErrorColor">CRUEI is required</span>
+            )}
           </div>
           <div className="col-sm-3">
             <input
@@ -1266,7 +1493,15 @@ function Party({ setActiveTab }) {
         {/* Navigation Buttons */}
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
-            className="NextpageBtns"
+            className="NextpageBtns view-nav-btn"
+            tabIndex="17"
+            id="PartySaveDraft"
+            onClick={handleSaveAsDraftClick}
+          >
+            SAVE AS DRAFT
+          </button>
+          <button
+            className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("HeaderTab")}
           >
             PREVIOUS
@@ -1277,12 +1512,191 @@ function Party({ setActiveTab }) {
             </button>
           )}
           <button
-            className="NextpageBtns"
+            className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
           >
             NEXT
           </button>
         </div>
+        {showDraftModal && (
+          <>
+            {/* Backdrop */}
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1040,
+              }}
+              onClick={handleCancelDraftModal}
+            />
+            {/* Modal */}
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                zIndex: 1050,
+                width: "460px",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  backgroundColor: "#1a6db5",
+                  color: "#fff",
+                  padding: "14px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  SAVE AS DRAFT
+                </span>
+                <span
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={handleCancelDraftModal}
+                >
+                  ✕
+                </span>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "24px 24px 16px 24px" }}>
+                <div
+                  style={{
+                    backgroundColor: "#fff8e1",
+                    border: "1px solid #ffe082",
+                    borderRadius: "6px",
+                    padding: "10px 14px",
+                    marginBottom: "18px",
+                    fontSize: "13px",
+                    color: "#7b5800",
+                  }}
+                >
+                  This permit will be saved as <strong>DRAFT (DRF)</strong>. You
+                  can continue filling the remaining details later.
+                </div>
+
+                <label
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    marginBottom: "6px",
+                    display: "block",
+                    color: "#333",
+                  }}
+                >
+                  WHY ARE YOU SAVING AS DRAFT?{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </label>
+
+                <textarea
+                  rows={4}
+                  className="form-control"
+                  value={draftReason}
+                  onChange={(e) => {
+                    setDraftReason(e.target.value);
+                    if (e.target.value.trim()) setDraftReasonError(false);
+                  }}
+                  style={{
+                    resize: "vertical",
+                    fontSize: "13px",
+                    border: draftReasonError
+                      ? "1px solid red"
+                      : "1px solid #ced4da",
+                    borderRadius: "4px",
+                    padding: "8px",
+                    width: "100%",
+                  }}
+                  autoFocus
+                />
+
+                {draftReasonError && (
+                  <span
+                    style={{
+                      color: "red",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Please provide a reason before saving as draft.
+                  </span>
+                )}
+
+                <div
+                  style={{
+                    textAlign: "right",
+                    fontSize: "11px",
+                    color: draftReason.length > 200 ? "red" : "#888",
+                    marginTop: "4px",
+                  }}
+                >
+                  {draftReason.length} / 200
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "12px 24px 20px 24px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  className="NextpageBtns"
+                  onClick={handleCancelDraftModal}
+                  disabled={isSaving}
+                  style={{
+                    backgroundColor: "#6c757d",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  CANCEL
+                </button>
+
+                <button
+                  className="NextpageBtns"
+                  onClick={handleConfirmSaveAsDraft}
+                  disabled={isSaving || draftReason.length > 200}
+                  style={{
+                    backgroundColor: isSaving ? "#90caf9" : "#1a6db5",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: isSaving ? "not-allowed" : "pointer",
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isSaving ? "SAVING..." : "💾 SAVE AS DRAFT"}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Popup */}

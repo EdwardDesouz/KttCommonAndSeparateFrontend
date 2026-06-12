@@ -1,11 +1,14 @@
-import { useEffect, useState, useRef, useContext } from "react";
+import { useEffect, useState, useRef, useContext, useMemo } from "react";
 import API from "../../../api/api";
+import { useNavigate } from "react-router-dom";
 import { useInpayment } from "../context/inpaymentContext";
 import { UserContext } from "../../../userContex/userContex";
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 
-function Header({ setActiveTab }) {
+function Header({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
   // Saved Options States
   const [declarantType, setDeclarantType] = useState([]);
   const [cargoType, setCargoType] = useState([]);
@@ -13,9 +16,11 @@ function Header({ setActiveTab }) {
   const [declaringFor, setDeclaringFor] = useState([]);
   const [bgIndicator, setBgIndicator] = useState([]);
   const [documentAttachType, setDocumentAttachType] = useState([]);
-
+  const [permitConditions, setPermitConditions] = useState(null);
   // User Context States
   const {
+    permitDetails,
+    updatePermitDetails,
     decType,
     setDecType,
     prevPermitNo,
@@ -86,8 +91,11 @@ function Header({ setActiveTab }) {
     showNotRequired,
     setShowNotRequired,
     setVoyageNumber,
+    voyageNumber,
     setVesselName,
+    vesselName,
     setObl,
+    obl,
     conveyanceNumber,
     setConveyanceNumber,
     transportDetails,
@@ -98,40 +106,25 @@ function Header({ setActiveTab }) {
     setAirCraftRegNumber,
     mawbNumber,
     setMawbNumber,
+    showDeclarationTypeError,
+    setShowDeclarationTypeError,
+    showCargoPackTypeError,
+    setShowCargoPackTypeError,
+    showDeclaringForError,
+    setShowDeclaringForError,
+    setShowInwardTransportError,
+    showInwardTransportError,
   } = useInpayment();
 
   useEffect(() => {
-    console.log("=== INPAYMENT CONTEXT UPDATED ===");
-    console.log("decType:", decType);
-    console.log("prevPermitNo:", prevPermitNo);
-    console.log("cargo:", cargo);
-    console.log("transportMode:", transportMode);
-    console.log("declFor:", declFor);
-    console.log("bgInd:", bgInd);
-    console.log("overrideEx:", overrideEx);
-    console.log("supplyInd:", supplyInd);
-    console.log("refDocs:", refDocs);
-    console.log("Licence:", Licence);
-    console.log("Recipients:", Recipients);
-    console.log("uploadedFiles:", uploadedFiles);
-    console.log("selectedFile:", selectedFile);
-    console.log("documentType:", documentType);
-  }, [
-    decType,
-    prevPermitNo,
-    cargo,
-    transportMode,
-    declFor,
-    bgInd,
-    overrideEx,
-    supplyInd,
-    refDocs,
-    Licence,
-    Recipients,
-    uploadedFiles,
-    selectedFile,
-    documentType,
-  ]);
+    if (!permitDetails?.PermitId) {
+      const stored = sessionStorage.getItem("currentPermit");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        updatePermitDetails(parsed);
+      }
+    }
+  }, []);
 
   // fetch declaration type
   const fetchDeclarationTypeData = async () => {
@@ -197,6 +190,18 @@ function Header({ setActiveTab }) {
     }
   };
 
+  const fetchPermitConditions = async (permitId) => {
+    try {
+      const response = await API.get(
+        `/getPermitConditions/?PermitId=${permitId}`,
+      );
+      setPermitConditions(response.data);
+    } catch (error) {
+      console.error("Error fetching permit conditions:", error);
+    }
+  };
+
+  // This useeffect for calling api's
   useEffect(() => {
     fetchDeclarationTypeData();
     fetchCargoTypeData();
@@ -214,6 +219,11 @@ function Header({ setActiveTab }) {
     console.log("Selected Declaration Type:", value);
     setShowInwardTransport(true);
     setShowClaimantPartyShow(false);
+    if (value === "--Select--") {
+      setShowDeclarationTypeError(true);
+    } else {
+      setShowDeclarationTypeError(false);
+    }
     if (
       value === "BKT : Blanket" ||
       value === "GST : GST (Including Duty Exemption)"
@@ -225,24 +235,35 @@ function Header({ setActiveTab }) {
       }
     }
   };
+
   // ==================== Handle Cargo Pack Type Change =================
   const CargoPackTypeChange = (e) => {
     const value = e.target.value;
     setCargo(value);
     console.log("Selected Cargo Pack Type:", value);
+    if (value === "--Select--") {
+      setShowCargoPackTypeError(true);
+    } else {
+      setShowCargoPackTypeError(false);
+    }
     if (value === "9: Containerized") {
       setShowCargoType(true);
     } else {
       setShowCargoType(false);
     }
   };
+
   // ==================== Handle Inward Transport Mode Change =================
   const InwardTrasnPortModeChange = (e) => {
     const value = e.target.value;
     setTransportMode(value);
     setInwardTransport(value);
+    if (value === "--Select--") {
+      setShowInwardTransportError(true);
+    } else {
+      setShowInwardTransportError(false);
+    }
     console.log("Selected Inward Transport Mode:", value);
-
     setVoyageNumber("");
     setVesselName("");
     setObl("");
@@ -251,7 +272,6 @@ function Header({ setActiveTab }) {
     setFlightNumber("");
     setAirCraftRegNumber("");
     setMawbNumber("");
-
     setShowInwardTransport(true);
     setShowVoyageNumber(false);
     setShowVesselName(false);
@@ -295,9 +315,11 @@ function Header({ setActiveTab }) {
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
   };
+
   const handleDocTypeChange = (e) => {
     setDocumentType(e.target.value);
   };
+
   const handleAttach = async () => {
     if (!selectedFile || !documentType) {
       alert("Please select file and document type");
@@ -305,7 +327,7 @@ function Header({ setActiveTab }) {
     }
     try {
       const MSGID = "IPTDEC";
-      const PermitId = "PERMIT104";
+      const PermitId = permitDetails?.PermitId;
       const UserName = (user?.username || "").toUpperCase();
       const file = selectedFile;
       let fileName = file.name.split(".")[0];
@@ -313,7 +335,7 @@ function Header({ setActiveTab }) {
       fileName = fileName + MSGID + UserName;
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("Sno", uploadedFiles.length + 1); // auto increment
+      formData.append("Sno", uploadedFiles.length + 1);
       formData.append("Name", fileName);
       formData.append("ContentType", file.type);
       formData.append("DocumentType", documentType);
@@ -338,14 +360,215 @@ function Header({ setActiveTab }) {
 
   const handleDelete = async (sno) => {
     try {
-      const PermitId = "PERMIT104";
+      const PermitId = permitDetails?.PermitId;
       const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
       setUploadedFiles(res.data.Records);
+      alert("File Deleted Successfully");
     } catch (err) {
       console.error("DELETE ERROR:", err);
     }
   };
 
+  // =====================SAVE AS DRAFT MODEL================
+  // ===================== STATES =====================
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
+  const [draftReasonError, setDraftReasonError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // ===================== OPEN MODAL ONLY =====================
+  const handleSaveAsDraftClick = () => {
+    setDraftReason("");
+    setDraftReasonError(false);
+    setShowDraftModal(true);
+  };
+
+  // formatdate for saving
+  const formatDate = (dateStr) => {
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  // ===================== CANCEL MODAL =====================
+  const handleCancelDraftModal = () => {
+    setShowDraftModal(false);
+    setDraftReason("");
+    setDraftReasonError(false);
+  };
+
+  // ===================== ACTUAL SAVE (after filling reason) =====================
+  const handleConfirmSaveAsDraft = async () => {
+    if (!draftReason.trim()) {
+      setDraftReasonError(true);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const TouchUser = (user?.username || "").toUpperCase();
+      const TouchTime = new Date().toISOString();
+
+      const payload = {
+        PermitId: permitDetails?.PermitId || "",
+        Refid: permitDetails?.RefId || "",
+        JobId: permitDetails?.JobId || "",
+        MSGId: permitDetails?.MsgId || "",
+        TradeNetMailboxID:
+          permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+        MessageType: "IPTDEC",
+
+        DeclarationType: decType,
+        PreviousPermit: prevPermitNo,
+        CargoPackType: cargo,
+        InwardTransportMode: transportMode,
+        BGIndicator: bgInd,
+        SupplyIndicator: supplyInd ? "true" : "false",
+        ReferenceDocuments: refDocs ? "true" : "false",
+        DeclarningFor: declFor,
+        License: [licence1, licence2, licence3, licence4, licence5]
+          .filter(Boolean)
+          .join(","),
+        Recipient: [recipients1, recipients2, recipients3]
+          .filter(Boolean)
+          .join(","),
+        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+        Message: draftReason.trim().toUpperCase(),
+        Status: "SAVEASDRF",
+        prmtStatus: "SAVEASDRF",
+        TouchUser,
+        TouchTime,
+        VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+        VesselName: showVesselName ? vesselName || "" : "",
+        OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+        ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+        TransportId: showTransportDetails ? transportDetails || "" : "",
+        FlightNO: showFlightNumber ? flightNumber || "" : "",
+        AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+        MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+        ArrivalDate: null,
+        BlanketStartDate: null,
+        MRDate: null,
+        MRTime: "",
+      };
+      console.log("payload:", payload);
+      const response = await API.post("/postCommonHeaderTable/", [payload]);
+
+      if (response?.data) {
+        const updatedPermit = {
+          ...permitDetails,
+          JobId: response.data.JobId || permitDetails?.JobId,
+          MsgId: response.data.MSGId || permitDetails?.MsgId,
+        };
+        updatePermitDetails(updatedPermit);
+        sessionStorage.setItem("currentPermit", JSON.stringify(updatedPermit));
+
+        setShowDraftModal(false);
+        setDraftReason("");
+        setDraftReasonError(false);
+
+        alert("Draft Saved Successfully!");
+        navigate("/inpayment");
+      }
+    } catch (err) {
+      console.error("SAVE AS DRAFT ERROR:", err);
+      console.error("ERROR RESPONSE DATA:", err.response?.data);
+      alert("Error saving draft. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // // =====================Auto save every filling Details====================================
+  // const autoSavePayload = useMemo(() => {
+  //   if (!permitDetails?.PermitId) return null;
+  //   return {
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     Refid: permitDetails?.RefId || "",
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     TradeNetMailboxID:
+  //       permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     DeclarningFor: declFor || "",
+  //     License: [licence1, licence2, licence3, licence4, licence5]
+  //       .filter(Boolean)
+  //       .join(","),
+  //     Recipient: [recipients1, recipients2, recipients3]
+  //       .filter(Boolean)
+  //       .join(","),
+  //     // party fields  
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+  //     VesselName: showVesselName ? vesselName || "" : "",
+  //     OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+  //     ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: showFlightNumber ? flightNumber || "" : "",
+  //     AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+  //     MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+  //     Status: "DISCONNECT",
+  //     prmtStatus: "DISCONNECT",
+  //     TouchUser: (user?.username || "").toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Message: "AUTO-SAVED|TAB:HeaderPage",
+  //     ArrivalDate: null,
+  //     BlanketStartDate: null,
+  //     MRDate: null,
+  //     MRTime: "",
+  //   };
+  // }, [
+  //   permitDetails,
+  //   decType,
+  //   prevPermitNo,
+  //   cargo,
+  //   transportMode,
+  //   bgInd,
+  //   supplyInd,
+  //   refDocs,
+  //   declFor,
+  //   licence1,
+  //   licence2,
+  //   licence3,
+  //   licence4,
+  //   licence5,
+  //   recipients1,
+  //   recipients2,
+  //   recipients3,
+  //   voyageNumber,
+  //   vesselName,
+  //   obl,
+  //   conveyanceNumber,
+  //   transportDetails,
+  //   flightNumber,
+  //   airCraftRegNumber,
+  //   mawbNumber,
+  //   showVoyageNumber,
+  //   showVesselName,
+  //   showOblNumber,
+  //   showconveyanceNumber,
+  //   showTransportDetails,
+  //   showFlightNumber,
+  //   showAirCraftRegNumber,
+  //   showMawbNumber,
+  //   user,
+  // ]);
+
+  // useDebounceAutoSave({
+  //   payload: autoSavePayload,
+  //   enabled: !isViewMode,
+  //   delay: 2000,
+  // });
   // ====================UI==================================
   return (
     <div className="row g-2">
@@ -371,7 +594,7 @@ function Header({ setActiveTab }) {
             <select
               className="Dropdown HighLight mandatory"
               id="declarationType"
-              tabindex="1"
+              tabIndex="1"
               value={decType}
               // onChange={(e) => setDecType(e.target.value)}
               onChange={DeclarationChange}
@@ -383,13 +606,11 @@ function Header({ setActiveTab }) {
                 </option>
               ))}
             </select>
-            <span
-              className="ErrorColor"
-              style={{ display: "none" }}
-              id="declarationTypeSpan"
-            >
-              PLEASE CHOOSE DECLARATION TYPE
-            </span>
+            {showDeclarationTypeError && (
+              <span className="ErrorColor" id="declarationTypeSpan">
+                PLEASE CHOOSE DECLARATION TYPE
+              </span>
+            )}
           </div>
         </div>
 
@@ -400,7 +621,7 @@ function Header({ setActiveTab }) {
             <input
               type="text"
               className="form-control"
-              tabindex="2"
+              tabIndex="2"
               value={prevPermitNo}
               onChange={(e) => setPrevPermitNo(e.target.value)}
             />
@@ -413,7 +634,7 @@ function Header({ setActiveTab }) {
           <div className="col-sm-8">
             <select
               className="Dropdown HighLight mandatory"
-              tabindex="3"
+              tabIndex="3"
               value={cargo}
               onChange={CargoPackTypeChange}
             >
@@ -424,13 +645,9 @@ function Header({ setActiveTab }) {
                 </option>
               ))}
             </select>
-            <span
-              className="ErrorColor"
-              style={{ display: "none" }}
-              id="CargoPackTypeSpan"
-            >
-              PLEASE CHOOSE CARGO PACK TYPE
-            </span>
+            {showCargoPackTypeError && (
+              <span className="ErrorColor">PLEASE CHOOSE CARGO PACK TYPE</span>
+            )}
           </div>
         </div>
 
@@ -440,7 +657,7 @@ function Header({ setActiveTab }) {
             className="row align-items-center compact-row"
             id="InwardTransportModeShowHide"
           >
-            <label className="col-sm-4 col-form-label">INWARD TRANSPORT</label>
+            <label className="col-sm-4 col-form-label">INWARD TRANSPORT MODE</label>
             <div className="col-sm-8">
               <select
                 className="Dropdown HighLight mandatory"
@@ -458,13 +675,11 @@ function Header({ setActiveTab }) {
                   </option>
                 ))}
               </select>
-              <span
-                className="ErrorColor"
-                style={{ display: "none" }}
-                id="inwardTranseportModeSpan"
-              >
-                PLEASE CHOOSE INWARD TRANSPORT MODE
-              </span>
+              {showInwardTransportError && (
+                <span className="ErrorColor" id="inwardTranseportModeSpan">
+                  PLEASE CHOOSE INWARD TRANSPORT MODE
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -476,8 +691,11 @@ function Header({ setActiveTab }) {
             <select
               className="Dropdown HighLight mandatory"
               value={declFor}
-              onChange={(e) => setDeclFor(e.target.value)}
-              tabindex="5"
+              onChange={(e) => {
+                setDeclFor(e.target.value);
+                if (e.target.value) setShowDeclaringForError(false);
+              }}
+              tabIndex="5"
             >
               <option value="">--Select--</option>
               {declaringFor.map((dclrfor) => (
@@ -486,13 +704,11 @@ function Header({ setActiveTab }) {
                 </option>
               ))}
             </select>
-            <span
-              className="ErrorColor"
-              style={{ display: "none" }}
-              id="DeclaringForSpan"
-            >
-              PLEASE CHOOSE DECLARING FOR
-            </span>
+            {showDeclaringForError && (
+              <span className="ErrorColor" id="DeclaringForSpan">
+                PLEASE CHOOSE DECLARING FOR
+              </span>
+            )}
           </div>
         </div>
 
@@ -504,7 +720,7 @@ function Header({ setActiveTab }) {
               className="Dropdown HighLight"
               value={bgInd}
               onChange={(e) => setBgInd(e.target.value)}
-              tabindex="6"
+              tabIndex="6"
             >
               <option value="">--Select--</option>
               {bgIndicator.map((bgindr) => (
@@ -525,7 +741,7 @@ function Header({ setActiveTab }) {
               className="form-check-input"
               checked={overrideEx}
               onChange={(e) => setOverrideEx(e.target.checked)}
-              tabindex="7"
+              tabIndex="7"
             />
           </div>
         </div>
@@ -539,7 +755,7 @@ function Header({ setActiveTab }) {
               className="form-check-input"
               checked={supplyInd}
               onChange={(e) => setSupplyInd(e.target.checked)}
-              tabindex="8"
+              tabIndex="8"
             />
           </div>
         </div>
@@ -552,7 +768,7 @@ function Header({ setActiveTab }) {
               type="checkbox"
               className="form-check-input"
               id="ReferenceDocuments"
-              tabindex="9"
+              tabIndex="9"
               checked={refDocs}
               onChange={(e) => setRefDocs(e.target.checked)}
             />
@@ -563,50 +779,79 @@ function Header({ setActiveTab }) {
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">PERMIT ID</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="PermitID" value="PermitId" />
+            <input
+              className="form-control"
+              value={permitDetails?.PermitId || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">USER NAME</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="USERNAME" value="UserName" />
+            <input
+              className="form-control"
+              id="USERNAME"
+              value={user?.username?.toUpperCase() || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">MSG ID</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="MSGID" value="MsgId" />
+            <input
+              className="form-control"
+              id="MSGID"
+              value={permitDetails?.MsgId || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">JOB ID</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="JOBID" value="JobId" />
+            <input
+              className="form-control"
+              id="JOBID"
+              value={permitDetails?.JobId || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">REF ID</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="REFID" value="REFID" />
+            <input
+              className="form-control"
+              id="REFID"
+              value={permitDetails?.RefId || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">PERMIT NUMBER</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="PermitNumberId" value="" />
+            <input
+              className="form-control"
+              id="PermitNumberId"
+              value={permitDetails?.PermitNumber || ""}
+              readOnly
+            />
           </div>
         </div>
         <div className="row align-items-center compact-row DisableClass">
           <label className="col-sm-4 col-form-label">SHOW EDIT</label>
           <div className="col-sm-8 form-check">
-            <input className="form-control" id="ShowEdit" value="SHOW" />
+            <input className="form-control" id="ShowEdit" />
           </div>
         </div>
         {/* -----------------------------------------------------DisableClass------------------------------------------------------- */}
         {/* LICENSE SECTION */}
         {refDocs && (
           <fieldset>
-            <div className="row mt-2 col-12">
+            <div className="row mt-4 col-12">
               <h5 className="mt-3 border-bottom pb-2 full-width-title">
                 LICENSE
               </h5>
@@ -688,8 +933,8 @@ function Header({ setActiveTab }) {
               type="text"
               id="MailBoxId"
               className="form-control form-control-sm"
-              value="headmailId"
-              disabled
+              value={permitDetails?.MailBoxId || ""}
+              readOnly
             />
           </div>
         </div>
@@ -702,8 +947,8 @@ function Header({ setActiveTab }) {
               type="text"
               id="DeclarantName"
               className="form-control form-control-sm"
-              value="headdeclarantName"
-              disabled
+              value={permitDetails?.DeclarantName || ""}
+              readOnly
             />
           </div>
         </div>
@@ -716,8 +961,8 @@ function Header({ setActiveTab }) {
               type="text"
               id="DeclarantCode"
               className="form-control form-control-sm"
-              value="headdeclarantCode"
-              disabled
+              value={permitDetails?.DeclarantCode || ""}
+              readOnly
             />
           </div>
         </div>
@@ -730,8 +975,8 @@ function Header({ setActiveTab }) {
               type="text"
               id="DeclarantTelePhone"
               className="form-control form-control-sm"
-              value="headdeclarantTelephone"
-              disabled
+              value={permitDetails?.DeclarantTel || ""}
+              readOnly
             />
           </div>
         </div>
@@ -744,8 +989,8 @@ function Header({ setActiveTab }) {
               id="CrueiNo"
               type="text"
               className="form-control form-control-sm"
-              value="headCrueiNo"
-              disabled
+              value={permitDetails?.CRUEI || ""}
+              readOnly
             />
           </div>
         </div>
@@ -793,7 +1038,7 @@ function Header({ setActiveTab }) {
         {/* ATTACHMENT DOCUMENT */}
         {refDocs && (
           <fieldset>
-            <div className="mt-5">
+            <div className="mt-1">
               <h5 className="border-bottom pb-2 full-width-title">
                 ATTACHMENT DOCUMENT
               </h5>
@@ -866,7 +1111,7 @@ function Header({ setActiveTab }) {
 
                             <td>
                               <a
-                                href={`http://localhost:8000/${file.filePath}`}
+                                href={`${API.defaults.baseURL}/serveFile/?path=${encodeURIComponent(file.filePath)}`}
                                 target="_blank"
                                 rel="noreferrer"
                               >
@@ -887,17 +1132,380 @@ function Header({ setActiveTab }) {
         )}
       </div>
       {/* BOTTOM BUTTONS */}
+
+      {isViewMode && permitConditions && (
+        <div className="col-12 mt-3">
+          {/* Blue header bar */}
+          <div>PERMIT CONDITIONS</div>
+
+          {/* Yellow info grid */}
+          <div>
+            <div
+              className="row"
+              style={{ fontSize: "13px", color: "#b00020", fontWeight: "600" }}
+            >
+              <div className="col-4 mb-1">
+                PERMIT NO : {permitConditions.PermitNo || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                VALIDITY PERIOD : {permitConditions.ValidityPeriod || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                PERMIT APPROVED DATE :{" "}
+                {permitConditions.PermitApprovedDate || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                JOB ID : {permitConditions.JobId || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                MSG ID : {permitConditions.MsgId || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                DEC DATE : {permitConditions.DecDate || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                SUBMITTED BY : {permitConditions.SubmittedBy || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                STATUS : {permitConditions.Status || "-"}
+              </div>
+              <div className="col-4 mb-1">
+                TRANSMIT USER : {permitConditions.TransmitUser || ""}
+              </div>
+              <div className="col-4 mb-1">
+                CREATED BY : {permitConditions.CreatedBy || "-"}
+              </div>
+            </div>
+          </div>
+
+          {/* Spacer row */}
+          <div
+            style={{
+              background: "#fffde7",
+              padding: "10px",
+              border: "1px solid #e0d89c",
+              borderTop: "none",
+            }}
+          />
+
+          {/* Conditional table */}
+          {permitConditions.Status === "ERR" ? (
+            <table
+              className="table table-bordered mb-0"
+              style={{
+                fontSize: "12px",
+                borderRadius: "0 0 4px 4px",
+                overflow: "hidden",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                      width: "80px",
+                    }}
+                  >
+                    SNO
+                  </th>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                      width: "180px",
+                    }}
+                  >
+                    ERRORCODE
+                  </th>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                    }}
+                  >
+                    DESCRIPTION
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(permitConditions.Records || []).map((rec, idx) => (
+                  <tr key={idx} style={{ background: "#fffde7" }}>
+                    <td style={{ border: "1px solid #e0d89c" }}>
+                      {rec.Sno ?? idx + 1}
+                    </td>
+                    <td style={{ border: "1px solid #e0d89c" }}>
+                      {rec.ErrorCode}
+                    </td>
+                    <td style={{ border: "1px solid #e0d89c" }}>
+                      {rec.Description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <table
+              className="table table-bordered mb-0"
+              style={{
+                fontSize: "12px",
+                borderRadius: "0 0 4px 4px",
+                overflow: "hidden",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                      width: "80px",
+                    }}
+                  >
+                    SNO
+                  </th>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                      width: "180px",
+                    }}
+                  >
+                    CODE
+                  </th>
+                  <th
+                    style={{
+                      background: "#1a6db5",
+                      color: "white",
+                      border: "1px solid #1565a8",
+                    }}
+                  >
+                    DESCRIPTION
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(permitConditions.Records || []).map((rec, idx) => (
+                  <tr key={idx} style={{ background: "#fffde7" }}>
+                    <td style={{ border: "1px solid #e0d89c" }}>
+                      {rec.Sno ?? idx + 1}
+                    </td>
+                    <td style={{ border: "1px solid #e0d89c" }}>{rec.Code}</td>
+                    <td style={{ border: "1px solid #e0d89c" }}>
+                      {rec.Description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ===================== SAVE AS DRAFT MODAL ===================== */}
+
       <div className="mt-3 d-flex justify-content-center gap-3">
-        <button className="NextpageBtns">RESET</button>
         <button
-          className="NextpageBtns"
-          tabindex="17"
+          className="NextpageBtns view-nav-btn"
+          tabIndex="17"
+          id="HeaderSaveDraft"
+          onClick={handleSaveAsDraftClick}
+        >
+          SAVE AS DRAFT
+        </button>
+        <button
+          className="NextpageBtns view-nav-btn"
+          tabIndex="18"
           id="HeaderNext"
           onClick={() => setActiveTab("PartyTab")}
         >
           NEXT
         </button>
       </div>
+      {showDraftModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 1040,
+            }}
+            onClick={handleCancelDraftModal}
+          />
+          {/* Modal */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              zIndex: 1050,
+              width: "460px",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                backgroundColor: "#1a6db5",
+                color: "#fff",
+                padding: "14px 20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                SAVE AS DRAFT
+              </span>
+              <span
+                style={{
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                }}
+                onClick={handleCancelDraftModal}
+              >
+                ✕
+              </span>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "24px 24px 16px 24px" }}>
+              <div
+                style={{
+                  backgroundColor: "#fff8e1",
+                  border: "1px solid #ffe082",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
+                  marginBottom: "18px",
+                  fontSize: "13px",
+                  color: "#7b5800",
+                }}
+              >
+                This permit will be saved as <strong>DRAFT (DRF)</strong>. You
+                can continue filling the remaining details later.
+              </div>
+
+              <label
+                style={{
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  marginBottom: "6px",
+                  display: "block",
+                  color: "#333",
+                }}
+              >
+                WHY ARE YOU SAVING AS DRAFT?{" "}
+                <span style={{ color: "red" }}>*</span>
+              </label>
+
+              <textarea
+                rows={4}
+                className="form-control"
+                value={draftReason}
+                onChange={(e) => {
+                  setDraftReason(e.target.value);
+                  if (e.target.value.trim()) setDraftReasonError(false);
+                }}
+                style={{
+                  resize: "vertical",
+                  fontSize: "13px",
+                  border: draftReasonError
+                    ? "1px solid red"
+                    : "1px solid #ced4da",
+                  borderRadius: "4px",
+                  padding: "8px",
+                  width: "100%",
+                }}
+                autoFocus
+              />
+
+              {draftReasonError && (
+                <span
+                  style={{
+                    color: "red",
+                    fontSize: "12px",
+                    marginTop: "4px",
+                    display: "block",
+                  }}
+                >
+                  Please provide a reason before saving as draft.
+                </span>
+              )}
+
+              <div
+                style={{
+                  textAlign: "right",
+                  fontSize: "11px",
+                  color: draftReason.length > 200 ? "red" : "#888",
+                  marginTop: "4px",
+                }}
+              >
+                {draftReason.length} / 200
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "12px 24px 20px 24px",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                className="NextpageBtns"
+                onClick={handleCancelDraftModal}
+                disabled={isSaving}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                CANCEL
+              </button>
+
+              <button
+                className="NextpageBtns"
+                onClick={handleConfirmSaveAsDraft}
+                disabled={isSaving || draftReason.length > 200}
+                style={{
+                  backgroundColor: isSaving ? "#90caf9" : "#1a6db5",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                }}
+              >
+                {isSaving ? "SAVING..." : "💾 SAVE AS DRAFT"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

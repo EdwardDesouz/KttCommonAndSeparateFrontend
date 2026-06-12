@@ -5,34 +5,232 @@ import API from "../../../api/api";
 import { currentPopup, fetchPopupData, SearchPopup } from "./itemFunctions";
 import { UserContext } from "../../../userContex/userContex";
 import { useInpayment } from "../context/inpaymentContext";
+import { useNavigate } from "react-router-dom";
+import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 
-function Item({ setActiveTab }) {
+function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const {
+    permitDetails,
+    updatePermitDetails,
     cargoHawbList,
     setCargoHawbList,
     decType,
     setDecType,
     invoiceTable,
     setInvoiceTable,
-    itemTable,
-    setItemTable,
     totalGrossWeight,
     setTotalGrossWeight,
+    hawbList,
+    setHawbList,
+    itemTable,
+    setItemTable,
+    itemSerialNumber,
+    setItemSerialNumber,
+    hawb,
+    setHawb,
+    hsCode,
+    setHsCode,
+    hsCodeDescription,
+    setHsCodeDescription,
+    hsCodeRow,
+    setHsCodeRow,
+    countryCode,
+    setCountryCode,
+    countryDescription,
+    setCountryDescription,
+    brand,
+    setBrand,
+    model,
+    setModel,
+    dgIndicator,
+    setDgIndicator,
+    unbranded,
+    setUnbranded,
+    invoiceQuantity,
+    setInvoiceQuantity,
+    hsQuantity,
+    setHsQuantity,
+    hsUom,
+    setHsUom,
+    duitableQuantity,
+    setDuitableQuantity,
+    duitableQuantityUom,
+    setDuitableQuantityUom,
+    totalDuitableQuantity,
+    setTotalDuitableQuantity,
+    totalDuitableQuantityUom,
+    setTotalDuitableQuantityUom,
+    alcoholPercentage,
+    setAlcoholPercentage,
+    selectedInvoice,
+    setSelectedInvoice,
+    invoiceCurrencyItem,
+    setInvoiceCurrencyItem,
+    invoiceExRateItem,
+    setInvoiceExRateItem,
+    unitPrice,
+    setUnitPrice,
+    sumExchangeRate,
+    setSumExchangeRate,
+    totalLineAmount,
+    setTotalLineAmount,
+    totalInvoiceCharge,
+    setTotalInvoiceCharge,
+    cifFob,
+    setCifFob,
+    exciseDutyRate,
+    setExciseDutyRate,
+    exciseDutyUom,
+    setExciseDutyUom,
+    exciseDutyAmount,
+    setExciseDutyAmount,
+    customsDutyRate,
+    setCustomsDutyRate,
+    customsDutyUom,
+    setCustomsDutyUom,
+    customsDutyAmount,
+    setCustomsDutyAmount,
+    otherTaxRate,
+    setOtherTaxRate,
+    otherTaxUom,
+    setOtherTaxUom,
+    otherTaxAmount,
+    setOtherTaxAmount,
+    gstRateValue,
+    setGstRateValue,
+    gstUom,
+    setGstUom,
+    gstSum,
+    setGstSum,
+    lastSellingPrice,
+    setLastSellingPrice,
+    preferentialCode,
+    setPreferentialCode,
+    packingChecked,
+    setPackingChecked,
+    outerPackQuantity,
+    setOuterPackQuantity,
+    outerPackQuantityUom,
+    setOuterPackQuantityUom,
+    inPackQuantity,
+    setInPackQuantity,
+    inPackQuantityUom,
+    setInPackQuantityUom,
+    innerPackQuantity,
+    setInnerPackQuantity,
+    innerPackQuantityUom,
+    setInnerPackQuantityUom,
+    immostPackQuantity,
+    setImmostPackQuantity,
+    immostPackQuantityUom,
+    setImmostPackQuantityUom,
+    showPacking,
+    setShowPacking,
+    showAlcohol,
+    setShowAlcholPercentage,
+    showDutiableQuantity,
+    setShowDutiableQuantity,
+    showVehicle,
+    setShowVehicle,
+    showOptionalCharges,
+    setShowOptionalCharges,
+    showItemCasc,
+    setShowItemCasc,
+    itemCascChecked,
+    setItemCascChecked,
+    showShippingMarks,
+    setShowShippingMarks,
+    showUnitPriceVal,
+    setShowUnitPriceVal,
+    itemCasc,
+    setItemCasc,
+    defaultItemCasc,
+    shippingMarks1,
+    setShippingMarks1,
+    shippingMarks2,
+    setShippingMarks2,
+    shippingMarks3,
+    setShippingMarks3,
+    shippingMarks4,
+    setShippingMarks4,
+    vehicleType,
+    setVehicleType,
+    engineCapacityValue,
+    setEngineCapcityValue,
+    engineCapacityUom,
+    setEngineCapacityUom,
+    originalRegistrationDate,
+    setOriginalRegistrationDate,
+    optionalCharges,
+    setOptionalCharges,
+    optionlAmount,
+    setOptionalAmount,
+    selectedCurrency,
+    setSelectedCurrency,
+    dutyTypeId,
+    setDutyTypeId,
+    kgmVisible,
+    setKgmVisible,
+    correctUom,
+    setCorrectUom,
+    // ==============EXISITING STATES FOR SAVE AS DRAFT============
+    prevPermitNo,
+    cargo,
+    transportMode,
+    bgInd,
+    supplyInd,
+    refDocs,
+    declFor,
+    Licence,
+    Recipients,
+    importerCode,
+    inwardCode,
+    freightForwarderCode,
+    claimantCode,
+    showVoyageNumber,
+    voyageNumber,
+    showVesselName,
+    vesselName,
+    showOblNumber,
+    obl,
+    showconveyanceNumber,
+    conveyanceNumber,
+    showTransportDetails,
+    transportDetails,
+    showFlightNumber,
+    flightNumber,
+    showAirCraftRegNumber,
+    airCraftRegNumber,
+    showMawbNumber,
+    mawbNumber,
+    cargoHawb,
+    arrivalDate,
+    loadingPortCode,
+    releaseCode,
+    releaseLocationDescription,
+    receiptCode,
+    receiptLocationDescription,
+    totalOuterPackValue,
+    totalOuterPackName,
+    grossUOM,
+    blanketStartDate,
   } = useInpayment();
 
   // ------------------ States ------------------
 
-  // useEffect(() => {
-  //   localStorage.setItem("itemTableData", JSON.stringify(itemTable));
-  // }, [itemTable]);
+  useEffect(() => {
+    console.log("PERMIT DETAILS:", permitDetails);
+  }, [permitDetails]);
 
   const [editingSNo, setEditingSNo] = useState(null);
   const itemNoRef = useRef(null);
+
   useEffect(() => {
     if (editingSNo !== null) {
-      const el = document.getElementById("ITEMNUMBER");
+      const el = document.getElementById("ItemHawbNo");
       if (el) {
         el.focus();
         el.select();
@@ -40,10 +238,16 @@ function Item({ setActiveTab }) {
     }
   }, [editingSNo]);
 
+  useEffect(() => {
+    if (editingSNo === null) {
+      setSerialNumber((itemTable.length + 1).toString().padStart(3));
+    }
+  }, [itemTable, editingSNo]);
+
   const [showItemReset, setShowItemReset] = useState(false);
   const [serialNumber, setSerialNumber] = useState(1);
-  const [hawb, setHawb] = useState("");
-  const [unitPrice, setUnitPrice] = useState(0.0);
+  // const [hawb, setHawb] = useState("");
+  // const [unitPrice, setUnitPrice] = useState(0.0);
   const [recalculateClick, setRecalculateClick] = useState(false);
 
   const [unitPriceCurrency, setUnitPriceCurrency] = useState("");
@@ -51,46 +255,46 @@ function Item({ setActiveTab }) {
   const [unitPriceAuto, setUnitPriceAuto] = useState(false);
   const [itemInvoiceCurr, setItemInvoiceCurr] = useState("");
   const [iteminvoiceCurrInput, setIteminvoiceCurrInput] = useState(0.0);
-  const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
+  // const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
+  // const [totalLineAmount, setTotalLineAmount] = useState(0.0);
   const [totalLineAmountError, setTotalLineAmountError] = useState(false);
-  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
-  const [gstSum, setGstSum] = useState(0.0);
-  const [preferentialCode, setPreferentialCode] = useState("");
-  const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
-  const [exciseDutyUom, setExciseDutyUom] = useState("");
-  const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
-  const [customsDutyRate, setCustomsDutyRate] = useState(0.0);
-  const [customsDutyUom, setCustomsDutyUom] = useState("");
-  const [customsDutyAmount, setCustomsDutyAmount] = useState("");
-  const [otherTaxRate, setOtherTaxRate] = useState(0.0);
-  const [otherTaxUom, setOtherTaxUom] = useState("");
-  const [otherTaxAmount, setOtherTaxAmount] = useState();
-  const [lastSellingPrice, setLastSellingPrice] = useState(0.0);
-  const [gstRateValue, setGstRateValue] = useState(9);
-  const [gstUom, setGstUom] = useState("PER");
+  // const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
+  // const [cifFob, setCifFob] = useState(0.0);
+  // const [gstSum, setGstSum] = useState(0.0);
+  // const [preferentialCode, setPreferentialCode] = useState("");
+  // const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
+  // const [exciseDutyUom, setExciseDutyUom] = useState("");
+  // const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
+  // const [customsDutyRate, setCustomsDutyRate] = useState(0.0);
+  // const [customsDutyUom, setCustomsDutyUom] = useState("");
+  // const [customsDutyAmount, setCustomsDutyAmount] = useState("");
+  // const [otherTaxRate, setOtherTaxRate] = useState(0.0);
+  // const [otherTaxUom, setOtherTaxUom] = useState("");
+  // const [otherTaxAmount, setOtherTaxAmount] = useState();
+  // const [lastSellingPrice, setLastSellingPrice] = useState(0.0);
+  // const [gstRateValue, setGstRateValue] = useState(9);
+  // const [gstUom, setGstUom] = useState("PER");
   const [gstWarning, setGstWarning] = useState("");
   const fileInputRef = useRef(null);
   // ------------------ Static Data ------------------
   const [invoiceNumbers, setInvoiceNumbers] = useState([]);
   const [currency, setCurrency] = useState([]);
-  const [selectedCurrency, setSelectedCurrency] = useState(null);
-  const [optionlAmount, setOptionalAmount] = useState(0);
+  // const [selectedCurrency, setSelectedCurrency] = useState(null);
+  // const [optionlAmount, setOptionalAmount] = useState(0);
   const [totaloptionalAmount, setTotalOptionalAmount] = useState(0);
   const [totalOuterPack, setTotalOuterPack] = useState([]);
-  const [brand, setBrand] = useState("");
+  // const [brand, setBrand] = useState("");
   const [brandError, setBrandError] = useState(false);
-  const [dgIndicator, setDgIndicator] = useState(false);
-  const [unbranded, setUnbranded] = useState(false);
+  // const [dgIndicator, setDgIndicator] = useState(false);
+  // const [unbranded, setUnbranded] = useState(false);
   const [preferential, setPreferential] = useState([]);
-  const [dutyTypeId, setDutyTypeId] = useState("");
-  const [kgmVisible, setKgmVisible] = useState("");
+  // const [dutyTypeId, setDutyTypeId] = useState("");
+  // const [kgmVisible, setKgmVisible] = useState("");
   // ------------------ Hs Code ------------------
-  const [hsCodeRow, setHsCodeRow] = useState(null);
+  // const [hsCodeRow, setHsCodeRow] = useState(null);
   const [controlledItem, setControlledItem] = useState("");
-  const [hsCode, setHsCode] = useState("");
-  const [hsCodeDescription, setHsCodeDescription] = useState("");
+  // const [hsCode, setHsCode] = useState("");
+  // const [hsCodeDescription, setHsCodeDescription] = useState("");
   const [hsCodeDescriptionError, setHsCodeDescriptioError] = useState(false);
   const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
   const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
@@ -99,39 +303,39 @@ function Item({ setActiveTab }) {
   const [showHscodeDropdown, setShowHsCodeDropdown] = useState(false);
   const [highlightedHsCodeIndex, setHighlightedHsCodeIndex] = useState(0);
   const [hsCodeError, setHsCodeError] = useState(false);
-  const [packingChecked, setPackingChecked] = useState(false);
-  const [showPacking, setShowPacking] = useState(false);
-  const [alcoholPercentage, setAlcoholPercentage] = useState(0);
-  const [showAlcohol, setShowAlcholPercentage] = useState(false);
-  const [showDutiableQuantity, setShowDutiableQuantity] = useState(false);
-  const [showVehicle, setShowVehicle] = useState(false);
-  const [showOptionalCharges, setShowOptionalCharges] = useState(false);
-  const [hsUom, setHsUom] = useState("--Select--");
-  const [correctUom, setCorrectUom] = useState("");
+  // const [packingChecked, setPackingChecked] = useState(false);
+  // const [showPacking, setShowPacking] = useState(false);
+  // const [alcoholPercentage, setAlcoholPercentage] = useState(0);
+  // const [showAlcohol, setShowAlcholPercentage] = useState(false);
+  // const [showDutiableQuantity, setShowDutiableQuantity] = useState(false);
+  // const [showVehicle, setShowVehicle] = useState(false);
+  // const [showOptionalCharges, setShowOptionalCharges] = useState(false);
+  // const [hsUom, setHsUom] = useState("--Select--");
+  // const [correctUom, setCorrectUom] = useState("");
   const [hsUomError, setHsUomError] = useState("");
-  const [hsQuantity, setHsQuantity] = useState("");
+  // const [hsQuantity, setHsQuantity] = useState("");
   const [hsQuantityError, setHsQuantityError] = useState(false);
-  const [duitableQuantity, setDuitableQuantity] = useState("");
-  const [duitableQuantityUom, setDuitableQuantityUom] = useState("");
-  const [totalDuitableQuantity, setTotalDuitableQuantity] = useState("");
-  const [totalDuitableQuantityUom, setTotalDuitableQuantityUom] = useState("");
+  // const [duitableQuantity, setDuitableQuantity] = useState("");
+  // const [duitableQuantityUom, setDuitableQuantityUom] = useState("");
+  // const [totalDuitableQuantity, setTotalDuitableQuantity] = useState("");
+  // const [totalDuitableQuantityUom, setTotalDuitableQuantityUom] = useState("");
   const [cascProductCodes, setCascProductCodes] = useState([]);
   // ------------------ Package Details ------------------
 
-  const [outerPackQuantity, setOuterPackQuantity] = useState("0.00");
-  const [outerPackQuantityUom, setOuterPackQuantityUom] = useState("");
-  const [inPackQuantity, setInPackQuantity] = useState("0.00");
-  const [inPackQuantityUom, setInPackQuantityUom] = useState("");
-  const [innerPackQuantity, setInnerPackQuantity] = useState("0.00");
-  const [innerPackQuantityUom, setInnerPackQuantityUom] = useState("");
-  const [immostPackQuantity, setImmostPackQuantity] = useState("0.00");
-  const [immostPackQuantityUom, setImmostPackQuantityUom] = useState("");
+  // const [outerPackQuantity, setOuterPackQuantity] = useState("0.00");
+  // const [outerPackQuantityUom, setOuterPackQuantityUom] = useState("");
+  // const [inPackQuantity, setInPackQuantity] = useState("0.00");
+  // const [inPackQuantityUom, setInPackQuantityUom] = useState("");
+  // const [innerPackQuantity, setInnerPackQuantity] = useState("0.00");
+  // const [innerPackQuantityUom, setInnerPackQuantityUom] = useState("");
+  // const [immostPackQuantity, setImmostPackQuantity] = useState("0.00");
+  // const [immostPackQuantityUom, setImmostPackQuantityUom] = useState("");
 
   // ------------------ Country ------------------
   const [country, setCountry] = useState(null);
-  const [countryCode, setCountryCode] = useState("");
+  // const [countryCode, setCountryCode] = useState("");
   const [countryCodeError, setCountryCodeError] = useState("");
-  const [countryDescription, setCountryDescription] = useState("");
+  // const [countryDescription, setCountryDescription] = useState("");
   const [countrySuggestions, setCountrySuggestions] = useState([]);
   const [filteredCountrySuggestions, setFilteredCountrySuggestions] = useState(
     [],
@@ -265,29 +469,29 @@ function Item({ setActiveTab }) {
     });
   };
   // ------------------ Optional Charges ------------------
-  const [optionalCharges, setOptionalCharges] = useState("0.00");
+  // const [optionalCharges, setOptionalCharges] = useState("0.00");
 
   // ------------------ Item CASC ------------------
-  const defaultItemCasc = [
-    { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc1" },
-    { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc2" },
-    { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc3" },
-  ];
+  // const defaultItemCasc = [
+  //   { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc1" },
+  //   { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc2" },
+  //   { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc3" },
+  // ];
 
-  const [itemCasc, setItemCasc] = useState(defaultItemCasc);
+  // const [itemCasc, setItemCasc] = useState(defaultItemCasc);
   // ------------------ Item CASC ------------------
   const [activeRowIndex, setActiveRowIndex] = useState(null);
   // ------------------ Shipping Marks ------------------
-  const [shippingMarks1, setShippingMarks1] = useState("");
-  const [shippingMarks2, setShippingMarks2] = useState("");
-  const [shippingMarks3, setShippingMarks3] = useState("");
-  const [shippingMarks4, setShippingMarks4] = useState("");
+  // const [shippingMarks1, setShippingMarks1] = useState("");
+  // const [shippingMarks2, setShippingMarks2] = useState("");
+  // const [shippingMarks3, setShippingMarks3] = useState("");
+  // const [shippingMarks4, setShippingMarks4] = useState("");
 
   // ------------------ Visibility States ------------------
 
-  const [showItemCasc, setShowItemCasc] = useState(false);
-  const [itemCascChecked, setItemCascChecked] = useState(false);
-  const [showShippingMarks, setShowShippingMarks] = useState(false);
+  // const [showItemCasc, setShowItemCasc] = useState(false);
+  // const [itemCascChecked, setItemCascChecked] = useState(false);
+  // const [showShippingMarks, setShowShippingMarks] = useState(false);
 
   // ------------------ Toggle Functions ------------------
   const togglePacking = (checked) => {
@@ -367,7 +571,7 @@ function Item({ setActiveTab }) {
     const item = itemCasc[itemIndex];
     const cascId = `Casc${itemIndex + 1}`;
     const rowNo = rowIndex + 1;
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
     try {
       await API.delete(`/deleteCascByCascId/${cascId}/${rowNo}/${permitId}/`);
     } catch (error) {
@@ -697,7 +901,8 @@ function Item({ setActiveTab }) {
 
   // -----------fetchCurrency-----------
   const fetchInvoices = async () => {
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
+    console.log("Fetching invoices for PermitId:", permitId);
     try {
       const response = await API.get(`/getInvoiceByPermitId/${permitId}/`);
       // console.log("response:", response);
@@ -764,7 +969,7 @@ function Item({ setActiveTab }) {
   }, []);
 
   // -------------------Invoices States-------------
-  const [selectedInvoice, setSelectedInvoice] = useState("");
+  // const [selectedInvoice, setSelectedInvoice] = useState("");
   const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceCurrencyError, setInvoiceCurrencyError] = useState(false);
   const [invoiceExRate, setInvoiceExRate] = useState("");
@@ -880,24 +1085,24 @@ function Item({ setActiveTab }) {
     setPopupType,
   });
   // ------------------ VEHICLE TYPE ------------------
-  const [vehicleType, setVehicleType] = useState("");
-  const [engineCapacityValue, setEngineCapcityValue] = useState("");
+  // const [vehicleType, setVehicleType] = useState("");
+  // const [engineCapacityValue, setEngineCapcityValue] = useState("");
   const [vehicleTypeOptions, setVehicleTypeOptions] = useState([]);
   const [engineCapacity, setEngineCapcityOptions] = useState([]);
 
-  const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
-  const [originalRegistrationDate, setOriginalRegistrationDate] = useState("");
-  const [engineCapacityUom, setEngineCapacityUom] = useState("");
+  // const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
+  // const [originalRegistrationDate, setOriginalRegistrationDate] = useState("");
+  // const [engineCapacityUom, setEngineCapacityUom] = useState("");
 
   // ------------------ INVOICE QUANTITY------------------
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  // const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
   // ------------------ INVOICE QUANTITY------------------
 
   // ------------------ Item Code ------------------
 
   const [itemCode, setItemCode] = useState("");
   const [itemCodeError, setItemCodeError] = useState(false);
-  const [model, setModel] = useState("");
+  // const [model, setModel] = useState("");
   const [itemCodeSuggestions, setItemCodeSuggestions] = useState([]);
   const [filteredItemCodeSuggestions, setFilteredItemCodeSuggestions] =
     useState([]);
@@ -1469,7 +1674,7 @@ function Item({ setActiveTab }) {
     const itemNumber = serialNumber;
     const payload = {
       CascDatas: JSON.stringify(ItemCascSave(itemNumber)),
-      PermitId: "PERMIT104",
+      PermitId: permitDetails?.PermitId,
       ItemNo: itemNumber || null,
       MessageType: "IPTDEC",
       HSCode: hsCode || "",
@@ -1524,7 +1729,7 @@ function Item({ setActiveTab }) {
       ShippingMarks2: shippingMarks2 || "",
       ShippingMarks3: shippingMarks3 || "",
       ShippingMarks4: shippingMarks4 || "",
-      TouchUser: user.username || "",
+      TouchUser: user.username.toUpperCase()|| "",
       TouchTime: new Date().toISOString(),
       VehicleType: vehicleType || "",
       OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "",
@@ -1556,7 +1761,7 @@ function Item({ setActiveTab }) {
 
   const ItemCascSave = (itemNumber) => {
     const username = user.username;
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
     const messageType = "IPTDEC";
 
     const cascArray = itemCasc.flatMap((item, itemIndex) => {
@@ -1628,7 +1833,7 @@ function Item({ setActiveTab }) {
 
   const deleteSelectedItems = async () => {
     if (selectedItems.length === 0) return;
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
     try {
       const sorted = [...selectedItems].sort((a, b) => b - a);
       let latestRecords = itemTable;
@@ -1650,7 +1855,7 @@ function Item({ setActiveTab }) {
   };
 
   const deleteItem = async (itemNo) => {
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
     try {
       const res = await API.post("/deleteItem/", {
         ItemNo: itemNo,
@@ -1669,7 +1874,8 @@ function Item({ setActiveTab }) {
   const editItem = async (itemNo) => {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
     if (!item) return;
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
+    
     setSerialNumber(item.ItemNo?.toString().padStart(3));
     const selectedHs = hsCodeSuggestions.find(
       (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
@@ -1927,7 +2133,7 @@ function Item({ setActiveTab }) {
     const file = fileInput.files[0];
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("PermitId", "PERMIT104");
+    formData.append("PermitId", permitDetails?.PermitId);
     formData.append("MsgType", "IPTDEC");
     formData.append("UserName", user.username.toUpperCase());
     formData.append("TouchTime", new Date().toISOString());
@@ -2043,7 +2249,7 @@ function Item({ setActiveTab }) {
         const finalDescription = descFromExcel || hsCodeMap[hsCode] || "";
         return {
           ItemNo: item.ItemNo,
-          PermitId: "PERMIT104",
+          PermitId: permitDetails?.PermitId,
           MessageType: item.MessageType || "IPTDEC",
           HSCode: item.HSCode || "",
           // Description: item.Description || "",
@@ -2114,7 +2320,7 @@ function Item({ setActiveTab }) {
       });
       const res = await API.post("/editAllItems/", {
         Item: ItemAllData,
-        PermitId: "PERMIT104",
+        PermitId: permitDetails?.PermitId,
       });
       setItemTable(res.data.Item);
       // localStorage.setItem("itemTableData", JSON.stringify(res.data.Item));
@@ -2131,7 +2337,7 @@ function Item({ setActiveTab }) {
 
   // ==================Delete hawb from all items when hawb deleted from header==================
   const deleteHblHawb = async () => {
-    const permitId = "PERMIT104";
+    const permitId = permitDetails?.PermitId;
     try {
       await API.delete(`/deleteHawbByPermitId/${permitId}/`);
       alert("All HAWB/HBL cleared successfully");
@@ -2184,6 +2390,251 @@ function Item({ setActiveTab }) {
       alert("No previous item found.");
     }
   };
+
+  // ===================== SAVE AS DRAFT =====================
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
+  const [draftReasonError, setDraftReasonError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAsDraftClick = () => {
+    setDraftReason("");
+    setDraftReasonError(false);
+    setShowDraftModal(true);
+  };
+
+  const formatDraftDate = (dateStr) => {
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  const handleCancelDraftModal = () => {
+    setShowDraftModal(false);
+    setDraftReason("");
+    setDraftReasonError(false);
+  };
+
+  const handleConfirmSaveAsDraft = async () => {
+    if (!draftReason.trim()) {
+      setDraftReasonError(true);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const TouchUser = (user?.username || "").toUpperCase();
+      const TouchTime = new Date().toISOString();
+
+      const payload = {
+        PermitId: permitDetails?.PermitId || "",
+        Refid: permitDetails?.RefId || "",
+        JobId: permitDetails?.JobId || "",
+        MSGId: permitDetails?.MsgId || "",
+        TradeNetMailboxID:
+          permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+        MessageType: "IPTDEC",
+
+        // ── Header fields ──────────────────────────────────
+        DeclarationType: decType || "",
+        PreviousPermit: prevPermitNo || "",
+        CargoPackType: cargo || "",
+        InwardTransportMode: transportMode || "",
+        BGIndicator: bgInd || "",
+        SupplyIndicator: supplyInd ? "true" : "false",
+        ReferenceDocuments: refDocs ? "true" : "false",
+        DeclarningFor: declFor || "",
+        License: Licence || "",
+        Recipient: Recipients || "",
+        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+
+        // ── Party fields ───────────────────────────────────
+        ImporterCompanyCode: importerCode || "",
+        InwardCarrierAgentCode: inwardCode || "",
+        FreightForwarderCode: freightForwarderCode || "",
+        ClaimantPartyCode: claimantCode || "",
+
+        // ── Transport fields ───────────────────────────────
+        VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+        VesselName: showVesselName ? vesselName || "" : "",
+        OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+        ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+        TransportId: showTransportDetails ? transportDetails || "" : "",
+        FlightNO: showFlightNumber ? flightNumber || "" : "",
+        AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+        MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+
+        // ── Cargo fields ───────────────────────────────────
+        HBL: cargoHawb || "",
+        ArrivalDate: formatDraftDate(arrivalDate) || null,
+        LoadingPortCode: loadingPortCode || "",
+        ReleaseLocation: releaseCode || "",
+        ResLoaName: releaseLocationDescription || "",
+        RecepitLocation: receiptCode || "",
+        RecepitLocName: receiptLocationDescription || "",
+        TotalOuterPack: totalOuterPackValue || "",
+        TotalOuterPackUOM: totalOuterPackName || "",
+        TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeightUOM: grossUOM || "",
+        BlanketStartDate: formatDraftDate(blanketStartDate) || null,
+
+        // ── Status & Meta ──────────────────────────────────
+        Message: draftReason.trim().toUpperCase(),
+        Status: "SAVEASDRF",
+        prmtStatus: "SAVEASDRF",
+        TouchUser,
+        TouchTime,
+        MRDate: null,
+        MRTime: "",
+      };
+
+      const response = await API.post("/postCommonHeaderTable/", [payload]);
+
+      if (response?.data) {
+        const updatedPermit = {
+          ...permitDetails,
+          JobId: response.data.JobId || permitDetails?.JobId,
+          MsgId: response.data.MSGId || permitDetails?.MsgId,
+        };
+        updatePermitDetails(updatedPermit);
+        sessionStorage.setItem("currentPermit", JSON.stringify(updatedPermit));
+
+        setShowDraftModal(false);
+        setDraftReason("");
+        setDraftReasonError(false);
+
+        alert("Draft Saved Successfully!");
+        navigate("/inpayment");
+      }
+    } catch (err) {
+      console.error("SAVE AS DRAFT ERROR:", err);
+      alert("Error saving draft. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+ // ===========================Auto save every filling Detils========================
+  const formatDate = (dateStr) => {
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  // const autoSavePayload = useMemo(() => {
+  //   if (!permitDetails?.PermitId) return null;
+  //   return {
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     Refid: permitDetails?.RefId || "",
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     TradeNetMailboxID:
+  //       permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     DeclarningFor: declFor || "",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     // party fields
+  //     ImporterCompanyCode: importerCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+  //     // ── Transport (from Header) ────────────────────────
+  //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+  //     VesselName: showVesselName ? vesselName || "" : "",
+  //     OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+  //     ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: showFlightNumber ? flightNumber || "" : "",
+  //     AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+  //     MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+  //     // ── Cargo fields ───────────────────────────────────
+  //     HBL: cargoHawb || "",
+  //     ArrivalDate: formatDate(arrivalDate) || null,
+  //     LoadingPortCode: loadingPortCode || "",
+  //     ReleaseLocation: releaseCode || "",
+  //     ResLoaName: releaseLocationDescription || "",
+  //     RecepitLocation: receiptCode || "",
+  //     RecepitLocName: receiptLocationDescription || "",
+  //     TotalOuterPack: totalOuterPackValue || "",
+  //     TotalOuterPackUOM: totalOuterPackName || "",
+  //     TotalGrossWeight: totalGrossWeight || "",
+  //     TotalGrossWeightUOM: grossUOM || "",
+  //     BlanketStartDate: formatDate(blanketStartDate) || null,
+  //     // reamining
+  //     Status: "DISCONNECT",
+  //     prmtStatus: "DISCONNECT",
+  //     TouchUser: (user?.username || "").toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Message: "AUTO-SAVED|TAB:ItemPage",
+  //     MRTime: "",
+  //   };
+  // }, [
+  //   permitDetails,
+  //   decType,
+  //   prevPermitNo,
+  //   cargo,
+  //   transportMode,
+  //   bgInd,
+  //   supplyInd,
+  //   refDocs,
+  //   declFor,
+  //   Licence,
+  //   Recipients,
+  //   // Party page Reamainig
+  //   importerCode,
+  //   inwardCode,
+  //   freightForwarderCode,
+  //   claimantCode,
+  //   // Cargo Page & Remaining
+  //   voyageNumber,
+  //   vesselName,
+  //   obl,
+  //   conveyanceNumber,
+  //   transportDetails,
+  //   flightNumber,
+  //   airCraftRegNumber,
+  //   mawbNumber,
+  //   showVoyageNumber,
+  //   showVesselName,
+  //   showOblNumber,
+  //   showconveyanceNumber,
+  //   showTransportDetails,
+  //   showFlightNumber,
+  //   showAirCraftRegNumber,
+  //   showMawbNumber,
+  //   cargoHawb,
+  //   arrivalDate,
+  //   loadingPortCode,
+  //   releaseCode,
+  //   releaseLocationDescription,
+  //   receiptCode,
+  //   receiptLocationDescription,
+  //   totalOuterPackValue,
+  //   totalOuterPackName,
+  //   totalGrossWeight,
+  //   grossUOM,
+  //   blanketStartDate,
+  //   user,
+  // ]);
+
+  // useDebounceAutoSave({
+  //   payload: autoSavePayload,
+  //   enabled: !isViewMode,
+  //   delay: 2000,
+  // });
+
+
   // ----------------------- UI ---------------------------------
   return (
     <div className="row g-2">
@@ -2238,28 +2689,12 @@ function Item({ setActiveTab }) {
                 <div className="col-4" id="itemHwabHbl">
                   HAWB
                 </div>
-                {/* <div className="col-8">
-
-
-                  <select
-                    id="itemHawb"
-                    className="Dropdown"
-                    value={hawb}
-                    onChange={(e) => setHawb(e.target.value)}
-                  >
-                    <option value=""></option>
-                    {hawbList.map((item, index) => (
-                      <option key={index} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div> */}
                 <div className="col-8">
                   {cargoHawbList.length <= 1 ? (
                     // Single or no HAWB — readonly text
                     <input
                       type="text"
+                      id="ItemHawbNo"
                       className="form-control"
                       value={cargoHawbList[0] || ""}
                       readOnly
@@ -2283,7 +2718,7 @@ function Item({ setActiveTab }) {
             </div>
 
             {/* ITEM NUMBER */}
-            <div className="row mt-3">
+            <div className="row mt-1">
               <div className="row">
                 <div className="col-4">ITEM NUMBER</div>
                 <div className="col-8">
@@ -2463,6 +2898,7 @@ function Item({ setActiveTab }) {
                   <textarea
                     className="inputStyle"
                     value={hsCodeDescription}
+                    style={{ resize: "vertical", minHeight: "90px" }}
                     onChange={(e) => setHsCodeDescription(e.target.value)}
                   />
                   {hsCodeDescription.trim() === "" &&
@@ -3518,7 +3954,7 @@ function Item({ setActiveTab }) {
                   DOWNLOAD TEMPLATE
                 </button>
               </div>
-              <div className="col-sm-4">
+              <div className="col-sm-2">
                 <input
                   type="file"
                   className="NextpageBtns"
@@ -3728,7 +4164,15 @@ function Item({ setActiveTab }) {
       {/* Navigation */}
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
-          className="NextpageBtns"
+          className="NextpageBtns view-nav-btn"
+          tabIndex="17"
+          id="PartySaveDraft"
+          onClick={handleSaveAsDraftClick}
+        >
+          SAVE AS DRAFT
+        </button>
+        <button
+          className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("InvoiceTab")}
         >
           PREVIOUS
@@ -3738,9 +4182,191 @@ function Item({ setActiveTab }) {
             RESET
           </button>
         )}
-        <button className="NextpageBtns" onClick={() => setActiveTab("CpcTab")}>
+        <button
+          className="NextpageBtns view-nav-btn"
+          onClick={() => setActiveTab("CpcTab")}
+        >
           NEXT
         </button>
+        {showDraftModal && (
+          <>
+            {/* Backdrop */}
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1040,
+              }}
+              onClick={handleCancelDraftModal}
+            />
+            {/* Modal */}
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                zIndex: 1050,
+                width: "460px",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  backgroundColor: "#1a6db5",
+                  color: "#fff",
+                  padding: "14px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  SAVE AS DRAFT
+                </span>
+                <span
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={handleCancelDraftModal}
+                >
+                  ✕
+                </span>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "24px 24px 16px 24px" }}>
+                <div
+                  style={{
+                    backgroundColor: "#fff8e1",
+                    border: "1px solid #ffe082",
+                    borderRadius: "6px",
+                    padding: "10px 14px",
+                    marginBottom: "18px",
+                    fontSize: "13px",
+                    color: "#7b5800",
+                  }}
+                >
+                  This permit will be saved as <strong>DRAFT (DRF)</strong>. You
+                  can continue filling the remaining details later.
+                </div>
+
+                <label
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    marginBottom: "6px",
+                    display: "block",
+                    color: "#333",
+                  }}
+                >
+                  WHY ARE YOU SAVING AS DRAFT?{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </label>
+
+                <textarea
+                  rows={4}
+                  className="form-control"
+                  value={draftReason}
+                  onChange={(e) => {
+                    setDraftReason(e.target.value);
+                    if (e.target.value.trim()) setDraftReasonError(false);
+                  }}
+                  style={{
+                    resize: "vertical",
+                    fontSize: "13px",
+                    border: draftReasonError
+                      ? "1px solid red"
+                      : "1px solid #ced4da",
+                    borderRadius: "4px",
+                    padding: "8px",
+                    width: "100%",
+                  }}
+                  autoFocus
+                />
+
+                {draftReasonError && (
+                  <span
+                    style={{
+                      color: "red",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Please provide a reason before saving as draft.
+                  </span>
+                )}
+
+                <div
+                  style={{
+                    textAlign: "right",
+                    fontSize: "11px",
+                    color: draftReason.length > 200 ? "red" : "#888",
+                    marginTop: "4px",
+                  }}
+                >
+                  {draftReason.length} / 200
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "12px 24px 20px 24px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  className="NextpageBtns"
+                  onClick={handleCancelDraftModal}
+                  disabled={isSaving}
+                  style={{
+                    backgroundColor: "#6c757d",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  CANCEL
+                </button>
+
+                <button
+                  className="NextpageBtns"
+                  onClick={handleConfirmSaveAsDraft}
+                  disabled={isSaving || draftReason.length > 200}
+                  style={{
+                    backgroundColor: isSaving ? "#90caf9" : "#1a6db5",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: isSaving ? "not-allowed" : "pointer",
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isSaving ? "SAVING..." : "💾 SAVE AS DRAFT"}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* item section --buttons */}
@@ -3824,17 +4450,20 @@ function Item({ setActiveTab }) {
                       key={item.SNo}
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
-                      <td>
-                        <input
-                          type="checkbox"
-                          name="itemCheckDel"
-                          value={item.ItemNo}
-                          checked={selectedItems.includes(item.ItemNo)}
-                          onChange={() => handleSelectOne(item.ItemNo)}
-                        />
-                      </td>
+                      {!isViewMode && (
+                        <td>
+                          <input
+                            type="checkbox"
+                            name="itemCheckDel"
+                            value={item.ItemNo}
+                            checked={selectedItems.includes(item.ItemNo)}
+                            onChange={() => handleSelectOne(item.ItemNo)}
+                          />
+                        </td>
+                      )}
                       <td>
                         <FaEdit
+                          className="view-show"
                           style={{ width: "15px", cursor: "pointer" }}
                           onClick={() => editItem(item.ItemNo)}
                         />

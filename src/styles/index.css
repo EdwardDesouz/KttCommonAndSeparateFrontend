@@ -158,7 +158,7 @@
    Navbar
 ============================== */
 .navbar {
-  width: 100%;
+  width: 98%;
   background: linear-gradient(
     to left,
     rgba(14, 90, 121, 0.9),
@@ -257,7 +257,7 @@
   border-color: #01445e;
   box-shadow: 0 0 8px rgba(1, 68, 94, 0.3);
 }
-.form-control-mandatory{
+.form-control-mandatory {
   width: 100%;
   padding: 12px 15px;
   border: 1px solid #ccc;
@@ -465,6 +465,23 @@
   background-color: #d8363a;
 }
 
+.filters .btn2,
+.declaration-filters .btn2 {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: #22122b;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filters .btn2:hover:hover,
+.declaration-filters .btn2:hover {
+  background-color: #ee0f13;
+}
+
 /* ==============================
    INNON PAYMENT Section
 ============================== */
@@ -491,9 +508,12 @@
 #inpaymentTable th,
 #inpaymentTable td {
   border: 1px solid #ccc;
-  padding: 5px 8px;
+  padding: 8px 8px;
   text-align: center;
   vertical-align: middle;
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 #inpaymentTable th {
@@ -764,7 +784,7 @@
 #ConatinerTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   margin-top: 10px;
 }
 
@@ -774,7 +794,7 @@
   padding: 6px 8px;
   text-align: center;
   vertical-align: middle;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
 }
 
 #ConatinerTable th {
@@ -1027,14 +1047,14 @@
 /* party page dropdown-suggestions */
 .dropdown-suggestions {
   position: absolute;
-  top: 100%;              /* directly below input */
+  top: 100%; /* directly below input */
   left: 0;
-  width: 250px;           /* or 100% */
+  width: 250px; /* or 100% */
   max-height: 250px;
   overflow-y: auto;
   background: #fff;
   border: 1px solid #ccc;
-  z-index: 9999;          /* stay above other rows */
+  z-index: 9999; /* stay above other rows */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
@@ -1047,6 +1067,176 @@
   background-color: #234263;
   color: white;
 }
-.ErrColor{
+.ErrColor {
   color: red;
 }
+
+.pagination-container {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* important for mobile */
+}
+
+/* Small compact buttons */
+.pagination-btn {
+  padding: 4px 10px; /* smaller size */
+  font-size: 0.75rem; /* smaller text */
+  border-radius: 5px;
+  border: none;
+  background-color: #01445e;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* hover effect */
+.pagination-btn:hover {
+  background-color: #d8363a;
+}
+
+/* disabled state */
+.pagination-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Mobile responsiveness
+========================= */
+@media (max-width: 768px) {
+  .pagination-container {
+    gap: 6px;
+  }
+
+  .pagination-btn {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+}
+
+input,
+select,
+textarea {
+  text-transform: uppercase;
+}
+
+.form-control,
+.inputStyle,
+.Dropdown,
+.tab-content input,
+.tab-content select {
+  text-transform: uppercase;
+}
+
+/* ==============================
+   Outer Pack & Gross Weight Input
+============================== */
+.pack-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  background-color: #b9c2c5;
+  text-transform: uppercase;
+  height: 28px;
+}
+
+.pack-input:focus {
+  outline: none;
+  border-color: #01445e;
+  box-shadow: 0 0 6px rgba(1, 68, 94, 0.3);
+}
+
+.pack-select {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  background-color: #b9c2c5;
+  text-transform: uppercase;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* ════════════════════════════════════════════════════
+   VIEW MODE — disable all inputs, hide action buttons
+   ════════════════════════════════════════════════════ */
+
+.view-mode input,
+.view-mode select,
+.view-mode textarea {
+  pointer-events: none !important;
+  background-color: #f5f5f5 !important;
+  cursor: not-allowed !important;
+  opacity: 0.8;
+}
+
+/* Hide all action buttons */
+.view-mode .NextpageBtns,
+.view-mode .ButtonClick,
+.view-mode .SaveContainer,
+.view-mode .MoveOnButtons,
+.view-mode .DeleteContainerBtn,
+.view-mode .AddContainerBtn,
+.view-mode .btn1,
+.view-mode .btn2 {
+  display: none !important;
+}
+
+/* Hide search and plus icons */
+.view-mode .icon-contaniner {
+  visibility: hidden !important;
+}
+
+/* Hide dropdown suggestions */
+.view-mode .dropdown-suggestions {
+  display: none !important;
+}
+
+/* Hide react-icons (FaTrash, FaEdit, FaPlus, FaSearch) */
+.view-mode svg {
+  display: none !important;
+}
+
+#ItemTable .fa-edit,
+#ItemTable svg[data-icon="pen-to-square"],
+#ItemTable td svg {
+  display: inline-block !important;
+  cursor: pointer !important;
+}
+
+/* Invoice table edit icon */
+#InvoiceTable .fa-edit,
+#InvoiceTable svg[data-icon="pen-to-square"],
+#InvoiceTable td svg {
+  display: inline-block !important;
+  cursor: pointer !important;
+}
+
+/* Container table edit icon */
+#ConatinerTable .fa-edit,
+#ConatinerTable svg[data-icon="pen-to-square"],
+#ConatinerTable td svg {
+  display: inline-block !important;
+  cursor: pointer !important;
+}
+
+/* Keep PREVIOUS / NEXT / CLOSE navigation buttons visible */
+.view-mode .view-nav-btn {
+  display: inline-block !important;
+  pointer-events: all !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+}
+
+
+
+
+/* for mobile and tab view */

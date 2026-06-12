@@ -1,15 +1,20 @@
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import { useState, useEffect, useContext, useRef } from "react";
+import { useState, useEffect, useContext, useRef, useMemo } from "react";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { fetchPopupData, currentPopup, SearchPopup } from "./invoiceFunctions";
 import { DateField } from "../cargo/cargo";
 import { useInpayment } from "../context/inpaymentContext";
+import { useNavigate } from "react-router-dom";
+import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 
-function Invoice({ setActiveTab }) {
+function Invoice({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const {
+    permitDetails,
+    updatePermitDetails,
     invoiceImporterCode,
     setInvoiceImporterCode,
     invoiceImporterCruei,
@@ -94,31 +99,66 @@ function Invoice({ setActiveTab }) {
     setGstCharge,
     gstTotal,
     setGstTotal,
+
+    // ==============EXISITING STATES FOR SAVE AS DRAFT============
+    decType,
+    prevPermitNo,
+    cargo,
+    transportMode,
+    bgInd,
+    supplyInd,
+    refDocs,
+    declFor,
+    Licence,
+    Recipients,
+    importerCode,
+    inwardCode,
+    freightForwarderCode,
+    claimantCode,
+    showVoyageNumber,
+    voyageNumber,
+    showVesselName,
+    vesselName,
+    showOblNumber,
+    obl,
+    showconveyanceNumber,
+    conveyanceNumber,
+    showTransportDetails,
+    transportDetails,
+    showFlightNumber,
+    flightNumber,
+    showAirCraftRegNumber,
+    airCraftRegNumber,
+    showMawbNumber,
+    mawbNumber,
+    cargoHawb,
+    arrivalDate,
+    loadingPortCode,
+    releaseCode,
+    releaseLocationDescription,
+    receiptCode,
+    receiptLocationDescription,
+    totalOuterPackValue,
+    totalOuterPackName,
+    totalGrossWeight,
+    grossUOM,
+    blanketStartDate,
   } = useInpayment();
 
   const [editingSNo, setEditingSNo] = useState(null);
   const [serialNumber, setSerialNumber] = useState(1);
-  // const [invoiceNumber, setInvoiceNumber] = useState("");
   const [invoiceNumberError, setInvoiceNumberError] = useState(false);
-  // const [invoiceDate, setInvoiceDate] = useState("");
   const [invoiceDateError, setInvoiceDateError] = useState(false);
   const [showResetButton, setShowResetButton] = useState(false);
 
-  // const [adValoremIndicator, setAdValoremIndicator] = useState("False");
-  // const [preDutyRateIndicator, setPreDutyRateIndicator] = useState("False");
-  // const [invoiceInsurance, setInvoiceInsurance] = useState("False");
-  // const [supplierRelationship, setSupplierRelationship] = useState("");
   const supplierImporterRelationship = ["Ordinary Importer", "Agency"];
-
+  const [freightChargesEnabled, setFreightChargesEnabled] = useState(false);
+  const [insuranceChargesEnabled, setInsuranceChargesEnabled] = useState(false);
   // ======================== SUPPLIER / MANUFACTURER ========================
   const supplierManuFacturerCodeRef = useRef(null);
-  // const [supplierManuFacturer, setSupplierManuFacturer] = useState(null);
-  // const [supplierManuFacturerCode, setSupplierManuFacturerCode] = useState("");
-  // const [supplierManuFacturerCruei, setSupplierManuFacturerCruei] =useState("");
-  // const [supplierManuFacturerName, setSupplierManuFacturerName] = useState("");
   const [supplierManuFacturerNameError, setSupplierManuFacturerNameError] =
     useState(false);
-  // const [supplierManuFacturerName1, setSupplierManuFacturerName1] =
+
   useState("");
   const [supplierManuFacturerSuggestions, setSupplierManuFacturerSuggestions] =
     useState([]);
@@ -323,6 +363,16 @@ function Invoice({ setActiveTab }) {
     setInvoiceImporterCruei(partyImporter.CRUEI);
     setInvoiceImporterName(partyImporter.Name);
     setInvoiceImporterName1(partyImporter.Name1);
+
+    setImporter({
+      Code: partyImporter.Code,
+      CRUEI: partyImporter.CRUEI,
+      Name: partyImporter.Name,
+      Name1: partyImporter.Name1,
+    });
+
+    setImporterError(false);
+    setImporterCodeError(false);
   };
 
   // ======================== FETCH IMPORTERS ========================
@@ -482,39 +532,10 @@ function Invoice({ setActiveTab }) {
 
   // ======================== TERM TYPE ========================
   const [termType, setTermType] = useState([]);
-  // const [termTypeSelected, setTermTypeSelected] = useState("");
-  // const [showFreightRow, setShowFreightRow] = useState(true);
-  // const [showInsuranceRow, setShowInsuranceRow] = useState(true);
-  // const [gstCharge, setGstCharge] = useState(9);
 
   const [currency, setCurrency] = useState([]);
 
-  // const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceCurrencyError, setInvoiceCurrencyError] = useState("");
-  // const [invoiceExRate, setInvoiceExRate] = useState("");
-  // const [invoiceAmount, setInvoiceAmount] = useState("");
-  // const [invoiceDollar, setInvoiceDollar] = useState("");
-
-  // const [otherValueCharges, setOtherValueCharges] = useState("");
-  // const [otherValueCurrency, setOtherValueCurrency] = useState("");
-  // const [otherValueExRate, setOtherValueExRate] = useState("");
-  // const [otherValueAmount, setOtherValueAmount] = useState("");
-  // const [otherValueDollar, setOtherValueDollar] = useState("");
-
-  // const [freightValueCharges, setFreightValueCharges] = useState("");
-  // const [freightValueCurrency, setFreightValueCurrency] = useState("");
-  // const [freightValueExRate, setFreightValueExRate] = useState("");
-  // const [freightValueAmount, setFreightValueAmount] = useState("");
-  // const [freightValueDollar, setFreightValueDollar] = useState("");
-
-  // const [insuranceCharges, setInsuranceCharges] = useState("");
-  // const [insuranceValueCurrency, setInsuranceValueCurrency] = useState("");
-  // const [insuranceValueExRate, setInsuranceValueExRate] = useState("");
-  // const [insuranceValueAmount, setInsuranceValueAmount] = useState("");
-  // const [insuranceValueDollar, setInsuranceValueDollar] = useState("");
-
-  // const [cifTotal, setCifTotal] = useState("0.00");
-  // const [gstTotal, setGstTotal] = useState("0.00");
 
   // ======================== FETCH TERM TYPE ========================
   useEffect(() => {
@@ -553,6 +574,8 @@ function Invoice({ setActiveTab }) {
     setFreightValueDollar("");
     setInsuranceValueAmount("");
     setInsuranceValueDollar("");
+    setFreightChargesEnabled(false);
+    setInsuranceChargesEnabled(false);
     setInvoiceCurrency("");
     setOtherValueCurrency("");
     setFreightValueCurrency("");
@@ -599,12 +622,22 @@ function Invoice({ setActiveTab }) {
   };
 
   // ======================== AMOUNT CHANGE ========================
+  // const handleAmountChange = (value, row) => {
+  //   const num = value === "" ? "" : parseFloat(value);
+  //   if (row === "invoice") setInvoiceAmount(num);
+  //   else if (row === "other") setOtherValueAmount(num);
+  //   else if (row === "freight") setFreightValueAmount(num);
+  //   else if (row === "insurance") setInsuranceValueAmount(num);
+  // };
+
   const handleAmountChange = (value, row) => {
-    const num = value === "" ? "" : parseFloat(value);
-    if (row === "invoice") setInvoiceAmount(num);
-    else if (row === "other") setOtherValueAmount(num);
-    else if (row === "freight") setFreightValueAmount(num);
-    else if (row === "insurance") setInsuranceValueAmount(num);
+    const isValidInput = value === "" || /^\d*\.?\d*$/.test(value);
+    if (!isValidInput) return;
+
+    if (row === "invoice") setInvoiceAmount(value);
+    else if (row === "other") setOtherValueAmount(value);
+    else if (row === "freight") setFreightValueAmount(value);
+    else if (row === "insurance") setInsuranceValueAmount(value);
   };
 
   // ======================== CURRENCY CHANGE ========================
@@ -626,6 +659,10 @@ function Invoice({ setActiveTab }) {
     if (row === "insurance") {
       setInsuranceValueCurrency(currencyName);
       setInsuranceValueExRate(rate);
+      // Reset all insurance values to 0 when currency is selected/changed
+      setInsuranceCharges(0);
+      setInsuranceValueAmount(0);
+      setInsuranceValueDollar(0);
     }
   };
 
@@ -644,7 +681,8 @@ function Invoice({ setActiveTab }) {
     let frAmount = parseFloat(freightValueAmount) || 0;
 
     if (frCharge > 0) {
-      const freightBase = invDollar + othDollar;
+      // const freightBase = invDollar + othDollar;
+      const freightBase = invDollar;
       const frDollarCalculated = (freightBase * frCharge) / 100;
       const calculatedAmount = frDollarCalculated / frEx;
       if (freightValueAmount !== calculatedAmount.toFixed(2)) {
@@ -655,11 +693,27 @@ function Invoice({ setActiveTab }) {
     const frDollar = frAmount * frEx;
 
     const charge = parseFloat(insuranceCharges) || 0;
-    const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
-    const insAmount = (insuranceBase * charge) / 100;
-    if (insuranceValueAmount !== insAmount.toFixed(2)) {
-      setInsuranceValueAmount(insAmount.toFixed(2));
+
+    // const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
+    // const insAmount = (insuranceBase * charge) / 100;
+    // if (insuranceValueAmount !== insAmount.toFixed(2)) {
+    //   setInsuranceValueAmount(insAmount.toFixed(2));
+    // }
+
+    let insAmount;
+
+    if (charge === 0) {
+      //  Manual entry — keep user typed value, just calculate dollar
+      insAmount = parseFloat(insuranceValueAmount) || 0;
+    } else {
+      // Auto-calculate from base percentage
+      const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
+      insAmount = (insuranceBase * charge) / 100;
+      if (insuranceValueAmount !== insAmount.toFixed(2)) {
+        setInsuranceValueAmount(insAmount.toFixed(2));
+      }
     }
+
     const insEx = parseFloat(insuranceValueExRate) || 0;
     const insDollar = insAmount * insEx;
 
@@ -739,7 +793,7 @@ function Invoice({ setActiveTab }) {
   const saveInvoice = async () => {
     if (!validateInvoiceFields()) return;
     const payload = {
-      PermitId: "PERMIT104",
+      PermitId: permitDetails?.PermitId,
       SNo: editingSNo || serialNumber,
       InvoiceNo: invoiceNumber,
       InvoiceDate: formatDate(invoiceDate),
@@ -797,21 +851,46 @@ function Invoice({ setActiveTab }) {
   };
 
   // ======================== DELETE INVOICE ========================
+  // const deleteInvoice = async (sno) => {
+  //   try {
+  //     const res = await API.post("/deleteInvoiceNo/", {
+  //       SNo: sno,
+  //       PermitId: permitDetails?.PermitId,
+  //     });
+  //     if (res.data?.Records) {
+  //       setInvoiceTable(res.data.Records);
+  //     } else {
+  //       setInvoiceTable((prev) => prev.filter((inv) => inv.SNo !== sno));
+  //     }
+  //   } catch (error) {
+  //     console.error("Delete failed", error);
+  //   }
+  // };
+
   const deleteInvoice = async (sno) => {
     try {
       const res = await API.post("/deleteInvoiceNo/", {
         SNo: sno,
-        PermitId: "PERMIT104",
+        PermitId: permitDetails?.PermitId,
       });
-      if (res.data?.Records) {
-        setInvoiceTable(res.data.Records);
-      } else {
-        setInvoiceTable((prev) => prev.filter((inv) => inv.SNo !== sno));
-      }
+      let updatedTable =
+        res.data?.Records || invoiceTable.filter((inv) => inv.SNo !== sno);
+      const reIndexedTable = updatedTable.map((inv, index) => ({
+        ...inv,
+        SNo: index + 1,
+      }));
+      setInvoiceTable(reIndexedTable);
+      setSerialNumber(reIndexedTable.length + 1);
     } catch (error) {
       console.error("Delete failed", error);
     }
   };
+
+  useEffect(() => {
+    if (editingSNo === null) {
+      setSerialNumber(invoiceTable.length + 1);
+    }
+  }, [invoiceTable, editingSNo]);
 
   // ======================== EDIT INVOICE ========================
   const editInvoice = (invoice) => {
@@ -897,8 +976,10 @@ function Invoice({ setActiveTab }) {
     setTermTypeSelected("");
     setShowFreightRow(true);
     setShowInsuranceRow(true);
-    setAdValoremIndicator("False");
-    setPreDutyRateIndicator("False");
+    setAdValoremIndicator(false);
+    setPreDutyRateIndicator(false);
+    setFreightChargesEnabled(false);
+    setInsuranceChargesEnabled(false);
     setSupplierRelationship("");
     setSupplierManuFacturerCode("");
     setSupplierManuFacturerCruei("");
@@ -936,6 +1017,241 @@ function Invoice({ setActiveTab }) {
     setInvoiceInsurance("No");
     setEditingSNo(null);
   };
+  // ===================== SAVE AS DRAFT =====================
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
+  const [draftReasonError, setDraftReasonError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAsDraftClick = () => {
+    setDraftReason("");
+    setDraftReasonError(false);
+    setShowDraftModal(true);
+  };
+
+  const formatDraftDate = (dateStr) => {
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateStr;
+  };
+
+  const handleCancelDraftModal = () => {
+    setShowDraftModal(false);
+    setDraftReason("");
+    setDraftReasonError(false);
+  };
+
+  const handleConfirmSaveAsDraft = async () => {
+    if (!draftReason.trim()) {
+      setDraftReasonError(true);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const TouchUser = (user?.username || "").toUpperCase();
+      const TouchTime = new Date().toISOString();
+
+      const payload = {
+        PermitId: permitDetails?.PermitId || "",
+        Refid: permitDetails?.RefId || "",
+        JobId: permitDetails?.JobId || "",
+        MSGId: permitDetails?.MsgId || "",
+        TradeNetMailboxID:
+          permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+        MessageType: "IPTDEC",
+
+        // ── Header fields ──────────────────────────────────
+        DeclarationType: decType || "",
+        PreviousPermit: prevPermitNo || "",
+        CargoPackType: cargo || "",
+        InwardTransportMode: transportMode || "",
+        BGIndicator: bgInd || "",
+        SupplyIndicator: supplyInd ? "true" : "false",
+        ReferenceDocuments: refDocs ? "true" : "false",
+        DeclarningFor: declFor || "",
+        License: Licence || "",
+        Recipient: Recipients || "",
+        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+
+        // ── Party fields ───────────────────────────────────
+        ImporterCompanyCode: importerCode || "",
+        InwardCarrierAgentCode: inwardCode || "",
+        FreightForwarderCode: freightForwarderCode || "",
+        ClaimantPartyCode: claimantCode || "",
+
+        // ── Transport fields ───────────────────────────────
+        VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+        VesselName: showVesselName ? vesselName || "" : "",
+        OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+        ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+        TransportId: showTransportDetails ? transportDetails || "" : "",
+        FlightNO: showFlightNumber ? flightNumber || "" : "",
+        AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+        MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+
+        // ── Cargo fields ───────────────────────────────────
+        HBL: cargoHawb || "",
+        ArrivalDate: formatDraftDate(arrivalDate) || null,
+        LoadingPortCode: loadingPortCode || "",
+        ReleaseLocation: releaseCode || "",
+        ResLoaName: releaseLocationDescription || "",
+        RecepitLocation: receiptCode || "",
+        RecepitLocName: receiptLocationDescription || "",
+        TotalOuterPack: totalOuterPackValue || "",
+        TotalOuterPackUOM: totalOuterPackName || "",
+        TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeightUOM: grossUOM || "",
+        BlanketStartDate: formatDraftDate(blanketStartDate) || null,
+
+        // ── Status & Meta ──────────────────────────────────
+        Message: draftReason.trim().toUpperCase(),
+        Status: "SAVEASDRF",
+        prmtStatus: "SAVEASDRF",
+        TouchUser,
+        TouchTime,
+        MRDate: null,
+        MRTime: "",
+      };
+
+      const response = await API.post("/postCommonHeaderTable/", [payload]);
+
+      if (response?.data) {
+        const updatedPermit = {
+          ...permitDetails,
+          JobId: response.data.JobId || permitDetails?.JobId,
+          MsgId: response.data.MSGId || permitDetails?.MsgId,
+        };
+        updatePermitDetails(updatedPermit);
+        sessionStorage.setItem("currentPermit", JSON.stringify(updatedPermit));
+
+        setShowDraftModal(false);
+        setDraftReason("");
+        setDraftReasonError(false);
+
+        alert("Draft Saved Successfully!");
+        navigate("/inpayment");
+      }
+    } catch (err) {
+      console.error("SAVE AS DRAFT ERROR:", err);
+      alert("Error saving draft. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ===========================Auto save every filling Detils========================
+
+  // const autoSavePayload = useMemo(() => {
+  //   if (!permitDetails?.PermitId) return null;
+  //   return {
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     Refid: permitDetails?.RefId || "",
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     TradeNetMailboxID:
+  //       permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     DeclarningFor: declFor || "",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     // party fields
+  //     ImporterCompanyCode: importerCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+  //     // ── Transport (from Header) ────────────────────────
+  //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
+  //     VesselName: showVesselName ? vesselName || "" : "",
+  //     OceanBillofLadingNo: showOblNumber ? obl || "" : "",
+  //     ConveyanceRefNo: showconveyanceNumber ? conveyanceNumber || "" : "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: showFlightNumber ? flightNumber || "" : "",
+  //     AircraftRegNo: showAirCraftRegNumber ? airCraftRegNumber || "" : "",
+  //     MasterAirwayBill: showMawbNumber ? mawbNumber || "" : "",
+  //     // ── Cargo fields ───────────────────────────────────
+  //     HBL: cargoHawb || "",
+  //     ArrivalDate: formatDate(arrivalDate) || null,
+  //     LoadingPortCode: loadingPortCode || "",
+  //     ReleaseLocation: releaseCode || "",
+  //     ResLoaName: releaseLocationDescription || "",
+  //     RecepitLocation: receiptCode || "",
+  //     RecepitLocName: receiptLocationDescription || "",
+  //     TotalOuterPack: totalOuterPackValue || "",
+  //     TotalOuterPackUOM: totalOuterPackName || "",
+  //     TotalGrossWeight: totalGrossWeight || "",
+  //     TotalGrossWeightUOM: grossUOM || "",
+  //     BlanketStartDate: formatDate(blanketStartDate) || null,
+  //     // reamining
+  //     Status: "DISCONNECT",
+  //     prmtStatus: "DISCONNECT",
+  //     TouchUser: (user?.username || "").toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Message: "AUTO-SAVED|TAB:InvoicePage",
+  //     MRTime: "",
+  //   };
+  // }, [
+  //   permitDetails,
+  //   decType,
+  //   prevPermitNo,
+  //   cargo,
+  //   transportMode,
+  //   bgInd,
+  //   supplyInd,
+  //   refDocs,
+  //   declFor,
+  //   Licence,
+  //   Recipients,
+  //   // Party page Reamainig
+  //   importerCode,
+  //   inwardCode,
+  //   freightForwarderCode,
+  //   claimantCode,
+  //   // Cargo Page & Remaining
+  //   voyageNumber,
+  //   vesselName,
+  //   obl,
+  //   conveyanceNumber,
+  //   transportDetails,
+  //   flightNumber,
+  //   airCraftRegNumber,
+  //   mawbNumber,
+  //   showVoyageNumber,
+  //   showVesselName,
+  //   showOblNumber,
+  //   showconveyanceNumber,
+  //   showTransportDetails,
+  //   showFlightNumber,
+  //   showAirCraftRegNumber,
+  //   showMawbNumber,
+  //   cargoHawb,
+  //   arrivalDate,
+  //   loadingPortCode,
+  //   releaseCode,
+  //   releaseLocationDescription,
+  //   receiptCode,
+  //   receiptLocationDescription,
+  //   totalOuterPackValue,
+  //   totalOuterPackName,
+  //   totalGrossWeight,
+  //   grossUOM,
+  //   blanketStartDate,
+  //   user,
+  // ]);
+
+  // useDebounceAutoSave({
+  //   payload: autoSavePayload,
+  //   enabled: !isViewMode,
+  //   delay: 2000,
+  // });
 
   // ======================== UI ========================
   return (
@@ -1306,6 +1622,11 @@ function Invoice({ setActiveTab }) {
                     onChange={(e) =>
                       handleAmountChange(e.target.value, "invoice")
                     }
+                    // onKeyPress={(e) => {
+                    //   if (!/[\d.]/.test(e.key)) e.preventDefault();
+                    //   if (e.key === "." && String(e.target.value).includes("."))
+                    //     e.preventDefault();
+                    // }}
                     placeholder="0.00"
                   />
                 </td>
@@ -1388,6 +1709,11 @@ function Invoice({ setActiveTab }) {
                       <input
                         type="checkbox"
                         className="form-check-input ms-2"
+                        checked={freightChargesEnabled}
+                        onChange={(e) => {
+                          setFreightChargesEnabled(e.target.checked);
+                          if (!e.target.checked) setFreightValueCharges("");
+                        }}
                       />
                     </label>
                   </td>
@@ -1397,6 +1723,7 @@ function Invoice({ setActiveTab }) {
                       value={freightValueCharges}
                       className="inputStyle"
                       placeholder="0.00"
+                      disabled={!freightChargesEnabled}
                       onChange={(e) => setFreightValueCharges(e.target.value)}
                     />
                   </td>
@@ -1459,12 +1786,11 @@ function Invoice({ setActiveTab }) {
                       <input
                         type="checkbox"
                         className="ms-2 form-check-input"
-                        checked={invoiceInsurance === "True"}
-                        onChange={(e) =>
-                          setInvoiceInsurance(
-                            e.target.checked ? "True" : "False",
-                          )
-                        }
+                        checked={insuranceChargesEnabled}
+                        onChange={(e) => {
+                          setInsuranceChargesEnabled(e.target.checked);
+                          if (!e.target.checked) setInsuranceCharges(""); // reset on uncheck
+                        }}
                       />
                     </label>
                   </td>
@@ -1474,6 +1800,7 @@ function Invoice({ setActiveTab }) {
                       placeholder="0.00"
                       className="inputStyle"
                       value={insuranceCharges}
+                      disabled={!insuranceChargesEnabled}
                       onChange={(e) => setInsuranceCharges(e.target.value)}
                     />
                   </td>
@@ -1508,8 +1835,10 @@ function Invoice({ setActiveTab }) {
                       type="text"
                       value={insuranceValueAmount}
                       className="inputStyle"
-                      disabled
                       placeholder="0.00"
+                      onChange={(e) =>
+                        setInsuranceValueAmount(e.target.value, "insurance")
+                      }
                     />
                   </td>
                   <td>
@@ -1568,7 +1897,15 @@ function Invoice({ setActiveTab }) {
       <div className="col-12">
         <div className="mt-3 d-flex justify-content-center gap-3">
           <button
-            className="NextpageBtns"
+            className="NextpageBtns view-nav-btn"
+            tabIndex="17"
+            id="PartySaveDraft"
+            onClick={handleSaveAsDraftClick}
+          >
+            SAVE AS DRAFT
+          </button>
+          <button
+            className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
           >
             PREVIOUS
@@ -1582,12 +1919,191 @@ function Invoice({ setActiveTab }) {
             </button>
           )}
           <button
-            className="NextpageBtns"
+            className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("ItemTab")}
           >
             NEXT
           </button>
         </div>
+        {showDraftModal && (
+          <>
+            {/* Backdrop */}
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1040,
+              }}
+              onClick={handleCancelDraftModal}
+            />
+            {/* Modal */}
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                zIndex: 1050,
+                width: "460px",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  backgroundColor: "#1a6db5",
+                  color: "#fff",
+                  padding: "14px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  SAVE AS DRAFT
+                </span>
+                <span
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={handleCancelDraftModal}
+                >
+                  ✕
+                </span>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: "24px 24px 16px 24px" }}>
+                <div
+                  style={{
+                    backgroundColor: "#fff8e1",
+                    border: "1px solid #ffe082",
+                    borderRadius: "6px",
+                    padding: "10px 14px",
+                    marginBottom: "18px",
+                    fontSize: "13px",
+                    color: "#7b5800",
+                  }}
+                >
+                  This permit will be saved as <strong>DRAFT (DRF)</strong>. You
+                  can continue filling the remaining details later.
+                </div>
+
+                <label
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    marginBottom: "6px",
+                    display: "block",
+                    color: "#333",
+                  }}
+                >
+                  WHY ARE YOU SAVING AS DRAFT?{" "}
+                  <span style={{ color: "red" }}>*</span>
+                </label>
+
+                <textarea
+                  rows={4}
+                  className="form-control"
+                  value={draftReason}
+                  onChange={(e) => {
+                    setDraftReason(e.target.value);
+                    if (e.target.value.trim()) setDraftReasonError(false);
+                  }}
+                  style={{
+                    resize: "vertical",
+                    fontSize: "13px",
+                    border: draftReasonError
+                      ? "1px solid red"
+                      : "1px solid #ced4da",
+                    borderRadius: "4px",
+                    padding: "8px",
+                    width: "100%",
+                  }}
+                  autoFocus
+                />
+
+                {draftReasonError && (
+                  <span
+                    style={{
+                      color: "red",
+                      fontSize: "12px",
+                      marginTop: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Please provide a reason before saving as draft.
+                  </span>
+                )}
+
+                <div
+                  style={{
+                    textAlign: "right",
+                    fontSize: "11px",
+                    color: draftReason.length > 200 ? "red" : "#888",
+                    marginTop: "4px",
+                  }}
+                >
+                  {draftReason.length} / 200
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "12px 24px 20px 24px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  className="NextpageBtns"
+                  onClick={handleCancelDraftModal}
+                  disabled={isSaving}
+                  style={{
+                    backgroundColor: "#6c757d",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  CANCEL
+                </button>
+
+                <button
+                  className="NextpageBtns"
+                  onClick={handleConfirmSaveAsDraft}
+                  disabled={isSaving || draftReason.length > 200}
+                  style={{
+                    backgroundColor: isSaving ? "#90caf9" : "#1a6db5",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: isSaving ? "not-allowed" : "pointer",
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {isSaving ? "SAVING..." : "💾 SAVE AS DRAFT"}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* INVOICE TABLE */}
@@ -1630,6 +2146,7 @@ function Invoice({ setActiveTab }) {
                     </td>
                     <td>
                       <FaEdit
+                        className="view-show"
                         style={{ width: "15px", cursor: "pointer" }}
                         onClick={() => editInvoice(inv)}
                       />

@@ -3,6 +3,37 @@ import { createContext, useContext, useState, useEffect } from "react";
 const InpaymentContext = createContext();
 
 export const InpaymentProvider = ({ children }) => {
+  // Permit Details
+  const [permitDetails, setPermitDetails] = useState({
+    PermitId: "",
+    JobId: "",
+    MsgId: "",
+    RefId: "",
+    AccountId: "",
+    LoginStatus: "",
+    DateLastUpdated: "",
+    MailBoxId: "",
+    SeqPool: "",
+    StartSequence: "",
+    TradeNetMailboxID: "",
+    DeclarantName: "",
+    DeclarantCode: "",
+    DeclarantTel: "",
+    CRUEI: "",
+    Code: "",
+    name: "",
+    name1: "",
+    PermitNumber: "",
+    prmtStatus: "",
+    CurrentDate: "",
+    prmtStatus: "NEW",
+  });
+const updatePermitDetails = (newDetails) => {
+  setPermitDetails((prev) => ({
+    ...prev,
+    ...(typeof newDetails === "function" ? newDetails(prev) : newDetails),
+  }));
+};
   // HEADER PAGE STATES
   const [decType, setDecType] = useState("");
   const [prevPermitNo, setPrevPermitNo] = useState("");
@@ -31,15 +62,26 @@ export const InpaymentProvider = ({ children }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [documentType, setDocumentType] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  // Header Page Errors
+  const [showDeclarationTypeError, setShowDeclarationTypeError] =
+    useState(false);
+  const [showCargoPackTypeError, setShowCargoPackTypeError] = useState(false);
+  const [showDeclaringForError, setShowDeclaringForError] = useState(false);
+  const [showInwardTransportError, setShowInwardTransportError] =
+    useState(false);
   // PARTY PAGE IMPORTER STATES
   const [importerCode, setImporterCode] = useState("");
   const [importerCruei, setImporterCruei] = useState("");
+  const [showImporterCrueiError, setShowImporterCrueiError] = useState(false);
   const [importerName, setImporterName] = useState("");
+  const [showImporterNameError, setShowImporterNameError] = useState(false);
   const [importerName1, setImporterName1] = useState("");
   // PARTY PAGE INWARD CARRIER STATES
   const [inwardCode, setInwardCode] = useState("");
   const [inwardCruei, setInwardCruei] = useState("");
+  const [showInwardCrueiError, setShowInwardCrueiError] = useState(false);
   const [inwardName, setInwardName] = useState("");
+  const [showInwardNameError, setShowInwardNameError] = useState(false);
   const [inwardName1, setInwardName1] = useState("");
   //PARTY PAGE FRIEGHT FORWARDER STATES
   const [freightForwarderCode, setFreightForwarderCode] = useState("");
@@ -70,21 +112,33 @@ export const InpaymentProvider = ({ children }) => {
   const [showNotRequired, setShowNotRequired] = useState(true);
   // cargo page states
   const [totalOuterPackValue, setTotalOuterPackValue] = useState("");
+  const [showTotalOuterPackValueError, setShowTotalOuterPackValueError] =
+    useState(false);
   const [totalOuterPackName, setTotalOuterPackName] = useState("");
+  const [showTotalOuterPackUomError, setShowTotalOuterPackUomError] =
+    useState(false);
   const [totalGrossWeight, setTotalGrossWeight] = useState("");
+  const [showTotalGrossWeightError, setShowTotalGrossWeightError] =
+    useState(false);
   const [grossUOM, setGrossUOM] = useState("--Select--");
+  const [showGrossUOMError, setShowGrossUOMError] = useState(false);
   const [permitGrossWeight, setPermitGrossWeight] = useState("");
   const [receiptCode, setReceiptCode] = useState("");
+  const [showReceiptCodeError, setShowReceiptCodeError] = useState(false);
   const [receiptLocationDescription, setReceiptLocationDescription] =
     useState("");
   const [releaseCode, setReleaseCode] = useState("");
+  const [showReleaseCodeError, setShowReleaseCodeError] = useState(false);
   const [releaseLocationDescription, setReleaseLocationDescription] =
     useState("");
   const [loadingPortCode, setLoadingPortCode] = useState("");
+  const [showLoadingPortCodeError, setShowLoadingPortCodeError] =
+    useState(false);
   const [loadingPortName, setLoadingPortName] = useState("");
   const [cargoHawb, setCargoHawb] = useState("");
   const [cargoHawbList, setCargoHawbList] = useState([]);
   const [arrivalDate, setArrivalDate] = useState("");
+  const [showArriavalDateError, setShowArrivalDateError] = useState(false);
   const [blanketStartDate, setBlanketStartDate] = useState("");
   const [voyageNumber, setVoyageNumber] = useState("");
   const [vesselName, setVesselName] = useState("");
@@ -251,6 +305,7 @@ export const InpaymentProvider = ({ children }) => {
     { ProcessingCode1: "", ProcessingCode2: "", ProcessingCode3: "" },
   ]);
   // Summary Page
+  const [summaryDeclaringFor, setSummaryDeclaringFor] = useState("");
   const [summaryImporterCruei, setSummaryImporterCruei] = useState("");
   const [summaryImporterName, setSummaryImporterName] = useState("");
   const [totalAmountPayable, setTotalAmountPayable] = useState("");
@@ -261,9 +316,14 @@ export const InpaymentProvider = ({ children }) => {
   const [summaryInternalReamarks, setSummaryInternalRemarks] = useState("");
   const [summaryDate, setSummaryDate] = useState("");
   const [summaryTime, setSummaryTime] = useState("");
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   return (
     <InpaymentContext.Provider
       value={{
+        // Permit Details
+        permitDetails,
+        setPermitDetails,
+        updatePermitDetails,
         // HEADER PAGE STATES
         decType,
         setDecType,
@@ -309,6 +369,14 @@ export const InpaymentProvider = ({ children }) => {
         setSelectedFile,
         documentType,
         setDocumentType,
+        showDeclarationTypeError,
+        setShowDeclarationTypeError,
+        showCargoPackTypeError,
+        setShowCargoPackTypeError,
+        showDeclaringForError,
+        setShowDeclaringForError,
+        setShowInwardTransportError,
+        showInwardTransportError,
         // PARTY PAGE STATES IMPORTER
         importerCode,
         setImporterCode,
@@ -318,6 +386,10 @@ export const InpaymentProvider = ({ children }) => {
         setImporterName,
         importerName1,
         setImporterName1,
+        showImporterCrueiError,
+        setShowImporterCrueiError,
+        showImporterNameError,
+        setShowImporterNameError,
         // PARTY PAGE STATES INWARD CARRIER
         inwardCode,
         setInwardCode,
@@ -327,6 +399,10 @@ export const InpaymentProvider = ({ children }) => {
         setInwardName,
         inwardName1,
         setInwardName1,
+        showInwardCrueiError,
+        setShowInwardCrueiError,
+        showInwardNameError,
+        setShowInwardNameError,
         // PARTY PAGE STATES FREIGHT FORWARDER
         freightForwarderCode,
         setFreightForwarderCode,
@@ -378,24 +454,38 @@ export const InpaymentProvider = ({ children }) => {
         // cargo page states
         totalOuterPackValue,
         setTotalOuterPackValue,
+        showTotalOuterPackValueError,
+        setShowTotalOuterPackValueError,
         totalOuterPackName,
         setTotalOuterPackName,
+        showTotalOuterPackUomError,
+        setShowTotalOuterPackUomError,
         totalGrossWeight,
         setTotalGrossWeight,
         grossUOM,
         setGrossUOM,
+        showTotalGrossWeightError,
+        setShowTotalGrossWeightError,
+        showGrossUOMError,
+        setShowGrossUOMError,
         permitGrossWeight,
         setPermitGrossWeight,
         receiptCode,
         setReceiptCode,
+        showReceiptCodeError,
+        setShowReceiptCodeError,
         receiptLocationDescription,
         setReceiptLocationDescription,
         releaseCode,
         setReleaseCode,
+        showReleaseCodeError,
+        setShowReleaseCodeError,
         releaseLocationDescription,
         setReleaseLocationDescription,
         loadingPortCode,
         setLoadingPortCode,
+        showLoadingPortCodeError,
+        setShowLoadingPortCodeError,
         loadingPortName,
         setLoadingPortName,
         cargoHawb,
@@ -404,6 +494,8 @@ export const InpaymentProvider = ({ children }) => {
         setCargoHawbList,
         arrivalDate,
         setArrivalDate,
+        showArriavalDateError,
+        setShowArrivalDateError,
         blanketStartDate,
         setBlanketStartDate,
         voyageNumber,
@@ -697,6 +789,10 @@ export const InpaymentProvider = ({ children }) => {
         setSummaryDate,
         summaryTime,
         setSummaryTime,
+        declarationChecked,
+        setDeclarationChecked,
+        summaryDeclaringFor,
+        setSummaryDeclaringFor,
       }}
     >
       {children}
