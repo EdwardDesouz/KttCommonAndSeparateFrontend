@@ -44,7 +44,10 @@ function LoginPage() {
       });
 
       if (res.data.success) {
-        login(formData.username); // store username in context
+        // login(formData.username);
+        console.log("Full API response:", res.data);
+        console.log("AccountId from API:", res.data.AccountId);
+        login(formData.username, res.data.AccountId);
         console.log("Logged in username:", formData.username);
         navigate("/index");
       } else {

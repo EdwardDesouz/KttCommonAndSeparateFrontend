@@ -208,7 +208,7 @@ function Cargo({ setActiveTab, isViewMode }) {
 
     showOutVoyage,
     setShowOutVoyage,
-       showSeaStore,
+    showSeaStore,
     setShowSeaStore,
     outVoyageNumber,
     setOutVoyageNumber,
@@ -241,6 +241,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     outAircraftRegNumber,
     setOutAircraftRegNumber,
     outMawbNumber,
+    setOutMawbNumber,
     showOutAircraftReg,
     setShowOutAircraftReg,
     showOutMawb,
@@ -2457,27 +2458,32 @@ function Cargo({ setActiveTab, isViewMode }) {
 
                   {/* SEA STORE */}
                   {showSeaStore && (
-                  <div className="row align-items-center compact-row">
-                    <label className="col-sm-4 col-form-label">SEA STORE</label>
-                    <div className="col-sm-7 form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="OutSeaStore"
-                        checked={outSeaStore}
-                        onChange={handleSeaStoreFunction}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <label className="form-check-label" htmlFor="OutSeaStore">
+                    <div className="row align-items-center compact-row">
+                      <label className="col-sm-4 col-form-label">
                         SEA STORE
                       </label>
+                      <div className="col-sm-7 form-check">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="OutSeaStore"
+                          checked={outSeaStore}
+                          onChange={handleSeaStoreFunction}
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="OutSeaStore"
+                        >
+                          SEA STORE
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                  )} 
+                  )}
 
                   {/* VOYAGE NUMBER */}
                   {showOutVoyage && (
@@ -2859,7 +2865,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           className="form-control"
                           value={outAircraftRegNumber}
                           onChange={(e) =>
-                            setOutAirCraftRegNumber(e.target.value)
+                            setOutAircraftRegNumber(e.target.value)
                           }
                         />
                       </div>
@@ -2884,46 +2890,6 @@ function Cargo({ setActiveTab, isViewMode }) {
               </div>
             </div>
           )}
-
-          {/* EXHIBITION / TEMP IMPORT */}
-          {/* {showExhibition && (
-            <div className="col-6">
-              <div className="row align-items-center compact-row">
-                <div className="col-sm-4 border-bottom pb-1 full-width-title">
-                  EXHIBITION / TEMP IMPORT
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-12">
-                  {/* START DATE */}
-                  {/* {showExhibitionStartDate && ( */}
-                    {/* <div className="row align-items-center compact-row mb-3">
-                      <label className="col-sm-4 col-form-label">
-                        START DATE
-                      </label>
-                      <DateField
-                        value={exhibitionStartDate}
-                        setValue={setExhibitionStartDate}
-                      />
-                    </div> */}
-                  {/* )} */}
-
-                  {/* END DATE */}
-                  {/* {showExhibitionEndDate && (
-                    <div className="row align-items-center compact-row mb-3">
-                      <label className="col-sm-4 col-form-label">
-                        END DATE
-                      </label>
-                      <DateField
-                        value={exhibitionEndDate}
-                        setValue={setExhibitionEndDate}
-                      />
-                    </div>
-                  )} */}
-                {/* </div>
-              </div>
-            </div> */}
-          {/* )} */} 
         </div>
       </div>
 

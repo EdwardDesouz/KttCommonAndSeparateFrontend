@@ -643,7 +643,7 @@ function Invoice({ setActiveTab, isViewMode }) {
   // ======================== CURRENCY CHANGE ========================
   const handleCurrencyChange = (currencyName, row) => {
     const selected = currency.find((item) => item.Currency === currencyName);
-    const rate = selected ? parseFloat(selected.CurrencyRate) : 0;
+    const rate = selected ? selected.CurrencyRate : 0;
     if (row === "invoice") {
       setInvoiceCurrency(currencyName);
       setInvoiceExRate(rate);
@@ -1825,8 +1825,9 @@ function Invoice({ setActiveTab, isViewMode }) {
                     <input
                       type="text"
                       value={insuranceValueExRate}
+                      onChange={(e)=>setInsuranceValueExRate(e.target.value)}
                       className="inputStyle"
-                      disabled
+                      // disabled
                       placeholder="0.00"
                     />
                   </td>

@@ -471,10 +471,12 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       } else if (transportValue === "3 : Road") {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+        setShowInwardMode(true);
       } else if (transportValue === "4 : Air") {
         setShowFlightNumber(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
+        setShowInwardMode(true);
       } else if (
         transportValue === "5 : Mail" ||
         transportValue === "6 : Multi-model(Not in use)" ||
@@ -482,6 +484,7 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       ) {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+        setShowInwardMode(true);
       } else if (transportValue === "N : Not Required") {
         setShowInWardDetails(false);
         setShowNotRequired(false);

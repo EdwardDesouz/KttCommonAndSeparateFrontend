@@ -287,7 +287,8 @@ function Item({ setActiveTab, isViewMode }) {
 
   useEffect(() => {
     if (editingSNo === null) {
-      setSerialNumber((itemTable.length + 1).toString().padStart(3));
+      // setSerialNumber((itemTable.length + 1).toString().padStart(3));
+      setSerialNumber(itemTable.length + 1);
     }
   }, [itemTable, editingSNo]);
 
@@ -1488,11 +1489,19 @@ function Item({ setActiveTab, isViewMode }) {
     return check;
   };
 
+
+  const formatItemDate = (dateStr) => {
+  if (!dateStr || dateStr.trim() === "") return null;
+  const parts = dateStr.split("/");
+  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD/MM/YYYY → YYYY-MM-DD
+  return null;
+};
   // ----------------------- Add Item Function ---------------------------
 
   const ItemSave = async () => {
     if (!validateItemFields()) return;
-    const itemNumber = serialNumber;
+    // const itemNumber = serialNumber;
+    const itemNumber = Number(serialNumber);
     const payload = {
       CascDatas: JSON.stringify(ItemCascSave(itemNumber)),
       PermitId: permitDetails?.PermitId,
@@ -1564,12 +1573,14 @@ function Item({ setActiveTab, isViewMode }) {
       CerItemQty: cerItemQty || 0,
       CerItemUOM: cerItemUOM || "",
       CIFValOfCer: cifCerValue || 0,
-      ManufactureCostDate: manuDate || "",
+      // ManufactureCostDate: manuDate || "",
+      ManufactureCostDate: formatItemDate(manuDate),
       TexCat: textileCategory || "",
       TexQuotaQty: textileQuotaQty || 0,
       TexQuotaUOM: textileQuotaUOM || "",
       CerInvNo: cerInvoiceNumber || "",
-      CerInvDate: invDate || "",
+      // CerInvDate: invDate || "",
+    CerInvDate: formatItemDate(invDate),
       OriginOfCer: originCeritficateDetails || "",
       HSCodeCer: hsCodeCer || "",
       PerContent: percentageOrigin || "",
@@ -1587,17 +1598,19 @@ function Item({ setActiveTab, isViewMode }) {
         console.log("CASC Data Saved Successfully");
       }
       setEditingSNo(null);
-      setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
+      // setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
+      setSerialNumber(res.data.Records.length + 1);
       resetItemForm();
     } catch (error) {
       console.error("Save failed", error);
+      console.error("Error response:", error.response?.data);
     }
   };
 
   const ItemCascSave = (itemNumber) => {
     const username = user.username;
     const permitId = permitDetails?.PermitId;
-    const messageType = "TNPDEC";
+    const messageType = "COODEC";
 
     const cascArray = itemCasc.flatMap((item, itemIndex) => {
       if (!item.code) return [];
@@ -1700,7 +1713,8 @@ function Item({ setActiveTab, isViewMode }) {
         PermitId: permitId,
       });
       setItemTable(res.data.Records);
-      const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
+      // const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
+      const nextSerial = (res.data.Records.length + 1)
       setSerialNumber(nextSerial);
     } catch (error) {
       console.error("Delete failed", error);
@@ -1715,7 +1729,8 @@ function Item({ setActiveTab, isViewMode }) {
 
     const permitId = permitDetails?.PermitId;
 
-    setSerialNumber(item.ItemNo?.toString().padStart(3));
+    // setSerialNumber(item.ItemNo?.toString().padStart(3));
+    setSerialNumber(item.ItemNo?.toString().padStart(3, "0"));
 
     // HS Code logic
     const selectedHs = hsCodeSuggestions.find(
@@ -1779,7 +1794,7 @@ function Item({ setActiveTab, isViewMode }) {
 
     // Duty
     setPreferentialCode(item.PreferentialCode || "");
-    setGstRateValue(item.GSTRate || 9);
+    setGstRateValue(item.GSTRate || 0);
     setGstUom(item.GSTUOM || "");
     setGstSum(item.GSTAmount || 0);
     setExciseDutyRate(item.ExciseDutyRate || 0);
@@ -1809,9 +1824,9 @@ function Item({ setActiveTab, isViewMode }) {
     );
 
     // Certificate of Origin
-    setCerItemQty(item.CerItemQty || "0.00");
+   setCerItemQty(parseFloat(item.CerItemQty) || 0);
     setCerItemUOM(item.CerItemUOM || "--Select--");
-    setCifCerValue(item.CIFValOfCer || "0.00");
+    setCifCerValue(parseFloat(item.CIFValOfCer) || 0);
 
     if (item.ManufactureCostDate) {
       const date = new Date(item.ManufactureCostDate);
@@ -1824,7 +1839,7 @@ function Item({ setActiveTab, isViewMode }) {
     }
 
     setTextileCategory(item.TexCat || "");
-    setTextileQuotaQty(item.TexQuotaQty || "0.00");
+    setTextileQuotaQty(parseFloat(item.TexQuotaQty) || 0);
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
     setCerInvoiceNumber(item.CerInvNo || "");
 
@@ -1988,12 +2003,12 @@ function Item({ setActiveTab, isViewMode }) {
     setUnbranded(false);
 
     // ---------------- CERTIFICATE OF ORIGIN ----------------
-    setCerItemQty("0.00");
+    setCerItemQty(0);
     setCerItemUOM("--Select--");
-    setCifCerValue("0.00");
+    setCifCerValue(0);
     setManuDate("");
     setTextileCategory("");
-    setTextileQuotaQty("0.00");
+    setTextileQuotaQty(0);
     setTextileQuotaUOM("--Select--");
     setCerInvoiceNumber("");
     setInvDate("");
@@ -2176,7 +2191,7 @@ function Item({ setActiveTab, isViewMode }) {
           ImPQty: item.ImPQty || 0,
           ImPUOM: item.ImPUOM || "",
           PreferentialCode: item.PreferentialCode || "",
-          GSTRate: item.GSTRate || 9,
+          GSTRate: item.GSTRate || 0,
           GSTUOM: item.GSTUOM || "",
           GSTAmount: recalcGST,
           ExciseDutyRate: item.ExciseDutyRate || 0,
@@ -3496,6 +3511,7 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
+                {!isViewMode&&(
                 <th>
                   <input
                     type="checkbox"
@@ -3504,6 +3520,7 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={handleSelectAll}
                   />
                 </th>
+                )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -3541,15 +3558,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                        <td>
-                          <input
-                            type="checkbox"
-                            name="itemCheckDel"
-                            value={item.ItemNo}
-                            checked={selectedItems.includes(item.ItemNo)}
-                            onChange={() => handleSelectOne(item.ItemNo)}
-                          />
-                        </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          name="itemCheckDel"
+                          value={item.ItemNo}
+                          checked={selectedItems.includes(item.ItemNo)}
+                          onChange={
+                            !isViewMode
+                              ? () => handleSelectOne(item.ItemNo)
+                              : undefined
+                          }
+                          readOnly={isViewMode}
+                        />
+                      </td>
                       )}
                       <td>
                         <FaEdit

@@ -1025,7 +1025,7 @@ function Item({ setActiveTab, isViewMode }) {
       }
 
       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
-        if (Number(itemqty) > Number(totalGrossWeight)) {
+        if (itemqty > totalGrossWeight) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
           );
@@ -1033,11 +1033,11 @@ function Item({ setActiveTab, isViewMode }) {
       }
 
       if (hsQuantity === "0.00" || hsQuantity === "") {
-        setHsQuantity(Number(total).toFixed(2));
+        setHsQuantity(total);
       }
 
       if (itemqty != "0.00" || hsQuantity != "") {
-        setHsQuantity(Number(total).toFixed(2));
+        setHsQuantity(total);
       }
     }
   };
@@ -1264,15 +1264,15 @@ function Item({ setActiveTab, isViewMode }) {
 
   useEffect(() => {
     if (cargoHawbList?.length > 0) {
-      setHawb(cargoHawbList[0] || "");
+      setHawb((cargoHawbList[0] || "").toUpperCase());
     }
   }, [cargoHawbList]);
 
   // -------------------Out HAWB List ------------------
   useEffect(() => {
     if (outCargoHawbList?.length > 0) {
-      setOutHawb(outCargoHawbList[0] || "");
-    } 
+      setOutHawb((outCargoHawbList[0] || "").toUpperCase());
+    }
   }, [outCargoHawbList]);
 
   // ------------------ Declaration Type ------------------
@@ -1700,8 +1700,8 @@ function Item({ setActiveTab, isViewMode }) {
       EndUserDescription: "",
       Brand: brand || "",
       Model: model || "",
-      InHAWBOBL: hawb || "",
-      OutHAWBOBL: outHawb || outCargoHawbList[0] || "",
+      InHAWBOBL: (hawb || "").toUpperCase(),
+      OutHAWBOBL: (outHawb || "").toUpperCase(),
       DutiableQty: duitableQuantity || 0,
       DutiableUOM: duitableQuantityUom || "",
       TotalDutiableQty: totalDuitableQuantity || 0,
@@ -2049,8 +2049,8 @@ function Item({ setActiveTab, isViewMode }) {
     setCountryDescription("");
     setBrand("");
     setModel("");
-    setHawb("");
-    setOutHawb("");
+    setHawb((cargoHawbList?.[0] || "").toUpperCase());
+    setOutHawb((outCargoHawbList?.[0] || "").toUpperCase());
 
     // ---------------- DUTIABLE ----------------
     setDuitableQuantity(0);
@@ -2280,8 +2280,8 @@ function Item({ setActiveTab, isViewMode }) {
           Contry: item.Contry || "",
           Brand: item.Brand || "",
           Model: item.Model || "",
-          InHAWBOBL: firstHawb || item.InHAWBOBL || "",
-          OutHAWBOBL: firstOutHawb || item.OutHAWBOBL || "",
+          InHAWBOBL: (firstHawb || item.InHAWBOBL || "").toUpperCase(),
+          OutHAWBOBL: (firstOutHawb || item.OutHAWBOBL || "").toUpperCase(),
           DutiableQty: item.DutiableQty || 0,
           DutiableUOM: item.DutiableUOM || "",
           TotalDutiableQty: item.TotalDutiableQty || 0,
@@ -4462,6 +4462,7 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
+                {!isViewMode&&(
                 <th>
                   <input
                     type="checkbox"
@@ -4470,6 +4471,7 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={handleSelectAll}
                   />
                 </th>
+                )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -4489,7 +4491,10 @@ function Item({ setActiveTab, isViewMode }) {
             <tbody>
               {itemTable.length === 0 ? (
                 <tr>
-                  <td colSpan={14} style={{ textAlign: "center" }}>
+                  <td
+                    colSpan={isViewMode ? 13 : 14}
+                    style={{ textAlign: "center" }}
+                  >
                     No Record
                   </td>
                 </tr>
@@ -4513,7 +4518,12 @@ function Item({ setActiveTab, isViewMode }) {
                             name="itemCheckDel"
                             value={item.ItemNo}
                             checked={selectedItems.includes(item.ItemNo)}
-                            onChange={() => handleSelectOne(item.ItemNo)}
+                            onChange={
+                              !isViewMode
+                                ? () => handleSelectOne(item.ItemNo)
+                                : undefined
+                            }
+                            readOnly={isViewMode}
                           />
                         </td>
                       )}

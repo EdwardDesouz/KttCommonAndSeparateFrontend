@@ -1590,8 +1590,8 @@ function Item({ setActiveTab, isViewMode }) {
       EndUserDescription: "",
       Brand: brand || "",
       Model: model || "",
-      InHAWBOBL: hawb || "",
-      OutHAWBOBL: outHawb || outCargoHawbList[0] || "",
+      InHAWBOBL: (hawb || cargoHawbList[0] || "").toUpperCase(),
+      OutHAWBOBL: (outHawb || outCargoHawbList[0] || "").toUpperCase(),
       DutiableQty: duitableQuantity || 0,
       DutiableUOM: duitableQuantityUom || "",
       TotalDutiableQty: totalDuitableQuantity || 0,
@@ -1994,8 +1994,8 @@ function Item({ setActiveTab, isViewMode }) {
     setCountryDescription("");
     setBrand("");
     setModel("");
-    setHawb("");
-    setOutHawb("");
+    setHawb(cargoHawbList?.[0] || "");
+    setOutHawb((outCargoHawbList?.[0] || "").toUpperCase());
 
     // ---------------- DUTIABLE ----------------
     setDuitableQuantity(0);
@@ -2205,7 +2205,6 @@ function Item({ setActiveTab, isViewMode }) {
           (resolvedExRate * Number(item.TotalLineAmount)).toFixed(2),
         );
 
-
         const gstPerval = (parseFloat(item.GSTRate) || 0) / 100;
         const exciseAmt = parseFloat(item.ExciseDutyAmount) || 0;
         const customsAmt = parseFloat(item.CustomsDutyAmount) || 0;
@@ -2232,8 +2231,8 @@ function Item({ setActiveTab, isViewMode }) {
           Contry: item.Contry || "",
           Brand: item.Brand || "",
           Model: item.Model || "",
-          InHAWBOBL: firstHawb || item.InHAWBOBL || "",
-          OutHAWBOBL: firstOutHawb || item.OutHAWBOBL || "",
+          InHAWBOBL: (firstHawb || item.InHAWBOBL || "").toUpperCase(),
+          OutHAWBOBL: (firstOutHawb || item.OutHAWBOBL || "").toUpperCase(),
           DutiableQty: item.DutiableQty || 0,
           DutiableUOM: item.DutiableUOM || "",
           TotalDutiableQty: item.TotalDutiableQty || 0,
@@ -4276,6 +4275,7 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
+                {!isViewMode&&(
                 <th>
                   <input
                     type="checkbox"
@@ -4284,6 +4284,7 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={handleSelectAll}
                   />
                 </th>
+                )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -4321,15 +4322,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                        <td>
-                          <input
-                            type="checkbox"
-                            name="itemCheckDel"
-                            value={item.ItemNo}
-                            checked={selectedItems.includes(item.ItemNo)}
-                            onChange={() => handleSelectOne(item.ItemNo)}
-                          />
-                        </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          name="itemCheckDel"
+                          value={item.ItemNo}
+                          checked={selectedItems.includes(item.ItemNo)}
+                          onChange={
+                            !isViewMode
+                              ? () => handleSelectOne(item.ItemNo)
+                              : undefined
+                          }
+                          readOnly={isViewMode}
+                        />
+                      </td>
                       )}
                       <td>
                         <FaEdit

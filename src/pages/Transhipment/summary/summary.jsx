@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Summary({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -24,6 +25,7 @@ function Summary({ setActiveTab, isViewMode }) {
     outTransportMode,
     coType,
     declFor,
+    setDeclFor,
     bgInd,
     supplyInd,
     refDocs,
@@ -63,6 +65,8 @@ function Summary({ setActiveTab, isViewMode }) {
     endUserCode,
     manufacturerCode,
     handlingAgentCode,
+    handlingAgentCruei,
+    handlingAgentName,
     // Cargo
     cargoHawb,
     arrivalDate,
@@ -194,7 +198,9 @@ function Summary({ setActiveTab, isViewMode }) {
   // DeclaringFor
   const fetchDeclaringFor = async () => {
     try {
-      const response = await API.get("/getDeclaringForFromCommonMasterByOutandTranshipment/");
+      const response = await API.get(
+        "/getDeclaringForFromCommonMasterByOutandTranshipment/",
+      );
       setDeclaringFor(response.data);
     } catch (error) {
       console.error("Error fetching mailbox data:", error);
@@ -203,6 +209,21 @@ function Summary({ setActiveTab, isViewMode }) {
   useEffect(() => {
     fetchDeclaringFor();
   }, []);
+
+  // declaring for hide show use effect for empty save
+  useEffect(() => {
+    const config = getFieldConfig(user?.accountId);
+    if (!config.showDeclaringFor) {
+      setDeclFor("");
+      setShowDeclaringForError(false);
+    }
+  }, [user?.accountId]);
+
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
 
   // ── Validation Modal State ───────────────────────────────────────────────
   const [validationErrors, setValidationErrors] = useState({
@@ -417,12 +438,14 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
-    if (!declFor) {
-      errors.header.push("CHECK THE DECLARING FOR");
-      setShowDeclaringForError(true);
-      isValid = false;
-    } else {
-      setShowDeclaringForError(false);
+    if (fieldConfig.showDeclaringFor) {
+      if (!declFor) {
+        errors.header.push("CHECK THE DECLARING FOR");
+        setShowDeclaringForError(true);
+        isValid = false;
+      } else {
+        setShowDeclaringForError(false);
+      }
     }
 
     // ── PARTY ────────────────────────────────────────────────────────────
@@ -558,7 +581,6 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
-
     // ── ITEM ─────────────────────────────────────────────────────────────
     if (itemTable.length < 1) {
       errors.item.push("PLEASE ADD AT LEAST ONE ITEM");
@@ -566,15 +588,17 @@ function Summary({ setActiveTab, isViewMode }) {
     }
 
     // ── SUMMARY ──────────────────────────────────────────────────────────
-    if (
-      !summaryDeclaringFor ||
-      !declFor ||
-      summaryDeclaringFor.trim() !== declFor.trim()
-    ) {
-      errors.summary.push(
-        "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
-      );
-      isValid = false;
+    if (fieldConfig.showDeclaringFor) {
+      if (
+        !summaryDeclaringFor ||
+        !declFor ||
+        summaryDeclaringFor.trim() !== declFor.trim()
+      ) {
+        errors.summary.push(
+          "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
+        );
+        isValid = false;
+      }
     }
     console.log("Header DeclaringFor:", declFor);
     console.log("Summary DeclaringFor:", summaryDeclaringFor);
@@ -774,7 +798,7 @@ function Summary({ setActiveTab, isViewMode }) {
       ClaimantPartyCode: claimantCode || "",
       EndUserCode: endUserCode || "",
       Manufacturer: manufacturerCode || "",
-      HandlingAgentCode:handlingAgentCode||"",
+      HandlingAgentCode: handlingAgentCode || "",
 
       // Cargo
       ArrivalDate: formatDate(arrivalDate) || null,
@@ -846,7 +870,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
       // Other
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
+      DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
@@ -945,7 +969,7 @@ function Summary({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd || "",
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor || "",
+        DeclarningFor: declFor || "--Select--",
         License: Licence || "",
         Recipient: Recipients || "",
         CerDetailtype1: certificateType1 || "",
@@ -966,7 +990,7 @@ function Summary({ setActiveTab, isViewMode }) {
         ClaimantPartyCode: claimantCode || "",
         EndUserCode: endUserCode || "",
         Manufacturer: manufacturerCode || "",
-        HandlingAgentCode:handlingAgentCode||"",
+        HandlingAgentCode: handlingAgentCode || "",
         // Cargo
         HBL: cargoHawb || "",
         ArrivalDate: formatDraftDate(arrivalDate) || null,
@@ -1355,11 +1379,11 @@ function Summary({ setActiveTab, isViewMode }) {
                         readOnly
                       />
                     </div>
-                    <div className="col-sm-6">
+                    <div className="col-sm-7">
                       <input
                         type="text"
                         className="form-control"
-                        value={item.TotalLineAmount || ""}
+                        value={item.TotalLineAmount.toFixed(2) || ""}
                         readOnly
                       />
                     </div>
@@ -1368,7 +1392,7 @@ function Summary({ setActiveTab, isViewMode }) {
               )}
             </div>
           </div>
-       </div>
+        </div>
 
         {/* ── CIF MISMATCH WARNING ─────────────────────────────────────── */}
         <div className="row align-items-center compact-row">
@@ -1450,7 +1474,9 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-6">INTERNAL REMARKS</div>
           {/* <div className="col-sm-3">MRD</div>
           <div className="col-sm-3">TIME</div> */}
-          <div className="col-sm-6">CONFIRM DECLARING FOR</div>
+          {fieldConfig.showDeclaringFor && (
+            <div className="col-sm-6">CONFIRM DECLARING FOR</div>
+          )}
         </div>
 
         {/* ── INTERNAL REMARKS / MRD / TIME INPUTS ────────────────────── */}
@@ -1476,29 +1502,30 @@ function Summary({ setActiveTab, isViewMode }) {
               onBlur={(e) => handleTimeBlur(e.target.value)}
             />
           </div> */}
-
-          <div className="col-sm-4">
-            <select
-              className="Dropdown HighLight mandatory"
-              value={summaryDeclaringFor}
-              onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-              tabIndex="5"
-            >
-              <option value="">--Select--</option>
-              {declaringFor.map((dclrfor) => (
-                <option key={dclrfor.Name} value={dclrfor.Name}>
-                  {dclrfor.Name}
-                </option>
-              ))}
-            </select>
-            <span
-              className="ErrorColor"
-              style={{ display: "none" }}
-              id="DeclaringForSpan"
-            >
-              PLEASE CHOOSE DECLARING FOR
-            </span>
-          </div>
+          {fieldConfig.showDeclaringFor && (
+            <div className="col-sm-4">
+              <select
+                className="Dropdown HighLight mandatory"
+                value={summaryDeclaringFor}
+                onChange={(e) => setSummaryDeclaringFor(e.target.value)}
+                tabIndex="5"
+              >
+                <option value="">--Select--</option>
+                {declaringFor.map((dclrfor) => (
+                  <option key={dclrfor.Name} value={dclrfor.Name}>
+                    {dclrfor.Name}
+                  </option>
+                ))}
+              </select>
+              <span
+                className="ErrorColor"
+                style={{ display: "none" }}
+                id="DeclaringForSpan"
+              >
+                PLEASE CHOOSE DECLARING FOR
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── DECLARATION SUMMARY HEADER ───────────────────────────────── */}
@@ -1513,9 +1540,22 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="row mt-1">
             <div className="col-6">
               <div className="row">
-                <div className="col-6">EXPORTER</div>
+                <div className="col-6">IMPORTER</div>
                 <div className="col-6">
                   {summaryImporterCruei}-{summaryImporterName}
+                </div>
+              </div>
+            </div>
+            <div className="col-6">
+              <div className="row"></div>
+            </div>
+          </div>
+          <div className="row mt-2">
+            <div className="col-6">
+              <div className="row">
+                <div className="col-6">HANDLING AGENT</div>
+                <div className="col-6">
+                  {handlingAgentCruei}-{handlingAgentName}
                 </div>
               </div>
             </div>
@@ -1527,9 +1567,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">IN MAWB/OBL</div>
-                <div className="col-6">
-                  {summaryImporterCruei}-{summaryImporterName}
-                </div>
+                <div className="col-6">{mawbNumber}</div>
               </div>
             </div>
             <div className="col-6">
@@ -1544,15 +1582,13 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">OUT MAWB/OBL</div>
-                <div className="col-6">{obl}</div>
+                <div className="col-6">{outMawbNumber}</div>
               </div>
             </div>
             <div className="col-6">
-              <div className="col-6">
-                <div className="row">
-                  <div className="col-6">OUT HAWB/OBL</div>
-                  <div className="col-6">{obl}</div>
-                </div>
+              <div className="row">
+                <div className="col-6">OUT HAWB/OBL</div>
+                <div className="col-6">{outCargoHawb}</div>
               </div>
             </div>
           </div>
@@ -1577,11 +1613,12 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="row mt-3">
             <div className="col-6">
               <div className="row">
-                <div className="col-6">INVOICE AMOUNT</div>
+                <div className="col-6">ITEM AMOUNT</div>
                 <div className="col-6">
-                  {result.map((inv, index) => (
+                  {itemResult.map((item, index) => (
                     <div key={index}>
-                      {inv.TICurrency} : {inv.TIAmount}
+                      {item.UnitPriceCurrency} :{" "}
+                      {item.TotalLineAmount.toFixed(2)}
                     </div>
                   ))}
                 </div>

@@ -63,7 +63,7 @@ export const CooProvider = ({ children }) => {
   const [showCifFobItemValue, setShowCifFobItemValue] = useState(false);
   const [showOriginCriterion, setShowOriginCriterion] = useState(false);
   const [cerDescription, setCerDescription] = useState("");
-  const [cerItemQty, setCerItemQty] = useState("0.00");
+  const [cerItemQty, setCerItemQty] = useState(0);
   const [cerItemUOM, setCerItemUOM] = useState("--Select--");
   const [cifCerValue, setCifCerValue] = useState("0.00");
   const [manuDate, setManuDate] = useState("");

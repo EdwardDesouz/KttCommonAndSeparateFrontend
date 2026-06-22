@@ -636,15 +636,15 @@ function Invoice({ setActiveTab, isViewMode }) {
     if (!isValidInput) return;
 
     if (row === "invoice") setInvoiceAmount(value);
-    else if (row === "other") setOtherValueAmount(value);
-    else if (row === "freight") setFreightValueAmount(value);
-    else if (row === "insurance") setInsuranceValueAmount(value);
+    // else if (row === "other") setOtherValueAmount(value);
+    // else if (row === "freight") setFreightValueAmount(value);
+    // else if (row === "insurance") setInsuranceValueAmount(value);
   };
 
   // ======================== CURRENCY CHANGE ========================
   const handleCurrencyChange = (currencyName, row) => {
     const selected = currency.find((item) => item.Currency === currencyName);
-    const rate = selected ? parseFloat(selected.CurrencyRate) : 0;
+    const rate = selected ? selected.CurrencyRate : 0;
     if (row === "invoice") {
       setInvoiceCurrency(currencyName);
       setInvoiceExRate(rate);
@@ -910,7 +910,7 @@ function Invoice({ setActiveTab, isViewMode }) {
     }
 
     setTermTypeSelected(invoice.TermType);
-    handleTermChange(invoice.TermType);
+    // handleTermChange(invoice.TermType);
     setAdValoremIndicator(invoice.AdValoremIndicator);
     setPreDutyRateIndicator(invoice.PreDutyRateIndicator);
     setSupplierRelationship(invoice.SupplierImporterRelationship);
@@ -950,6 +950,7 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInvoiceExRate(invoice.TIExRate);
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
+
     setOtherValueCharges(invoice.OTCCharge);
     setOtherValueCurrency(invoice.OTCCurrency);
     setOtherValueExRate(invoice.OTCExRate);
@@ -965,7 +966,9 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInsuranceValueExRate(invoice.ICExRate);
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
+
     setCifTotal(invoice.CIFSUMAmount);
+
     setGstCharge(invoice.GSTPercentage);
     setGstTotal(invoice.GSTSUMAmount);
     setInvoiceInsurance(invoice.ChkOtherInv);
@@ -1426,7 +1429,7 @@ function Invoice({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">TERM TYPE</div>
           <div className="col-sm-3">
             <select
-              className="Dropdown HighLight mandatory"
+              className="Dropdown HighLight"
               tabIndex={14}
               value={termTypeSelected}
               onChange={(e) => setTermTypeSelected(e.target.value)}

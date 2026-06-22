@@ -5,6 +5,7 @@ import { useInpayment } from "../context/inpaymentContext";
 import { UserContext } from "../../../userContex/userContex";
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Header({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -17,6 +18,12 @@ function Header({ setActiveTab, isViewMode }) {
   const [bgIndicator, setBgIndicator] = useState([]);
   const [documentAttachType, setDocumentAttachType] = useState([]);
   const [permitConditions, setPermitConditions] = useState(null);
+
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
   // User Context States
   const {
     permitDetails,
@@ -210,6 +217,16 @@ function Header({ setActiveTab, isViewMode }) {
     fetchBgIndicator();
     fetchDocumentAttachType();
   }, []);
+
+  // declaring for hide show use effect for empty save
+
+  useEffect(() => {
+    const config = getFieldConfig(user?.accountId);
+    if (!config.showDeclaringFor) {
+      setDeclFor("");
+      setShowDeclaringForError(false);
+    }
+  }, [user?.accountId]);
 
   // ===================== Handle Declaration Type Change =================
 
@@ -427,7 +444,7 @@ function Header({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd,
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor,
+        DeclarningFor: declFor || "--Select--",
         License: [licence1, licence2, licence3, licence4, licence5]
           .filter(Boolean)
           .join(","),
@@ -507,7 +524,7 @@ function Header({ setActiveTab, isViewMode }) {
   //     Recipient: [recipients1, recipients2, recipients3]
   //       .filter(Boolean)
   //       .join(","),
-  //     // party fields  
+  //     // party fields
   //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
   //     VoyageNumber: showVoyageNumber ? voyageNumber || "" : "",
   //     VesselName: showVesselName ? vesselName || "" : "",
@@ -657,7 +674,9 @@ function Header({ setActiveTab, isViewMode }) {
             className="row align-items-center compact-row"
             id="InwardTransportModeShowHide"
           >
-            <label className="col-sm-4 col-form-label">INWARD TRANSPORT MODE</label>
+            <label className="col-sm-4 col-form-label">
+              INWARD TRANSPORT MODE
+            </label>
             <div className="col-sm-8">
               <select
                 className="Dropdown HighLight mandatory"
@@ -685,32 +704,34 @@ function Header({ setActiveTab, isViewMode }) {
         )}
 
         {/* DECLARING FOR */}
-        <div className="row align-items-center compact-row">
-          <label className="col-sm-4 col-form-label">DECLARING FOR</label>
-          <div className="col-sm-8">
-            <select
-              className="Dropdown HighLight mandatory"
-              value={declFor}
-              onChange={(e) => {
-                setDeclFor(e.target.value);
-                if (e.target.value) setShowDeclaringForError(false);
-              }}
-              tabIndex="5"
-            >
-              <option value="">--Select--</option>
-              {declaringFor.map((dclrfor) => (
-                <option key={dclrfor.Name} value={dclrfor.Name}>
-                  {dclrfor.Name}
-                </option>
-              ))}
-            </select>
-            {showDeclaringForError && (
-              <span className="ErrorColor" id="DeclaringForSpan">
-                PLEASE CHOOSE DECLARING FOR
-              </span>
-            )}
+        {fieldConfig.showDeclaringFor && (
+          <div className="row align-items-center compact-row">
+            <label className="col-sm-4 col-form-label">DECLARING FOR</label>
+            <div className="col-sm-8">
+              <select
+                className="Dropdown HighLight mandatory"
+                value={declFor}
+                onChange={(e) => {
+                  setDeclFor(e.target.value);
+                  if (e.target.value) setShowDeclaringForError(false);
+                }}
+                tabIndex="5"
+              >
+                <option value="">--Select--</option>
+                {declaringFor.map((dclrfor) => (
+                  <option key={dclrfor.Name} value={dclrfor.Name}>
+                    {dclrfor.Name}
+                  </option>
+                ))}
+              </select>
+              {showDeclaringForError && (
+                <span className="ErrorColor" id="DeclaringForSpan">
+                  PLEASE CHOOSE DECLARING FOR
+                </span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* BG INDICATOR */}
         <div className="row align-items-center compact-row">

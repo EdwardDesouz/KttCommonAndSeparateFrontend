@@ -1220,17 +1220,16 @@ function Item({ setActiveTab, isViewMode }) {
   };
 
   // ------------------ HAWB LIST ------------------
-
   useEffect(() => {
     if (cargoHawbList?.length > 0) {
-      setHawb(cargoHawbList[0] || "");
+      setHawb((cargoHawbList[0] || "").toUpperCase());
     }
   }, [cargoHawbList]);
 
   // -------------------Out HAWB List ------------------
   useEffect(() => {
     if (outCargoHawbList?.length > 0) {
-      setOutHawb(outCargoHawbList[0] || "");
+      setOutHawb((outCargoHawbList[0] || "").toUpperCase());
     }
   }, [outCargoHawbList]);
 
@@ -1271,30 +1270,44 @@ function Item({ setActiveTab, isViewMode }) {
   //   setCifFob(total2.toFixed(2));
   // };
 
-  const invoiceTotalLineAmountFunction = (
-    overrideTotalLine = null,
-    overrideExRate = null,
-    overrideInvoiceNo = null,
-  ) => {
-    let itotalAmount = Number(overrideTotalLine ?? totalLineAmount) || 0;
-    let icurrinput = Number(overrideExRate ?? invoiceExRate) || 0;
-    let invoiceNumberval = overrideInvoiceNo ?? selectedInvoice;
-    let totalAmd = 0;
-    let TotInvoiceAmd = 0;
-    invoiceNumbers.forEach((i) => {
-      if (invoiceNumberval === i.InvoiceNo) {
-        totalAmd =
-          Number(i.OTCSAmount) + Number(i.FCSAmount) + Number(i.ICSAmount);
-        TotInvoiceAmd = Number(i.TISAmount);
-      }
-    });
-    if (TotInvoiceAmd === 0) return;
-    const InvoiceAmd = totalAmd / TotInvoiceAmd;
-    const TotalLineAmd = icurrinput * itotalAmount;
-    const invoiceCharge = InvoiceAmd * TotalLineAmd;
-    setTotalInvoiceCharge(invoiceCharge.toFixed(2));
-    const total2 = TotalLineAmd + invoiceCharge;
-    setCifFob(total2.toFixed(2));
+  // const invoiceTotalLineAmountFunction = (
+  //   overrideTotalLine = null,
+  //   overrideExRate = null,
+  //   overrideInvoiceNo = null,
+  // ) => {
+  //   let itotalAmount = Number(overrideTotalLine ?? totalLineAmount) || 0;
+  //   let icurrinput = Number(overrideExRate ?? invoiceExRate) || 0;
+  //   let invoiceNumberval = overrideInvoiceNo ?? selectedInvoice;
+  //   let totalAmd = 0;
+  //   let TotInvoiceAmd = 0;
+  //   invoiceNumbers.forEach((i) => {
+  //     if (invoiceNumberval === i.InvoiceNo) {
+  //       totalAmd =0;
+  //       TotInvoiceAmd = Number(i.TISAmount);
+  //     }
+  //   });
+  //   if (TotInvoiceAmd === 0) return;
+  //   const InvoiceAmd = totalAmd / TotInvoiceAmd;
+  //   const TotalLineAmd = icurrinput * itotalAmount;
+  //   const invoiceCharge = InvoiceAmd * TotalLineAmd;
+  //   setTotalInvoiceCharge((invoiceCharge).toFixed(2));
+  //   const total2 = TotalLineAmd + invoiceCharge;
+  //   setCifFob((total2).toFixed(2));
+  // };
+
+  const invoiceTotalLineAmountFunction = () => {
+    const T1 = Number(totalLineAmount) || 0;
+    const T2 = Number(invoiceExRate) || 0;
+
+    if (T1 > 0 && T2 > 0) {
+      const total = T1 * T2;
+
+      setTotalInvoiceCharge(total.toFixed(2));
+      setCifFob(total.toFixed(2));
+    } else {
+      setTotalInvoiceCharge("0.00");
+      setCifFob("0.00");
+    }
   };
 
   // ------------------Total DutiableQuantity Function -------------
@@ -1583,11 +1596,6 @@ function Item({ setActiveTab, isViewMode }) {
       check = false;
     } else setCountryCodeError(false);
 
-    if (brand.trim() === "") {
-      setBrandError(true);
-      check = false;
-    } else setBrandError(false);
-
     if (hsQuantity === "" || hsQuantity === 0) {
       setHsQuantityError(true);
       check = false;
@@ -1637,8 +1645,8 @@ function Item({ setActiveTab, isViewMode }) {
       EndUserDescription: "",
       Brand: brand || "",
       Model: model || "",
-      InHAWBOBL: hawb || "",
-      OutHAWBOBL: outHawb || outCargoHawbList[0] || "",
+      InHAWBOBL: (hawb || "").toUpperCase(),
+      OutHAWBOBL: (outHawb || outCargoHawbList[0] || "").toUpperCase(),
       DutiableQty: duitableQuantity || 0,
       DutiableUOM: duitableQuantityUom || "",
       TotalDutiableQty: totalDuitableQuantity || 0,
@@ -1931,7 +1939,7 @@ function Item({ setActiveTab, isViewMode }) {
     setCerItemQty(item.CerItemQty || "0.00");
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(item.CIFValOfCer || "0.00");
-    
+
     if (item.ManufactureCostDate) {
       const date = new Date(item.ManufactureCostDate);
       const day = String(date.getDate()).padStart(2, "0");
@@ -1939,7 +1947,6 @@ function Item({ setActiveTab, isViewMode }) {
       const year = date.getFullYear();
       setManuDate(`${day}/${month}/${year}`);
     }
-
 
     setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(item.TexQuotaQty || "0.00");
@@ -2042,8 +2049,8 @@ function Item({ setActiveTab, isViewMode }) {
     setCountryDescription("");
     setBrand("");
     setModel("");
-    setHawb("");
-    setOutHawb("");
+    setHawb((cargoHawbList?.[0] || "").toUpperCase());
+    setOutHawb((outCargoHawbList?.[0] || "").toUpperCase());
 
     // ---------------- DUTIABLE ----------------
     setDuitableQuantity(0);
@@ -2291,8 +2298,8 @@ function Item({ setActiveTab, isViewMode }) {
           Contry: item.Contry || "",
           Brand: item.Brand || "",
           Model: item.Model || "",
-          InHAWBOBL: firstHawb || item.InHAWBOBL || "",
-          OutHAWBOBL: firstOutHawb || item.OutHAWBOBL || "",
+          InHAWBOBL: (firstHawb || item.InHAWBOBL || "").toUpperCase(),
+          OutHAWBOBL: (firstOutHawb || item.OutHAWBOBL || "").toUpperCase(),
           DutiableQty: item.DutiableQty || 0,
           DutiableUOM: item.DutiableUOM || "",
           TotalDutiableQty: item.TotalDutiableQty || 0,
@@ -3100,9 +3107,6 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={(e) => setBrand(e.target.value)}
                     tabIndex={5}
                   />
-                  {brand.trim() === "" && brandError && (
-                    <span className="ErrColor">FILL BRAND</span>
-                  )}
                 </div>
               </div>
             </div>
@@ -3781,7 +3785,6 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle HighLight"
                     value={totalLineAmount}
                     onChange={(e) => setTotalLineAmount(e.target.value)}
-                    // onBlur={invoiceTotalLineAmountFunction}
                     onBlur={(e) =>
                       invoiceTotalLineAmountFunction(e.target.value)
                     }
@@ -4747,6 +4750,7 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
+                  {!isViewMode&&(
                 <th>
                   <input
                     type="checkbox"
@@ -4755,6 +4759,7 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={handleSelectAll}
                   />
                 </th>
+                      )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -4792,15 +4797,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                        <td>
-                          <input
-                            type="checkbox"
-                            name="itemCheckDel"
-                            value={item.ItemNo}
-                            checked={selectedItems.includes(item.ItemNo)}
-                            onChange={() => handleSelectOne(item.ItemNo)}
-                          />
-                        </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          name="itemCheckDel"
+                          value={item.ItemNo}
+                          checked={selectedItems.includes(item.ItemNo)}
+                          onChange={
+                            !isViewMode
+                              ? () => handleSelectOne(item.ItemNo)
+                              : undefined
+                          }
+                          readOnly={isViewMode}
+                        />
+                      </td>
                       )}
                       <td>
                         <FaEdit

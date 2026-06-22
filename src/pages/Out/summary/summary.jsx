@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Summary({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -24,6 +25,7 @@ function Summary({ setActiveTab, isViewMode }) {
     outTransportMode,
     coType,
     declFor,
+    setDeclFor,
     bgInd,
     supplyInd,
     refDocs,
@@ -104,8 +106,11 @@ function Summary({ setActiveTab, isViewMode }) {
     exhibitionEndDate,
     containers,
     exporterCode,
+    exporterCruei,
+    exporterName,
     outwardCode,
     congineeCode,
+
     storageCode,
     dischargePortCode,
     finalDestinationCountry,
@@ -193,7 +198,9 @@ function Summary({ setActiveTab, isViewMode }) {
   // DeclaringFor
   const fetchDeclaringFor = async () => {
     try {
-      const response = await API.get("/getDeclaringForFromCommonMasterByOutandTranshipment/");
+      const response = await API.get(
+        "/getDeclaringForFromCommonMasterByOutandTranshipment/",
+      );
       setDeclaringFor(response.data);
     } catch (error) {
       console.error("Error fetching mailbox data:", error);
@@ -202,6 +209,21 @@ function Summary({ setActiveTab, isViewMode }) {
   useEffect(() => {
     fetchDeclaringFor();
   }, []);
+
+  // declaring for hide show use effect for empty save
+  useEffect(() => {
+    const config = getFieldConfig(user?.accountId);
+    if (!config.showDeclaringFor) {
+      setDeclFor("");
+      setShowDeclaringForError(false);
+    }
+  }, [user?.accountId]);
+
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
 
   // ── Validation Modal State ───────────────────────────────────────────────
   const [validationErrors, setValidationErrors] = useState({
@@ -393,56 +415,58 @@ function Summary({ setActiveTab, isViewMode }) {
       setShowCargoPackTypeError(false);
     }
 
-    setShowInwardTransportError(false);
-    if (
-      decType !==
-      "BKT : BLANKET [INCLUDING BLANKET GST RELIEF (& DUTY EXEMPTION)]"
-    ) {
-      if (!transportMode || transportMode === "--Select--") {
-        errors.header.push("CHECK THE INWARD TRANSPORT MODE");
-        setShowInwardTransportError(true);
-        isValid = false;
-      }
-    }
+    // setShowInwardTransportError(false);
+    // if (
+    //   decType !==
+    //   "BKT : BLANKET [INCLUDING BLANKET GST RELIEF (& DUTY EXEMPTION)]"
+    // ) {
+    //   if (!transportMode || transportMode === "--Select--") {
+    //     errors.header.push("CHECK THE INWARD TRANSPORT MODE");
+    //     setShowInwardTransportError(true);
+    //     isValid = false;
+    //   }
+    // }
 
     setShowOutwardTransportError(false);
-    if (
-      decType === "REX : FOR RE-EXPORT" ||
-      decType === "SFZ : STORAGE IN FTZ"
-    ) {
-      if (!outTransportMode || outTransportMode === "--Select--") {
-        errors.header.push("CHECK THE OUTWARD TRANSPORT MODE");
-        setShowOutwardTransportError(true);
-        isValid = false;
-      }
-    }
-
-    if (!declFor) {
-      errors.header.push("CHECK THE DECLARING FOR");
-      setShowDeclaringForError(true);
+    // if (
+    //   decType === "REX : FOR RE-EXPORT" ||
+    //   decType === "SFZ : STORAGE IN FTZ"
+    // ) {
+    if (!outTransportMode || outTransportMode === "--Select--") {
+      errors.header.push("CHECK THE OUTWARD TRANSPORT MODE");
+      setShowOutwardTransportError(true);
       isValid = false;
-    } else {
-      setShowDeclaringForError(false);
+    }
+    // }
+
+    if (fieldConfig.showDeclaringFor) {
+      if (!declFor) {
+        errors.header.push("CHECK THE DECLARING FOR");
+        setShowDeclaringForError(true);
+        isValid = false;
+      } else {
+        setShowDeclaringForError(false);
+      }
     }
 
     // ── PARTY ────────────────────────────────────────────────────────────
-    setShowImporterCrueiError(false);
-    if (!importerCode || importerCode.trim() === "") {
-      errors.party.push("CHECK THE IMPORTER CRUEI");
-      setShowImporterCrueiError(true);
-      isValid = false;
-    } else {
-      setShowImporterCrueiError(false);
-    }
+    // setShowImporterCrueiError(false);
+    // if (!importerCode || importerCode.trim() === "") {
+    //   errors.party.push("CHECK THE IMPORTER CRUEI");
+    //   setShowImporterCrueiError(true);
+    //   isValid = false;
+    // } else {
+    //   setShowImporterCrueiError(false);
+    // }
 
-    setShowImporterNameError(false);
-    if (!summaryImporterName || summaryImporterName.trim() === "") {
-      errors.party.push("CHECK THE IMPORTER NAME");
-      setShowImporterNameError(true);
-      isValid = false;
-    } else {
-      setShowImporterNameError(false);
-    }
+    // setShowImporterNameError(false);
+    // if (!summaryImporterName || summaryImporterName.trim() === "") {
+    //   errors.party.push("CHECK THE IMPORTER NAME");
+    //   setShowImporterNameError(true);
+    //   isValid = false;
+    // } else {
+    //   setShowImporterNameError(false);
+    // }
 
     if (transportMode === "1 : Sea" || transportMode === "4 : Air") {
       if (!inwardCode || inwardCode.trim() === "") {
@@ -506,22 +530,22 @@ function Summary({ setActiveTab, isViewMode }) {
     }
 
     if (transportMode !== "N : Not Required") {
-      if (!loadingPortCode || loadingPortCode.trim() === "") {
-        errors.cargo.push("CHECK THE LOADING PORT");
-        setShowLoadingPortCodeError(true);
-        isValid = false;
-      } else {
-        setShowLoadingPortCodeError(false);
-      }
+      // if (!loadingPortCode || loadingPortCode.trim() === "") {
+      //   errors.cargo.push("CHECK THE LOADING PORT");
+      //   setShowLoadingPortCodeError(true);
+      //   isValid = false;
+      // } else {
+      //   setShowLoadingPortCodeError(false);
+      // }
 
-      setShowArrivalDateError(false);
-      if (!arrivalDate || arrivalDate.trim() === "") {
-        errors.cargo.push("CHECK THE ARRIVAL DATE");
-        setShowArrivalDateError(true);
-        isValid = false;
-      } else {
-        setShowArrivalDateError(false);
-      }
+      // setShowArrivalDateError(false);
+      // if (!arrivalDate || arrivalDate.trim() === "") {
+      //   errors.cargo.push("CHECK THE ARRIVAL DATE");
+      //   setShowArrivalDateError(true);
+      //   isValid = false;
+      // } else {
+      //   setShowArrivalDateError(false);
+      // }
     }
     if (transportMode === "1 : Sea") {
       if (!voyageNumber || voyageNumber.trim() === "") {
@@ -571,15 +595,17 @@ function Summary({ setActiveTab, isViewMode }) {
     }
 
     // ── SUMMARY ──────────────────────────────────────────────────────────
-    if (
-      !summaryDeclaringFor ||
-      !declFor ||
-      summaryDeclaringFor.trim() !== declFor.trim()
-    ) {
-      errors.summary.push(
-        "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
-      );
-      isValid = false;
+    if (fieldConfig.showDeclaringFor) {
+      if (
+        !summaryDeclaringFor ||
+        !declFor ||
+        summaryDeclaringFor.trim() !== declFor.trim()
+      ) {
+        errors.summary.push(
+          "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
+        );
+        isValid = false;
+      }
     }
     console.log("Header DeclaringFor:", declFor);
     console.log("Summary DeclaringFor:", summaryDeclaringFor);
@@ -850,7 +876,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
       // Other
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
+      DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
@@ -949,7 +975,7 @@ function Summary({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd || "",
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor || "",
+        DeclarningFor: declFor || "--Select--",
         License: Licence || "",
         Recipient: Recipients || "",
         CerDetailtype1: certificateType1 || "",
@@ -1387,11 +1413,11 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
-                    value={inv.TIAmount || ""}
+                    value={inv.TIAmount.toFixed(2) || ""}
                     readOnly
                   />
                 </div>
@@ -1410,11 +1436,11 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
-                    value={item.TotalLineAmount || ""}
+                    value={item.TotalLineAmount.toFixed(2) || ""}
                     readOnly
                   />
                 </div>
@@ -1568,7 +1594,7 @@ function Summary({ setActiveTab, isViewMode }) {
               <div className="row">
                 <div className="col-6">EXPORTER</div>
                 <div className="col-6">
-                  {summaryImporterCruei}-{summaryImporterName}
+                  {exporterCruei}-{exporterName}
                 </div>
               </div>
             </div>
@@ -1580,15 +1606,13 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">IN MAWB/OBL</div>
-                <div className="col-6">
-                  {summaryImporterCruei}-{summaryImporterName}
-                </div>
+                <div className="col-6">{mawbNumber}</div>
               </div>
             </div>
             <div className="col-6">
               <div className="row">
                 <div className="col-6">IN HAWB/HBL</div>
-                <div className="col-6">{cargoHawb}</div>
+                <div className="col-6">{cargoHawb.toUpperCase()}</div>
               </div>
             </div>
           </div>
@@ -1597,15 +1621,13 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">OUT MAWB/OBL</div>
-                <div className="col-6">{obl}</div>
+                <div className="col-6">{outMawbNumber.toUpperCase()}</div>
               </div>
             </div>
             <div className="col-6">
-              <div className="col-6">
-                <div className="row">
-                  <div className="col-6">OUT HAWB/OBL</div>
-                  <div className="col-6">{obl}</div>
-                </div>
+              <div className="row">
+                <div className="col-6">OUT HAWB/OBL</div>
+                <div className="col-6">{outCargoHawb.toUpperCase()}</div>
               </div>
             </div>
           </div>
@@ -1634,7 +1656,7 @@ function Summary({ setActiveTab, isViewMode }) {
                 <div className="col-6">
                   {result.map((inv, index) => (
                     <div key={index}>
-                      {inv.TICurrency} : {inv.TIAmount}
+                      {inv.TICurrency} : {inv.TIAmount.toFixed(2)}
                     </div>
                   ))}
                 </div>

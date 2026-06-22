@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Summary({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -22,6 +23,7 @@ function Summary({ setActiveTab, isViewMode }) {
     cargo,
     transportMode,
     declFor,
+    setDeclFor,
     bgInd,
     supplyInd,
     refDocs,
@@ -150,6 +152,21 @@ function Summary({ setActiveTab, isViewMode }) {
   useEffect(() => {
     fetchDeclaringFor();
   }, []);
+
+  // declaring for hide show use effect for empty save
+  useEffect(() => {
+    const config = getFieldConfig(user?.accountId);
+    if (!config.showDeclaringFor) {
+      setDeclFor("");
+      setShowDeclaringForError(false);
+    }
+  }, [user?.accountId]);
+
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
 
   // ── Validation Modal State ───────────────────────────────────────────────
   const [validationErrors, setValidationErrors] = useState({
@@ -350,12 +367,14 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
-    if (!declFor) {
-      errors.header.push("CHECK THE DECLARING FOR");
-      setShowDeclaringForError(true);
-      isValid = false;
-    } else {
-      setShowDeclaringForError(false);
+    if (fieldConfig.showDeclaringFor) {
+      if (!declFor) {
+        errors.header.push("CHECK THE DECLARING FOR");
+        setShowDeclaringForError(true);
+        isValid = false;
+      } else {
+        setShowDeclaringForError(false);
+      }
     }
 
     // ── PARTY ────────────────────────────────────────────────────────────
@@ -483,7 +502,7 @@ function Summary({ setActiveTab, isViewMode }) {
     if (cargo === "9: Containerized") {
       // verify this matches your dropdown value exactly
       const hasValidContainer = containers.some(
-        (c) => c.isSaved && c.number && c.number.trim() !== "", // ✅ check string not number
+        (c) => c.isSaved && c.number && c.number.trim() !== "",
       );
       if (!hasValidContainer) {
         errors.cargo.push("CHECK THE CONTAINER — AT LEAST ONE REQUIRED");
@@ -504,15 +523,17 @@ function Summary({ setActiveTab, isViewMode }) {
     }
 
     // ── SUMMARY ──────────────────────────────────────────────────────────
-    if (
-      !summaryDeclaringFor ||
-      !declFor ||
-      summaryDeclaringFor.trim() !== declFor.trim()
-    ) {
-      errors.summary.push(
-        "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
-      );
-      isValid = false;
+    if (fieldConfig.showDeclaringFor) {
+      if (
+        !summaryDeclaringFor ||
+        !declFor ||
+        summaryDeclaringFor.trim() !== declFor.trim()
+      ) {
+        errors.summary.push(
+          "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
+        );
+        isValid = false;
+      }
     }
     console.log("Header DeclaringFor:", declFor);
     console.log("Summary DeclaringFor:", summaryDeclaringFor);
@@ -692,7 +713,7 @@ function Summary({ setActiveTab, isViewMode }) {
       ClaimantPartyCode: claimantCode || "",
 
       // Cargo
-      HBL: cargoHawb || "",
+      HBL: cargoHawb.toUpperCase() || "",
       ArrivalDate: formatDate(arrivalDate) || null,
       LoadingPortCode: loadingPortCode || "",
       VoyageNumber: voyageNumber || "",
@@ -738,7 +759,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
       // Other
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
+      DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
@@ -833,7 +854,7 @@ function Summary({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd || "",
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor || "",
+        DeclarningFor: declFor || "--Select--",
         License: Licence || "",
         Recipient: Recipients || "",
         DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
@@ -1053,7 +1074,13 @@ function Summary({ setActiveTab, isViewMode }) {
   //   delay: 2000,
   // });
 
-  // ====================UI============================
+  // ===================COMPLETE NUMBER CONVERSTION=========================
+  const fmt = (val) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) return "";
+    return parseFloat(num.toFixed(6)).toString();
+  };
+  // ====================UI================================================
   return (
     <div className="row g-2">
       {/* ── VALIDATION MODAL ───────────────────────────────────────────── */}
@@ -1193,7 +1220,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemValue.toFixed(2)}
+              value={totalItemValue}
               readOnly
             />
           </div>
@@ -1204,7 +1231,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalInvoiceCifValue.toFixed(2)}
+              value={totalInvoiceCifValue}
               readOnly
             />
           </div>
@@ -1217,7 +1244,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemCifValue.toFixed(2)}
+              value={totalItemCifValue}
               readOnly
             />
           </div>
@@ -1226,7 +1253,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemGstAmount.toFixed(2)}
+              value={totalItemGstAmount}
               readOnly
             />
           </div>
@@ -1235,7 +1262,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfExciseDutyAmount.toFixed(2)}
+              value={sumOfExciseDutyAmount}
               readOnly
             />
           </div>
@@ -1244,7 +1271,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfCustomsDutyAmount.toFixed(2)}
+              value={sumOfCustomsDutyAmount}
               readOnly
             />
           </div>
@@ -1257,7 +1284,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfOtherTaxAmount.toFixed(2)}
+              value={sumOfOtherTaxAmount}
               readOnly
             />
           </div>
@@ -1286,7 +1313,7 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
@@ -1309,7 +1336,7 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
@@ -1402,7 +1429,9 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-6">INTERNAL REMARKS</div>
           {/* <div className="col-sm-3">MRD</div>
           <div className="col-sm-3">TIME</div> */}
-          <div className="col-sm-6">CONFIRM DECLARING FOR</div>
+          {fieldConfig.showDeclaringFor && (
+            <div className="col-sm-6">CONFIRM DECLARING FOR</div>
+          )}
         </div>
 
         {/* ── INTERNAL REMARKS / MRD / TIME INPUTS ────────────────────── */}
@@ -1428,29 +1457,30 @@ function Summary({ setActiveTab, isViewMode }) {
               onBlur={(e) => handleTimeBlur(e.target.value)}
             />
           </div> */}
-
-          <div className="col-sm-4">
-            <select
-              className="Dropdown HighLight mandatory"
-              value={summaryDeclaringFor}
-              onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-              tabIndex="5"
-            >
-              <option value="">--Select--</option>
-              {declaringFor.map((dclrfor) => (
-                <option key={dclrfor.Name} value={dclrfor.Name}>
-                  {dclrfor.Name}
-                </option>
-              ))}
-            </select>
-            <span
-              className="ErrorColor"
-              style={{ display: "none" }}
-              id="DeclaringForSpan"
-            >
-              PLEASE CHOOSE DECLARING FOR
-            </span>
-          </div>
+          {fieldConfig.showDeclaringFor && (
+            <div className="col-sm-4">
+              <select
+                className="Dropdown HighLight mandatory"
+                value={summaryDeclaringFor}
+                onChange={(e) => setSummaryDeclaringFor(e.target.value)}
+                tabIndex="5"
+              >
+                <option value="">--Select--</option>
+                {declaringFor.map((dclrfor) => (
+                  <option key={dclrfor.Name} value={dclrfor.Name}>
+                    {dclrfor.Name}
+                  </option>
+                ))}
+              </select>
+              <span
+                className="ErrorColor"
+                style={{ display: "none" }}
+                id="DeclaringForSpan"
+              >
+                PLEASE CHOOSE DECLARING FOR
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── DECLARATION SUMMARY HEADER ───────────────────────────────── */}

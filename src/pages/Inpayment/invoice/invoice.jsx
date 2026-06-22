@@ -556,6 +556,8 @@ function Invoice({ setActiveTab, isViewMode }) {
       try {
         const response = await API.get("/getCommonCurrencyTableInfo/");
         setCurrency(response.data);
+
+        console.log("currency:", response.data);
       } catch (err) {
         console.error("Failed to fetch currency", err);
       }
@@ -643,7 +645,8 @@ function Invoice({ setActiveTab, isViewMode }) {
   // ======================== CURRENCY CHANGE ========================
   const handleCurrencyChange = (currencyName, row) => {
     const selected = currency.find((item) => item.Currency === currencyName);
-    const rate = selected ? parseFloat(selected.CurrencyRate) : 0;
+    const rate = selected ? selected.CurrencyRate : "0";
+
     if (row === "invoice") {
       setInvoiceCurrency(currencyName);
       setInvoiceExRate(rate);
@@ -944,25 +947,38 @@ function Invoice({ setActiveTab, isViewMode }) {
       setInvoiceImporterName1(name1);
     }
 
+const findFormattedRate = (currencyName) => {
+  const found = currency.find((c) => c.Currency === currencyName);
+  return found ? found.CurrencyRate : invoice.TIExRate;
+};
+
     setInvoiceCurrency(invoice.TICurrency);
-    setInvoiceExRate(invoice.TIExRate);
+    // setInvoiceExRate(invoice.TIExRate);
+    setInvoiceExRate(findFormattedRate(invoice.TICurrency)); 
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
+
     setOtherValueCharges(invoice.OTCCharge);
     setOtherValueCurrency(invoice.OTCCurrency);
-    setOtherValueExRate(invoice.OTCExRate);
+    // setOtherValueExRate(invoice.OTCExRate);
+    setOtherValueExRate(findFormattedRate(invoice.OTCCurrency));
     setOtherValueAmount(invoice.OTCAmount);
     setOtherValueDollar(invoice.OTCSAmount);
+
     setFreightValueCharges(invoice.FCCharge);
     setFreightValueCurrency(invoice.FCCurrency);
-    setFreightValueExRate(invoice.FCExRate);
+    // setFreightValueExRate(invoice.FCExRate);
+    setFreightValueExRate(findFormattedRate(invoice.FCCurrency));
     setFreightValueAmount(invoice.FCAmount);
     setFreightValueDollar(invoice.FCSAmount);
+
     setInsuranceCharges(invoice.ICCharge);
     setInsuranceValueCurrency(invoice.ICCurrency);
-    setInsuranceValueExRate(invoice.ICExRate);
+    // setInsuranceValueExRate(invoice.ICExRate);
+    setInsuranceValueExRate(findFormattedRate(invoice.ICCurrency)); 
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
+
     setCifTotal(invoice.CIFSUMAmount);
     setGstCharge(invoice.GSTPercentage);
     setGstTotal(invoice.GSTSUMAmount);
@@ -1470,7 +1486,7 @@ function Invoice({ setActiveTab, isViewMode }) {
           </div>
         </div>
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">SERIAL NUMBER</div>
+          <div className="col-sm-1 col-form-label">SERIAL NUMBER</div>
           <div className="col-sm-1">
             <input
               disabled
@@ -1481,7 +1497,7 @@ function Invoice({ setActiveTab, isViewMode }) {
             />
           </div>
           <div className="col-sm-1">INVOICE DATE</div>
-          <div className="col-sm-2">
+          <div className="col-sm-3">
             <DateField
               tabIndex={10}
               value={invoiceDate}
@@ -1518,7 +1534,7 @@ function Invoice({ setActiveTab, isViewMode }) {
         </div>
 
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">INVOICE NUMBER</div>
+          <div className="col-sm-1 col-form-label">INVOICE NUMBER</div>
           <div className="col-sm-1">
             <input
               type="text"
@@ -1532,7 +1548,7 @@ function Invoice({ setActiveTab, isViewMode }) {
             )}
           </div>
           <div className="col-sm-1">TERM TYPE</div>
-          <div className="col-sm-3">
+          <div className="col-sm-4">
             <select
               className="Dropdown HighLight mandatory"
               tabIndex={14}

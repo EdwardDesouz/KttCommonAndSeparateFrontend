@@ -5,6 +5,7 @@ import { useCoo } from "../context/cooContext";
 import { UserContext } from "../../../userContex/userContex";
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Header({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -19,6 +20,11 @@ function Header({ setActiveTab, isViewMode }) {
   const [bgIndicator, setBgIndicator] = useState([]);
   const [documentAttachType, setDocumentAttachType] = useState([]);
   const [permitConditions, setPermitConditions] = useState(null);
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
   // User Context States
   const {
     permitDetails,
@@ -476,6 +482,16 @@ function Header({ setActiveTab, isViewMode }) {
     fetchCurrency();
   }, []);
 
+    // declaring for hide show use effect for empty save
+  
+    useEffect(() => {
+      const config = getFieldConfig(user?.accountId);
+      if (!config.showDeclaringFor) {
+        setDeclFor("");
+        setShowDeclaringForError(false);
+      }
+    }, [user?.accountId]);
+
   // ===================== Handle Declaration Type Change =================
 
   // const DeclarationChange = (e) => {
@@ -780,132 +796,129 @@ function Header({ setActiveTab, isViewMode }) {
   };
 
   // ========================Handle Certificate Type Change================
-const handleCertificateType1Change = (e) => {
-  const val = e.target.value;
-  console.log("Val:", val);
-  setCertficateType1(val);
-  setSummaryCertificateType(val);
+  const handleCertificateType1Change = (e) => {
+    const val = e.target.value;
+    console.log("Val:", val);
+    setCertficateType1(val);
+    setSummaryCertificateType(val);
 
- 
-  setShowEntryYear(false);
-  setShowInvoiceNo(false);
-  setShowOriginCriterion(false);
-  setShowCifFobValue(false);
-  setShowCommonHealth(false);
-  setShowGPS(false);
-  setCooItemInvoiceNo("");       
-  setCooOrgin1("");               
-  setCooOrgin2("");              
-  setCooOrgin3("");              
-
-
-
-  if (val === "1 : Generalised System of Preferences (GSP) Form A") {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
     setShowEntryYear(false);
-    return;
-  }
-
-  if (val === "12 : Global System of Trade Preference (GSTP)") {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
-    setShowEntryYear(false);
-    return;
-  }
-
-  if (val === "5 : Commonwealth Preference Certificate") {
-    setShowCommonHealth(true);
-    setShowEntryYear(false);
-    return;
-  }
-
-  if (val === "2 : GSP Form A under Cumulative ASEAN") {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
-    setShowCifFobValue(true);
-    setShowGPS(true);
-    setShowEntryYear(false);
-    return;
-  }
-
-  if (val === "3 : Back to Back GSP Form A") {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
-    setShowCifFobValue(false);
-    setShowGPS(false);
-    setShowEntryYear(false);
-    setShowCommonHealth(false);
-    return;
-  }
-
-  if (val === "34 : Back-to-Back Form RCEP") {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
-    setShowCifFobValue(false);
-    setShowGPS(false);
-    setShowEntryYear(false);
-    setShowCommonHealth(false);
-    return;
-  }
-
-  if (
-    val === "4 : Ordinary Certificate of Origin" ||
-    val === "4A : Certificate of Processing" ||
-    val === "7 : Form W (reserve)"
-  ) {
     setShowInvoiceNo(false);
     setShowOriginCriterion(false);
     setShowCifFobValue(false);
-    setShowGPS(false);
-    setShowEntryYear(false);
     setShowCommonHealth(false);
-    return;
-  }
-
-  if (
-    val ===
-    "9 : Ordinary Certificate of Origin for textile products to EU countries only"
-  ) {
-    setShowInvoiceNo(false);
-    setShowOriginCriterion(false);
-    setShowCifFobValue(true);
     setShowGPS(false);
-    setShowEntryYear(true);
-    setShowCommonHealth(false);
-    return;
-  }
+    setCooItemInvoiceNo("");
+    setCooOrgin1("");
+    setCooOrgin2("");
+    setCooOrgin3("");
 
+    if (val === "1 : Generalised System of Preferences (GSP) Form A") {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowEntryYear(false);
+      return;
+    }
 
-  if (
-    val === "16 : ASEAN Trade in Goods Agreement (ATIGA)" ||
-    val === "17 : Back to Back ATIGA Form D" ||
-    val === "18 : Preferential Certificate of Origin for FTA" ||
-    val === "19 : Asean-China FTA Form E" ||
-    val === "20 : Back-to-Back ACFTA Form E" ||
-    val === "21 : India Singapore CECA CO" ||
-    val === "22 : Back-to-Back AKFTA Form AK" ||
-    val === "23 : Asean-Korea FTA Form AK" ||
-    val === "24 : Certificate of Origin Generic Form Z" ||
-    val === "25 : Asean Japan CEP Form AJ" ||
-    val === "26 : Back-to-Back AJCEP Form AJ" ||
-    val === "27 : Asean India FTA Form AI" ||
-    val === "28 : Back-to-Back AIFTA Form AI" ||
-    val === "29 : Asean-Australia-New Zealand FTA Form AANZ" ||
-    val === "30 : Back-to-Back AANZFTA Form AANZ" ||
-    val === "31 : ASEAN-Hong Kong FTA Form AHK" ||
-    val === "32 : Back-to-Back AHKFTA Form AHK" ||
-    val === "33 : Regional Comprehensive Economic Partnership (RCEP) Form RCEP"
-  ) {
-    setShowInvoiceNo(true);
-    setShowOriginCriterion(true);
-    setShowCifFobValue(true);
-    setShowGPS(false);
-    setShowEntryYear(false);
-    setShowCommonHealth(false);
-    return;
-  }
-};
+    if (val === "12 : Global System of Trade Preference (GSTP)") {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowEntryYear(false);
+      return;
+    }
+
+    if (val === "5 : Commonwealth Preference Certificate") {
+      setShowCommonHealth(true);
+      setShowEntryYear(false);
+      return;
+    }
+
+    if (val === "2 : GSP Form A under Cumulative ASEAN") {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowCifFobValue(true);
+      setShowGPS(true);
+      setShowEntryYear(false);
+      return;
+    }
+
+    if (val === "3 : Back to Back GSP Form A") {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowCifFobValue(false);
+      setShowGPS(false);
+      setShowEntryYear(false);
+      setShowCommonHealth(false);
+      return;
+    }
+
+    if (val === "34 : Back-to-Back Form RCEP") {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowCifFobValue(false);
+      setShowGPS(false);
+      setShowEntryYear(false);
+      setShowCommonHealth(false);
+      return;
+    }
+
+    if (
+      val === "4 : Ordinary Certificate of Origin" ||
+      val === "4A : Certificate of Processing" ||
+      val === "7 : Form W (reserve)"
+    ) {
+      setShowInvoiceNo(false);
+      setShowOriginCriterion(false);
+      setShowCifFobValue(false);
+      setShowGPS(false);
+      setShowEntryYear(false);
+      setShowCommonHealth(false);
+      return;
+    }
+
+    if (
+      val ===
+      "9 : Ordinary Certificate of Origin for textile products to EU countries only"
+    ) {
+      setShowInvoiceNo(false);
+      setShowOriginCriterion(false);
+      setShowCifFobValue(true);
+      setShowGPS(false);
+      setShowEntryYear(true);
+      setShowCommonHealth(false);
+      return;
+    }
+
+    if (
+      val === "16 : ASEAN Trade in Goods Agreement (ATIGA)" ||
+      val === "17 : Back to Back ATIGA Form D" ||
+      val === "18 : Preferential Certificate of Origin for FTA" ||
+      val === "19 : Asean-China FTA Form E" ||
+      val === "20 : Back-to-Back ACFTA Form E" ||
+      val === "21 : India Singapore CECA CO" ||
+      val === "22 : Back-to-Back AKFTA Form AK" ||
+      val === "23 : Asean-Korea FTA Form AK" ||
+      val === "24 : Certificate of Origin Generic Form Z" ||
+      val === "25 : Asean Japan CEP Form AJ" ||
+      val === "26 : Back-to-Back AJCEP Form AJ" ||
+      val === "27 : Asean India FTA Form AI" ||
+      val === "28 : Back-to-Back AIFTA Form AI" ||
+      val === "29 : Asean-Australia-New Zealand FTA Form AANZ" ||
+      val === "30 : Back-to-Back AANZFTA Form AANZ" ||
+      val === "31 : ASEAN-Hong Kong FTA Form AHK" ||
+      val === "32 : Back-to-Back AHKFTA Form AHK" ||
+      val ===
+        "33 : Regional Comprehensive Economic Partnership (RCEP) Form RCEP"
+    ) {
+      setShowInvoiceNo(true);
+      setShowOriginCriterion(true);
+      setShowCifFobValue(true);
+      setShowGPS(false);
+      setShowEntryYear(false);
+      setShowCommonHealth(false);
+      return;
+    }
+  };
   // ===================== Document Type Change =================
   const filteredFiles = uploadedFiles || [];
   const handleFileChange = (e) => {
@@ -1016,7 +1029,7 @@ const handleCertificateType1Change = (e) => {
           permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
         MessageType: "COODEC",
 
-        DeclarationType: decType||"",
+        DeclarationType: decType || "",
         PreviousPermit: prevPermitNo,
         CargoPackType: cargo,
         InwardTransportMode: transportMode,
@@ -1246,33 +1259,34 @@ const handleCertificateType1Change = (e) => {
         </div>
 
         {/* DECLARING FOR */}
-        <div className="row align-items-center compact-row">
-          <label className="col-sm-4 col-form-label">DECLARING FOR</label>
-          <div className="col-sm-8">
-            <select
-              className="Dropdown HighLight mandatory"
-              value={declFor}
-              onChange={(e) => {
-                setDeclFor(e.target.value);
-                if (e.target.value) setShowDeclaringForError(false);
-              }}
-              tabIndex="5"
-            >
-              <option value="">--Select--</option>
-              {declaringFor.map((dclrfor) => (
-                <option key={dclrfor.Name} value={dclrfor.Name}>
-                  {dclrfor.Name}
-                </option>
-              ))}
-            </select>
-            {showDeclaringForError && (
-              <span className="ErrorColor" id="DeclaringForSpan">
-                PLEASE CHOOSE DECLARING FOR
-              </span>
-            )}
+        {fieldConfig.showDeclaringFor && (
+          <div className="row align-items-center compact-row">
+            <label className="col-sm-4 col-form-label">DECLARING FOR</label>
+            <div className="col-sm-8">
+              <select
+                className="Dropdown HighLight mandatory"
+                value={declFor}
+                onChange={(e) => {
+                  setDeclFor(e.target.value);
+                  if (e.target.value) setShowDeclaringForError(false);
+                }}
+                tabIndex="5"
+              >
+                <option value="">--Select--</option>
+                {declaringFor.map((dclrfor) => (
+                  <option key={dclrfor.Name} value={dclrfor.Name}>
+                    {dclrfor.Name}
+                  </option>
+                ))}
+              </select>
+              {showDeclaringForError && (
+                <span className="ErrorColor" id="DeclaringForSpan">
+                  PLEASE CHOOSE DECLARING FOR
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-
+        )}
         {/* OVERRIDE EXGE RATE */}
         <div className="row align-items-center compact-row">
           <label className="col-sm-4 col-form-label">OVERRIDE EXGE RATE</label>

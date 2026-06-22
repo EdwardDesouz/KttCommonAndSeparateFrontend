@@ -659,7 +659,7 @@ function Out() {
                   GST STATUS
                 </button>
               </li> */}
-              <li>
+              {/* <li>
                 <button
                   className="btn2"
                   disabled={!btnState.PRINTGSTALL}
@@ -680,7 +680,7 @@ function Out() {
                 >
                   PRINT GST ALL
                 </button>
-              </li>
+              </li> */}
               <li>
                 <button
                   className="btn2"
@@ -727,7 +727,7 @@ function Out() {
                   PRINT STATUS
                 </button>
               </li>
-              <li>
+              {/* <li>
                 <button
                   className="btn2"
                   disabled={!btnState.GSTEXCEL}
@@ -748,10 +748,10 @@ function Out() {
                 >
                   GST EXCEL
                 </button>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <button className="btn2">VDP GST</button>
-              </li>
+              </li> */}
               <li>
                 <button
                   className="btn2"
@@ -884,7 +884,7 @@ function Out() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </li>
-                <li>
+                {/* <li>
                   <input
                     type="checkbox"
                     id="g1Check"
@@ -911,7 +911,7 @@ function Out() {
                     }}
                   />
                   <label htmlFor="InnonPaymentCheck">INNON PAYMENT</label>
-                </li>
+                </li> */}
                 <li>
                   <select
                     className="Dropdown p-2 declaration-filters"

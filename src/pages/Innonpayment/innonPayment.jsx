@@ -848,7 +848,7 @@ function Inpayment() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </li>
-                <li>
+                {/* <li>
                   <input
                     type="checkbox"
                     id="g1Check"
@@ -863,7 +863,7 @@ function Inpayment() {
                     className="inputStyleCheckBox"
                   />
                   <label htmlFor="g7Check">G7</label>
-                </li>
+                </li> */}
                 <li>
                   <input
                     type="checkbox"

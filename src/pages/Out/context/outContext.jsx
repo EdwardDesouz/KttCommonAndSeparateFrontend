@@ -311,6 +311,7 @@ export const OutProvider = ({ children }) => {
   const [outCargoHawbList, setOutCargoHawbList] = useState([]);
   const [arrivalDate, setArrivalDate] = useState("");
   const [showArriavalDateError, setShowArrivalDateError] = useState(false);
+  const [showCargoBlanketStartDate,setShowCargoBlanketStartDate]=useState(false);
   const [blanketStartDate, setBlanketStartDate] = useState("");
   const [voyageNumber, setVoyageNumber] = useState("");
   const [vesselName, setVesselName] = useState("");
@@ -986,6 +987,8 @@ export const OutProvider = ({ children }) => {
         setShowArrivalDateError,
         blanketStartDate,
         setBlanketStartDate,
+        showCargoBlanketStartDate,
+        setShowCargoBlanketStartDate,
         voyageNumber,
         setVoyageNumber,
         vesselName,

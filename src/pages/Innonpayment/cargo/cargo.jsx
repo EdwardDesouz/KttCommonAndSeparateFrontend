@@ -239,6 +239,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     outAircraftRegNumber,
     setOutAircraftRegNumber,
     outMawbNumber,
+    setOutMawbNumber,
     showOutAircraftReg,
     setShowOutAircraftReg,
     showOutMawb,
@@ -295,9 +296,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       return;
     }
     if (grossUOM === "TNE") {
-      setPermitGrossWeight((weight / 1000).toFixed(2));
+      setPermitGrossWeight(parseFloat(weight / 1000));
     } else {
-      setPermitGrossWeight(weight.toFixed(2));
+      setPermitGrossWeight(parseFloat(weight));
     }
   }, [totalGrossWeight, grossUOM]);
   // ========================STATES========================
@@ -1751,9 +1752,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
-                  {totalGrossWeightOptions.map((opt, i) => (
-                    <option key={i} value={opt}>
-                      {opt}
+                  {totalOuterPack.map((tooupack) => (
+                    <option key={tooupack.Name} value={tooupack.Name}>
+                      {tooupack.Name}
                     </option>
                   ))}
                 </select>
@@ -1772,10 +1773,10 @@ function Cargo({ setActiveTab, isViewMode }) {
               </label>
               <div className="col-sm-7">
                 <input
-                  type="number"
+                  type="text"
                   className="form-control"
                   value={permitGrossWeight}
-                  readOnly
+                  onChange={(e)=>setPermitGrossWeight(e.target.value)}
                 />
               </div>
             </div>

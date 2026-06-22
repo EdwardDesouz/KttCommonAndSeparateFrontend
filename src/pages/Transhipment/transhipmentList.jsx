@@ -884,7 +884,7 @@ function Transhipment() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </li>
-                <li>
+                {/* <li>
                   <input
                     type="checkbox"
                     id="g1Check"
@@ -911,7 +911,7 @@ function Transhipment() {
                     }}
                   />
                   <label htmlFor="InnonPaymentCheck">INNON PAYMENT</label>
-                </li>
+                </li> */}
                 <li>
                   <select
                     className="Dropdown p-2 declaration-filters"

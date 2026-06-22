@@ -98,40 +98,40 @@ function ListButtons({
         }
       }
 
-      if (label === "PRINTGST") {
-        if (!selectedPermits.length) {
-          alert("Please select at least one permit to print GST.");
-          return;
-        }
-        for (const permitId of selectedPermits) {
-          try {
-            const response = await API.get(`PrintGst/${permitId}/`, {
-              responseType: "blob",
-            });
+      // if (label === "PRINTGST") {
+      //   if (!selectedPermits.length) {
+      //     alert("Please select at least one permit to print GST.");
+      //     return;
+      //   }
+      //   for (const permitId of selectedPermits) {
+      //     try {
+      //       const response = await API.get(`PrintGst/${permitId}/`, {
+      //         responseType: "blob",
+      //       });
 
-            const contentDisposition = response.headers["content-disposition"];
-            let filename = `${permitId}_GST.pdf`;
-            if (contentDisposition) {
-              const match = contentDisposition.match(/filename="?([^"]+)"?/);
-              if (match) filename = match[1];
-            }
-            const blob = new Blob([response.data], {
-              type: "application/pdf",
-            });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-          } catch (err) {
-            console.error(`Failed to print GST for PermitId ${permitId}:`, err);
-            alert(`Failed to download GST PDF for Permit: ${permitId}`);
-          }
-        }
-      }
+      //       const contentDisposition = response.headers["content-disposition"];
+      //       let filename = `${permitId}_GST.pdf`;
+      //       if (contentDisposition) {
+      //         const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      //         if (match) filename = match[1];
+      //       }
+      //       const blob = new Blob([response.data], {
+      //         type: "application/pdf",
+      //       });
+      //       const url = window.URL.createObjectURL(blob);
+      //       const link = document.createElement("a");
+      //       link.href = url;
+      //       link.setAttribute("download", filename);
+      //       document.body.appendChild(link);
+      //       link.click();
+      //       link.remove();
+      //       window.URL.revokeObjectURL(url);
+      //     } catch (err) {
+      //       console.error(`Failed to print GST for PermitId ${permitId}:`, err);
+      //       alert(`Failed to download GST PDF for Permit: ${permitId}`);
+      //     }
+      //   }
+      // }
 
       if (label === "SUBMIT") {
         if (!selectedPermits.length) {
@@ -318,10 +318,10 @@ function ListButtons({
   const buttons = [
     "NEW",
     "SUBMIT",
-    "PRINTGST",
-    "PRINTREFUND",
+    // "PRINTGST",
+    // "PRINTREFUND",
     "COPY",
-    "REFUND",
+    // "REFUND",
     "AMEND",
     "CANCEL",
   ];

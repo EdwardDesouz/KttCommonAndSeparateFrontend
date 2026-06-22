@@ -1017,7 +1017,7 @@ function Item({ setActiveTab, isViewMode }) {
       }
 
       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
-        if (Number(itemqty) > Number(totalGrossWeight)) {
+        if ((itemqty) > Number(totalGrossWeight)) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
           );
@@ -1025,11 +1025,11 @@ function Item({ setActiveTab, isViewMode }) {
       }
 
       if (hsQuantity === "0.00" || hsQuantity === "") {
-        setHsQuantity(Number(total).toFixed(2));
+        setHsQuantity(total);
       }
 
       if (itemqty != "0.00" || hsQuantity != "") {
-        setHsQuantity(Number(total).toFixed(2));
+        setHsQuantity(total);
       }
     }
   };
@@ -1256,7 +1256,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   useEffect(() => {
     if (cargoHawbList?.length > 0) {
-      setHawb(cargoHawbList[0] || "");
+      setHawb((cargoHawbList[0] || "").toUpperCase());
     }
   }, [cargoHawbList]);
   // ------------------ Declaration Type ------------------
@@ -1684,7 +1684,7 @@ function Item({ setActiveTab, isViewMode }) {
       EndUserDescription: "",
       Brand: brand || "",
       Model: model || "",
-      InHAWBOBL: hawb || "",
+      InHAWBOBL: (hawb || "").toUpperCase(),
       OutHAWBOBL: "",
       DutiableQty: duitableQuantity || 0,
       DutiableUOM: duitableQuantityUom || "",
@@ -1729,7 +1729,7 @@ function Item({ setActiveTab, isViewMode }) {
       ShippingMarks2: shippingMarks2 || "",
       ShippingMarks3: shippingMarks3 || "",
       ShippingMarks4: shippingMarks4 || "",
-      TouchUser: user.username.toUpperCase()|| "",
+      TouchUser: user.username.toUpperCase() || "",
       TouchTime: new Date().toISOString(),
       VehicleType: vehicleType || "",
       OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "",
@@ -1875,7 +1875,7 @@ function Item({ setActiveTab, isViewMode }) {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
     if (!item) return;
     const permitId = permitDetails?.PermitId;
-    
+
     setSerialNumber(item.ItemNo?.toString().padStart(3));
     const selectedHs = hsCodeSuggestions.find(
       (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
@@ -2033,7 +2033,7 @@ function Item({ setActiveTab, isViewMode }) {
     setCountryDescription("");
     setBrand("");
     setModel("");
-    setHawb("");
+    setHawb((cargoHawbList?.[0] || "").toUpperCase());
 
     // ---------------- DUTIABLE ----------------
     setDuitableQuantity(0);
@@ -2258,7 +2258,7 @@ function Item({ setActiveTab, isViewMode }) {
           Contry: item.Contry || "",
           Brand: item.Brand || "",
           Model: item.Model || "",
-          InHAWBOBL: firstHawb || item.InHAWBOBL || "",
+          InHAWBOBL: (firstHawb || item.InHAWBOBL || "").toUpperCase(),
           DutiableQty: item.DutiableQty || 0,
           DutiableUOM: item.DutiableUOM || "",
           TotalDutiableQty: item.TotalDutiableQty || 0,
@@ -2514,8 +2514,7 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
-
- // ===========================Auto save every filling Detils========================
+  // ===========================Auto save every filling Detils========================
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr.trim() === "") return null;
     const parts = dateStr.split("/");
@@ -2633,7 +2632,6 @@ function Item({ setActiveTab, isViewMode }) {
   //   enabled: !isViewMode,
   //   delay: 2000,
   // });
-
 
   // ----------------------- UI ---------------------------------
   return (
@@ -3089,7 +3087,7 @@ function Item({ setActiveTab, isViewMode }) {
                 <div className="row mt-3">
                   <div className="row">
                     <div className="col-5">ENGINE CAPACITY</div>
-                    <div className="col-4">
+                    <div className="col-2">
                       <input
                         type="text"
                         className="inputStyle"
@@ -3099,7 +3097,7 @@ function Item({ setActiveTab, isViewMode }) {
                         onChange={(e) => setEngineCapcityValue(e.target.value)}
                       />
                     </div>
-                    <div className="col-3">
+                    <div className="col-5">
                       <select
                         className="Dropdown"
                         tabIndex={9}
@@ -3120,8 +3118,13 @@ function Item({ setActiveTab, isViewMode }) {
                 {/* ORIGINAL REGISTRATION DATE */}
                 <div className="row mt-3">
                   <div className="row">
-                    <div className="col-5">ORIGINAL REGISTRATION DATE</div>
-                    <div className="col-7">
+                    <div
+                      className="col-sm-5"
+                      style={{ fontSize: "12px", wordBreak: "break-word" }}
+                    >
+                      ORIGINAL REGISTRATION DATE
+                    </div>
+                    <div className="col-sm-7">
                       <DateField
                         value={originalRegistrationDate}
                         setValue={setOriginalRegistrationDate}
@@ -3362,8 +3365,8 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
 
               <div className="row mt-3">
-                <div className="col-5">PREFERENTIAL CODE</div>
-                <div className="col-7">
+                <div className="col-3">PREFERENTIAL CODE</div>
+                <div className="col-9">
                   <select
                     className="Dropdown"
                     value={preferentialCode}
@@ -4407,6 +4410,7 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
+                {!isViewMode&&(
                 <th>
                   <input
                     type="checkbox"
@@ -4415,6 +4419,7 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={handleSelectAll}
                   />
                 </th>
+                )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -4451,15 +4456,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                        <td>
-                          <input
-                            type="checkbox"
-                            name="itemCheckDel"
-                            value={item.ItemNo}
-                            checked={selectedItems.includes(item.ItemNo)}
-                            onChange={() => handleSelectOne(item.ItemNo)}
-                          />
-                        </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          name="itemCheckDel"
+                          value={item.ItemNo}
+                          checked={selectedItems.includes(item.ItemNo)}
+                          onChange={
+                            !isViewMode
+                              ? () => handleSelectOne(item.ItemNo)
+                              : undefined
+                          }
+                          readOnly={isViewMode}
+                        />
+                      </td>
                       )}
                       <td>
                         <FaEdit

@@ -5,6 +5,7 @@ import { useInnonpayment } from "../context/innonpaymentContext";
 import { UserContext } from "../../../userContex/userContex";
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { getFieldConfig } from "../../config/accountFieldConfig";
 
 function Header({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -18,6 +19,13 @@ function Header({ setActiveTab, isViewMode }) {
   const [bgIndicator, setBgIndicator] = useState([]);
   const [documentAttachType, setDocumentAttachType] = useState([]);
   const [permitConditions, setPermitConditions] = useState(null);
+ 
+ // Decelaring for visible depends account id
+ 
+   const fieldConfig = getFieldConfig(user?.accountId);
+   console.log("accountId:", user?.accountId);
+   console.log("fieldConfig:", fieldConfig);
+
   // User Context States
   const {
     permitDetails,
@@ -494,26 +502,39 @@ function Header({ setActiveTab, isViewMode }) {
       setShowOblNumber(true);
       setShowInwardMode(true);
       setShowInHawbInward(true);
+
     } else if (value === "2 : Rail") {
       setShowInwardMode(true);
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInHawbInward(true);
     } else if (value === "3 : Road") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInHawbInward(true);
+      setShowInwardMode(true);
     } else if (value === "4 : Air") {
       setShowFlightNumber(true);
       setShowAirCraftRegNumber(true);
+      setShowInwardMode(true);
       setShowMawbNumber(true);
+      setShowInHawbInward(true);
     } else if (value === "5 : Mail") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInHawbInward(true);
+
+      setShowInwardMode(true);
     } else if (value === "6 : Multi-model(Not in use)") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInwardMode(true);
+      setShowInHawbInward(true);
     } else if (value === "7 : Pipeline") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInwardMode(true);
+      setShowInHawbInward(true);
     } else if (value === "N : Not Required") {
       setShowInWardDetails(false);
       // setShowExhibition(true);
@@ -767,7 +788,7 @@ function Header({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd,
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor,
+        DeclarningFor: declFor || "--Select--",
         License: [licence1, licence2, licence3, licence4, licence5]
           .filter(Boolean)
           .join(","),
@@ -1062,6 +1083,7 @@ function Header({ setActiveTab, isViewMode }) {
         )}
 
         {/* DECLARING FOR */}
+                {fieldConfig.showDeclaringFor && (
         <div className="row align-items-center compact-row">
           <label className="col-sm-4 col-form-label">DECLARING FOR</label>
           <div className="col-sm-8">
@@ -1088,6 +1110,7 @@ function Header({ setActiveTab, isViewMode }) {
             )}
           </div>
         </div>
+                )}
 
         {/* BG INDICATOR */}
         <div className="row align-items-center compact-row">

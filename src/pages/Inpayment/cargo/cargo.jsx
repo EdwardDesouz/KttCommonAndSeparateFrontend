@@ -900,7 +900,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       setIsSaving(false);
     }
   };
-  
+
   // =====================Auto save every filling Details==============================
 
   const formatDate = (dateStr) => {
@@ -1438,19 +1438,6 @@ function Cargo({ setActiveTab, isViewMode }) {
               </div>
             )}
 
-            {/* BLANKET START DATE */}
-            <div className="row align-items-center compact-row mb-3">
-              <label className="col-sm-4 col-form-label">
-                BLANKET START DATE
-              </label>
-              <DateField
-                value={blanketStartDate}
-                setValue={setBlanketStartDate}
-              />
-            </div>
-          </div>
-          {/* VOYAGE NUMBER */}
-          <div className="col-6">
             {showVoyageNumber && (
               <div className="row align-items-center compact-row mb-3">
                 <label className="col-sm-4 col-form-label">VOYAGE NUMBER</label>
@@ -1576,7 +1563,19 @@ function Cargo({ setActiveTab, isViewMode }) {
                 </div>
               </div>
             )}
+            {/* BLANKET START DATE */}
+            <div className="row align-items-center compact-row mb-3">
+              <label className="col-sm-4 col-form-label">
+                BLANKET START DATE
+              </label>
+              <DateField
+                value={blanketStartDate}
+                setValue={setBlanketStartDate}
+              />
+            </div>
           </div>
+          {/* VOYAGE NUMBER */}
+          <div className="col-6"></div>
         </div>
       </div>
 
@@ -1718,6 +1717,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                             )
                           }
                           disabled={container.isSaved}
+                           style={{ width: "350px" }}
                         >
                           <option>--Select--</option>
                           {containerType.map((ct) => (

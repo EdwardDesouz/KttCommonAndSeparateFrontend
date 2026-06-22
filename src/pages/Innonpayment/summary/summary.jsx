@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
-
+import { getFieldConfig } from "../../config/accountFieldConfig";
 function Summary({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ function Summary({ setActiveTab, isViewMode }) {
     transportMode,
     outTransportMode,
     declFor,
+    setDeclFor,
     bgInd,
     supplyInd,
     refDocs,
@@ -117,7 +118,7 @@ function Summary({ setActiveTab, isViewMode }) {
     outAirCraftRegNumber,
     outMawbNumber,
     outHblHawb,
-        outCargoHawb,
+    outCargoHawb,
     setOutCargoHawb,
     outSeaStore,
 
@@ -187,6 +188,21 @@ function Summary({ setActiveTab, isViewMode }) {
   useEffect(() => {
     fetchDeclaringFor();
   }, []);
+
+    // declaring for hide show use effect for empty save
+    useEffect(() => {
+      const config = getFieldConfig(user?.accountId);
+      if (!config.showDeclaringFor) {
+        setDeclFor("");
+        setShowDeclaringForError(false);
+      }
+    }, [user?.accountId]);
+  
+    // Decelaring for visible depends account id
+  
+    const fieldConfig = getFieldConfig(user?.accountId);
+    console.log("accountId:", user?.accountId);
+    console.log("fieldConfig:", fieldConfig);
 
   // ── Validation Modal State ───────────────────────────────────────────────
   const [validationErrors, setValidationErrors] = useState({
@@ -402,14 +418,15 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
-    if (!declFor) {
-      errors.header.push("CHECK THE DECLARING FOR");
-      setShowDeclaringForError(true);
-      isValid = false;
-    } else {
-      setShowDeclaringForError(false);
+    if (fieldConfig.showDeclaringFor) {
+      if (!declFor) {
+        errors.header.push("CHECK THE DECLARING FOR");
+        setShowDeclaringForError(true);
+        isValid = false;
+      } else {
+        setShowDeclaringForError(false);
+      }
     }
-
     // ── PARTY ────────────────────────────────────────────────────────────
     setShowImporterCrueiError(false);
     if (!importerCode || importerCode.trim() === "") {
@@ -556,15 +573,17 @@ function Summary({ setActiveTab, isViewMode }) {
     }
 
     // ── SUMMARY ──────────────────────────────────────────────────────────
-    if (
-      !summaryDeclaringFor ||
-      !declFor ||
-      summaryDeclaringFor.trim() !== declFor.trim()
-    ) {
-      errors.summary.push(
-        "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
-      );
-      isValid = false;
+    if (fieldConfig.showDeclaringFor) {
+      if (
+        !summaryDeclaringFor ||
+        !declFor ||
+        summaryDeclaringFor.trim() !== declFor.trim()
+      ) {
+        errors.summary.push(
+          "DECLARING FOR (HEADER) AND SUMMARY DECLARING FOR MUST MATCH",
+        );
+        isValid = false;
+      }
     }
     console.log("Header DeclaringFor:", declFor);
     console.log("Summary DeclaringFor:", summaryDeclaringFor);
@@ -822,7 +841,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
       // Other
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
+      DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
@@ -917,7 +936,7 @@ function Summary({ setActiveTab, isViewMode }) {
         BGIndicator: bgInd || "",
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
-        DeclarningFor: declFor || "",
+        DeclarningFor: declFor || "--Select--",
         License: Licence || "",
         Recipient: Recipients || "",
         DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
@@ -1277,7 +1296,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemValue.toFixed(2)}
+              value={totalItemValue}
               readOnly
             />
           </div>
@@ -1288,7 +1307,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalInvoiceCifValue.toFixed(2)}
+              value={totalInvoiceCifValue}
               readOnly
             />
           </div>
@@ -1301,7 +1320,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemCifValue.toFixed(2)}
+              value={totalItemCifValue}
               readOnly
             />
           </div>
@@ -1310,7 +1329,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={totalItemGstAmount.toFixed(2)}
+              value={totalItemGstAmount}
               readOnly
             />
           </div>
@@ -1319,7 +1338,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfExciseDutyAmount.toFixed(2)}
+              value={sumOfExciseDutyAmount}
               readOnly
             />
           </div>
@@ -1328,7 +1347,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfCustomsDutyAmount.toFixed(2)}
+              value={sumOfCustomsDutyAmount}
               readOnly
             />
           </div>
@@ -1341,7 +1360,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
-              value={sumOfOtherTaxAmount.toFixed(2)}
+              value={sumOfOtherTaxAmount}
               readOnly
             />
           </div>
@@ -1370,7 +1389,7 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
@@ -1393,7 +1412,7 @@ function Summary({ setActiveTab, isViewMode }) {
                     readOnly
                   />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-7">
                   <input
                     type="text"
                     className="form-control"
@@ -1486,8 +1505,10 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-6">INTERNAL REMARKS</div>
           {/* <div className="col-sm-3">MRD</div>
           <div className="col-sm-3">TIME</div> */}
+          {fieldConfig.showDeclaringFor && (
           <div className="col-sm-6">CONFIRM DECLARING FOR</div>
-        </div>
+              )}
+          </div>
 
         {/* ── INTERNAL REMARKS / MRD / TIME INPUTS ────────────────────── */}
         <div className="row align-items-center compact-row">
@@ -1512,7 +1533,7 @@ function Summary({ setActiveTab, isViewMode }) {
               onBlur={(e) => handleTimeBlur(e.target.value)}
             />
           </div> */}
-
+    {fieldConfig.showDeclaringFor && (
           <div className="col-sm-4">
             <select
               className="Dropdown HighLight mandatory"
@@ -1535,6 +1556,7 @@ function Summary({ setActiveTab, isViewMode }) {
               PLEASE CHOOSE DECLARING FOR
             </span>
           </div>
+    )}
         </div>
 
         {/* ── DECLARATION SUMMARY HEADER ───────────────────────────────── */}
@@ -1590,7 +1612,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL ITEM GST</div>
-                <div className="col-6">{totalItemGstAmount}</div>
+                <div className="col-6">{totalItemGstAmount.toFixed(2)}</div>
               </div>
             </div>
           </div>
@@ -1601,7 +1623,7 @@ function Summary({ setActiveTab, isViewMode }) {
                 <div className="col-6">
                   {result.map((inv, index) => (
                     <div key={index}>
-                      {inv.TICurrency} : {inv.TIAmount}
+                      {inv.TICurrency} : {inv.TIAmount.toFixed(2)}
                     </div>
                   ))}
                 </div>
@@ -1610,7 +1632,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL INVOICE GST</div>
-                <div className="col-6">{totalItemGstAmount}</div>
+                <div className="col-6">{totalItemGstAmount.toFixed(2)}</div>
               </div>
             </div>
           </div>

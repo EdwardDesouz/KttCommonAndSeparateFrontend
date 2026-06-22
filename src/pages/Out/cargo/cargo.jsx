@@ -173,6 +173,8 @@ function Cargo({ setActiveTab, isViewMode }) {
     setShowArrivalDateError,
     blanketStartDate,
     setBlanketStartDate,
+    showCargoBlanketStartDate,
+    setShowCargoBlanketStartDate,
     voyageNumber,
     setVoyageNumber,
     vesselName,
@@ -239,6 +241,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     outAircraftRegNumber,
     setOutAircraftRegNumber,
     outMawbNumber,
+    setOutMawbNumber,
     showOutAircraftReg,
     setShowOutAircraftReg,
     showOutMawb,
@@ -2012,18 +2015,20 @@ function Cargo({ setActiveTab, isViewMode }) {
                 </div>
               </div>
             )}
-            <div className="row align-items-center compact-row mb-3">
-              <label className="col-sm-4 col-form-label">
-                BLANKET START DATE
-              </label>
-              <DateField
-                value={blanketStartDate}
-                setValue={(val) => {
-                  setBlanketStartDate(val);
-                  if (val) setShowBlanketStartDateError(false);
-                }}
-              />
-            </div>
+            {showCargoBlanketStartDate && (
+              <div className="row align-items-center compact-row mb-3">
+                <label className="col-sm-4 col-form-label">
+                  BLANKET START DATE
+                </label>
+                <DateField
+                  value={blanketStartDate}
+                  setValue={(val) => {
+                    setBlanketStartDate(val);
+                    if (val) setShowBlanketStartDateError(false);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -2856,7 +2861,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           className="form-control"
                           value={outAircraftRegNumber}
                           onChange={(e) =>
-                            setOutAirCraftRegNumber(e.target.value)
+                            setOutAircraftRegNumber(e.target.value)
                           }
                         />
                       </div>
@@ -2893,8 +2898,8 @@ function Cargo({ setActiveTab, isViewMode }) {
               <div className="row">
                 <div className="col-12">
                   {/* START DATE */}
-                  {/* {showExhibitionStartDate && ( */}
-                    {/* <div className="row align-items-center compact-row mb-3">
+          {/* {showExhibitionStartDate && ( */}
+          {/* <div className="row align-items-center compact-row mb-3">
                       <label className="col-sm-4 col-form-label">
                         START DATE
                       </label>
@@ -2903,10 +2908,10 @@ function Cargo({ setActiveTab, isViewMode }) {
                         setValue={setExhibitionStartDate}
                       />
                     </div> */}
-                  {/* )} */}
+          {/* )} */}
 
-                  {/* END DATE */}
-                  {/* {showExhibitionEndDate && (
+          {/* END DATE */}
+          {/* {showExhibitionEndDate && (
                     <div className="row align-items-center compact-row mb-3">
                       <label className="col-sm-4 col-form-label">
                         END DATE
@@ -2917,10 +2922,10 @@ function Cargo({ setActiveTab, isViewMode }) {
                       />
                     </div>
                   )} */}
-                {/* </div>
+          {/* </div>
               </div>
             </div> */}
-          {/* )} */} 
+          {/* )} */}
         </div>
       </div>
 
