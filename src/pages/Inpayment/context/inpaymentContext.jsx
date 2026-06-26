@@ -28,12 +28,12 @@ export const InpaymentProvider = ({ children }) => {
     CurrentDate: "",
     prmtStatus: "NEW",
   });
-const updatePermitDetails = (newDetails) => {
-  setPermitDetails((prev) => ({
-    ...prev,
-    ...(typeof newDetails === "function" ? newDetails(prev) : newDetails),
-  }));
-};
+  const updatePermitDetails = (newDetails) => {
+    setPermitDetails((prev) => ({
+      ...prev,
+      ...(typeof newDetails === "function" ? newDetails(prev) : newDetails),
+    }));
+  };
   // HEADER PAGE STATES
   const [decType, setDecType] = useState("");
   const [prevPermitNo, setPrevPermitNo] = useState("");
@@ -120,8 +120,10 @@ const updatePermitDetails = (newDetails) => {
   const [totalGrossWeight, setTotalGrossWeight] = useState("");
   const [showTotalGrossWeightError, setShowTotalGrossWeightError] =
     useState(false);
-  const [grossUOM, setGrossUOM] = useState("--Select--");
+  const [grossUOM, setGrossUOM] = useState("");
   const [showGrossUOMError, setShowGrossUOMError] = useState(false);
+  const [showCargoSeaGrossWeightError, setShowCargoSeaGrossWeightError] =
+    useState(false);
   const [permitGrossWeight, setPermitGrossWeight] = useState("");
   const [receiptCode, setReceiptCode] = useState("");
   const [showReceiptCodeError, setShowReceiptCodeError] = useState(false);
@@ -208,6 +210,7 @@ const updatePermitDetails = (newDetails) => {
   // Item page
   const [hawbList, setHawbList] = useState([]);
   const [itemTable, setItemTable] = useState([]);
+  const[makingLot,setMakingLot]=useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [hsCode, setHsCode] = useState("");
@@ -219,7 +222,7 @@ const updatePermitDetails = (newDetails) => {
   const [model, setModel] = useState("");
   const [dgIndicator, setDgIndicator] = useState(false);
   const [unbranded, setUnbranded] = useState(false);
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  const [invoiceQuantity, setInvoiceQuantity] = useState("");
   const [hsQuantity, setHsQuantity] = useState("");
   const [hsUom, setHsUom] = useState("--Select--");
   const [duitableQuantity, setDuitableQuantity] = useState("");
@@ -232,31 +235,31 @@ const updatePermitDetails = (newDetails) => {
   const [invoiceExRateItem, setInvoiceExRateItem] = useState("");
   const [unitPrice, setUnitPrice] = useState(0.0);
   const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
-  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
-  const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
+  const [totalLineAmount, setTotalLineAmount] = useState("");
+  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState("");
+  const [cifFob, setCifFob] = useState("");
+  const [exciseDutyRate, setExciseDutyRate] = useState("");
   const [exciseDutyUom, setExciseDutyUom] = useState("");
-  const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
-  const [customsDutyRate, setCustomsDutyRate] = useState(0.0);
+  const [exciseDutyAmount, setExciseDutyAmount] = useState("");
+  const [customsDutyRate, setCustomsDutyRate] = useState("");
   const [customsDutyUom, setCustomsDutyUom] = useState("");
   const [customsDutyAmount, setCustomsDutyAmount] = useState("");
-  const [otherTaxRate, setOtherTaxRate] = useState(0.0);
+  const [otherTaxRate, setOtherTaxRate] = useState("");
   const [otherTaxUom, setOtherTaxUom] = useState("");
-  const [otherTaxAmount, setOtherTaxAmount] = useState();
+  const [otherTaxAmount, setOtherTaxAmount] = useState("");
   const [gstRateValue, setGstRateValue] = useState(9);
   const [gstUom, setGstUom] = useState("PER");
-  const [gstSum, setGstSum] = useState(0.0);
-  const [lastSellingPrice, setLastSellingPrice] = useState(0.0);
+  const [gstSum, setGstSum] = useState("");
+  const [lastSellingPrice, setLastSellingPrice] = useState("");
   const [preferentialCode, setPreferentialCode] = useState("");
   const [packingChecked, setPackingChecked] = useState(false);
-  const [outerPackQuantity, setOuterPackQuantity] = useState("0.00");
+  const [outerPackQuantity, setOuterPackQuantity] = useState("");
   const [outerPackQuantityUom, setOuterPackQuantityUom] = useState("");
-  const [inPackQuantity, setInPackQuantity] = useState("0.00");
+  const [inPackQuantity, setInPackQuantity] = useState("");
   const [inPackQuantityUom, setInPackQuantityUom] = useState("");
-  const [innerPackQuantity, setInnerPackQuantity] = useState("0.00");
+  const [innerPackQuantity, setInnerPackQuantity] = useState("");
   const [innerPackQuantityUom, setInnerPackQuantityUom] = useState("");
-  const [immostPackQuantity, setImmostPackQuantity] = useState("0.00");
+  const [immostPackQuantity, setImmostPackQuantity] = useState("");
   const [immostPackQuantityUom, setImmostPackQuantityUom] = useState("");
   const [showFreightRowItem, setShowFreightRowItem] = useState(true);
   const [showInsuranceRowItem, setShowInsuranceRowItem] = useState(true);
@@ -268,6 +271,7 @@ const updatePermitDetails = (newDetails) => {
   const [showItemCasc, setShowItemCasc] = useState(false);
   const [itemCascChecked, setItemCascChecked] = useState(false);
   const [showShippingMarks, setShowShippingMarks] = useState(false);
+  const [showLotId, setShowLotId] = useState(false);
   const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
   const defaultItemCasc = [
     { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc1" },
@@ -275,6 +279,9 @@ const updatePermitDetails = (newDetails) => {
     { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc3" },
   ];
   const [itemCasc, setItemCasc] = useState(defaultItemCasc);
+  const [currentLot, setCurrentLot] = useState("");
+  const [making, setMaking] = useState("");
+  const [previousLot, setPreviousLot] = useState("");
   const [shippingMarks1, setShippingMarks1] = useState("");
   const [shippingMarks2, setShippingMarks2] = useState("");
   const [shippingMarks3, setShippingMarks3] = useState("");
@@ -283,8 +290,8 @@ const updatePermitDetails = (newDetails) => {
   const [engineCapacityValue, setEngineCapcityValue] = useState("");
   const [engineCapacityUom, setEngineCapacityUom] = useState("");
   const [originalRegistrationDate, setOriginalRegistrationDate] = useState("");
-  const [optionalCharges, setOptionalCharges] = useState("0.00");
-  const [optionlAmount, setOptionalAmount] = useState(0);
+  const [optionalCharges, setOptionalCharges] = useState("");
+  const [optionlAmount, setOptionalAmount] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const [dutyTypeId, setDutyTypeId] = useState("");
   const [kgmVisible, setKgmVisible] = useState("");
@@ -305,6 +312,8 @@ const updatePermitDetails = (newDetails) => {
     { ProcessingCode1: "", ProcessingCode2: "", ProcessingCode3: "" },
   ]);
   // Summary Page
+  const [summaryApprovedBy, setSummaryApprovedBy] = useState("");
+  const [summaryCustomerRemarks, setSummaryCustomerRemarks] = useState("");
   const [summaryDeclaringFor, setSummaryDeclaringFor] = useState("");
   const [summaryImporterCruei, setSummaryImporterCruei] = useState("");
   const [summaryImporterName, setSummaryImporterName] = useState("");
@@ -468,6 +477,8 @@ const updatePermitDetails = (newDetails) => {
         setShowTotalGrossWeightError,
         showGrossUOMError,
         setShowGrossUOMError,
+        showCargoSeaGrossWeightError,
+        setShowCargoSeaGrossWeightError,
         permitGrossWeight,
         setPermitGrossWeight,
         receiptCode,
@@ -605,6 +616,8 @@ const updatePermitDetails = (newDetails) => {
         setHawbList,
         itemTable,
         setItemTable,
+        makingLot,
+        setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
         hawb,
@@ -721,11 +734,19 @@ const updatePermitDetails = (newDetails) => {
         setItemCascChecked,
         showShippingMarks,
         setShowShippingMarks,
+        showLotId,
+        setShowLotId,
         showUnitPriceVal,
         setShowUnitPriceVal,
         itemCasc,
         setItemCasc,
         defaultItemCasc,
+        currentLot,
+        setCurrentLot,
+        making,
+        setMaking,
+        previousLot,
+        setPreviousLot,
         shippingMarks1,
         setShippingMarks1,
         shippingMarks2,
@@ -793,6 +814,10 @@ const updatePermitDetails = (newDetails) => {
         setDeclarationChecked,
         summaryDeclaringFor,
         setSummaryDeclaringFor,
+        summaryApprovedBy,
+        setSummaryApprovedBy,
+        summaryCustomerRemarks,
+        setSummaryCustomerRemarks,
       }}
     >
       {children}

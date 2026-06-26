@@ -2479,7 +2479,7 @@ setSummaryCertificateType,
         <div className="row align-items-center compact-row">
           <label className="col-sm-2 col-form-label">DECLARANT COMPANY</label>
           <div className="col-sm-1"></div>
-          <div className="col-sm-1">
+          <div className="col-sm-2">
             <input
               className="form-control"
               value={permitDetails?.Code || ""}
@@ -2500,7 +2500,7 @@ setSummaryCertificateType,
               readOnly
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               placeholder="Name1"
@@ -2524,7 +2524,7 @@ setSummaryCertificateType,
           </div>
 
           {/* CODE */}
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={exporterCodeRef}
               id="exporterCode"
@@ -2597,7 +2597,7 @@ setSummaryCertificateType,
           </div>
 
           {/* NAME1 */}
-          <div className="col-3">
+          <div className="col-2">
             <input
               id="exporterName1"
               className="inputStyle"
@@ -2612,7 +2612,7 @@ setSummaryCertificateType,
         <div className="row align-items-center compact-row mt-3">
           <div className="col-2"></div>
           <div className="col-1"></div>
-          <div className="col-1"></div>
+          <div className="col-2"></div>
           <div className="col-2">
             <input
               id="exporterAddress"
@@ -2631,7 +2631,7 @@ setSummaryCertificateType,
               onChange={(e) => setExporterAddress1(e.target.value)}
             />
           </div>
-          <div className="col-3">
+          <div className="col-2">
             <input
               id="exporterCity"
               className="inputStyle"
@@ -2711,7 +2711,7 @@ setSummaryCertificateType,
           </div>
 
           {/* CODE */}
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={outwardCodeRef}
               id="outwardCode"
@@ -2774,7 +2774,7 @@ setSummaryCertificateType,
           </div>
 
           {/* NAME1 */}
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               id="outwardName1"
               className="form-control"
@@ -2799,7 +2799,7 @@ setSummaryCertificateType,
               onClick={saveFreightForwarder}
             />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
@@ -2861,7 +2861,7 @@ setSummaryCertificateType,
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               id="freightForwarderName1"
@@ -2888,7 +2888,7 @@ setSummaryCertificateType,
             </div>
 
             {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={congineeCodeRef}
                 id="congineeCode"
@@ -2957,7 +2957,7 @@ setSummaryCertificateType,
             </div>
 
             {/* NAME1 */}
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="congineeName1"
                 className="form-control"
@@ -2973,7 +2973,7 @@ setSummaryCertificateType,
             <label className="col-sm-2 col-form-label"></label>
             <div className="col-sm-1 icon-contaniner"></div>
 
-            <div className="col-sm-1"></div>
+            <div className="col-sm-2"></div>
 
             <div className="col-sm-2">
               <input
@@ -2993,7 +2993,7 @@ setSummaryCertificateType,
                 onChange={(e) => setCongineeAddress1(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="congineeCity"
                 className="form-control"
@@ -3079,7 +3079,7 @@ setSummaryCertificateType,
                 onClick={saveManufacturer}
               />
             </div>
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={manufacturerCodeRef}
                 id="manufacturerCode"
@@ -3143,7 +3143,7 @@ setSummaryCertificateType,
                 onChange={(e) => setManufacturerName(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="manufacturerName1"
                 className="form-control"
@@ -3160,7 +3160,7 @@ setSummaryCertificateType,
           <div className="row align-items-center compact-row">
             <label className="col-sm-2 col-form-label"></label>
             <div className="col-sm-1 icon-contaniner"></div>
-            <div className="col-sm-1"></div>
+            <div className="col-sm-2"></div>
             <div className="col-sm-2">
               <input
                 id="manufacturerAddress"
@@ -3185,7 +3185,7 @@ setSummaryCertificateType,
                 onChange={(e) => setManufacturerAddress1(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="manufacturerCity"
                 className="form-control"
@@ -3200,7 +3200,7 @@ setSummaryCertificateType,
           <div className="row align-items-center compact-row">
             <label className="col-sm-2 col-form-label"></label>
             <div className="col-sm-1"></div>
-            <div className="col-sm-1"></div>
+            <div className="col-sm-2"></div>
             <div className="col-sm-2">
               <input
                 id="manufacturerSub"
@@ -3221,7 +3221,7 @@ setSummaryCertificateType,
                 onChange={(e) => setManufacturerSubDivi(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="manufacturerPostal"
                 className="form-control"
@@ -3238,7 +3238,7 @@ setSummaryCertificateType,
           <div className="row align-items-center compact-row">
             <label className="col-sm-2 col-form-label"></label>
             <div className="col-sm-1"></div>
-            <div className="col-sm-1"></div>
+            <div className="col-sm-2"></div>
             <div className="col-sm-2">
               <input
                 id="manufacturerCountry"

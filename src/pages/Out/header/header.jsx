@@ -87,6 +87,9 @@ function Header({ setActiveTab, isViewMode }) {
     setSelectedFile,
     uploadedFiles,
     setUploadedFiles,
+        // Cargo
+    grossUOM,
+    setGrossUOM,
     certificateList,
     setCertificateList,
     currency,
@@ -507,11 +510,11 @@ function Header({ setActiveTab, isViewMode }) {
     setShowInwardCarrier(false);
 
     if (value === "" || value === "--Select--") {
-      setShowInwardTransportError(true);
+      // setShowInwardTransportError(true);
       setShowPartyImporter(false);
       setShowInWardDetails(false);
     } else {
-      setShowInwardTransportError(false);
+      // setShowInwardTransportError(false);
       setShowPartyImporter(true);
     }
 
@@ -587,6 +590,7 @@ function Header({ setActiveTab, isViewMode }) {
     setCargoOutwardTransportMode(value);
     setShowOutWardDetails(true);
     setShowOutwardCarrier(false);
+    setGrossUOM("");
     if (value === "--Select--") {
       setShowOutwardTransportError(true);
       // Clear fields on --Select--
@@ -689,6 +693,7 @@ function Header({ setActiveTab, isViewMode }) {
       setShowLastPort(true);
       setOutHblHawbLabel("HBL");
       setShowOutwardCarrier(true);
+      setGrossUOM("TNE");
     } else if (
       value === "2 : Rail" ||
       value === "3 : Road" ||
@@ -1100,11 +1105,6 @@ function Header({ setActiveTab, isViewMode }) {
                   </option>
                 ))}
               </select>
-              {showInwardTransportError && (
-                <span className="ErrorColor" id="inwardTranseportModeSpan">
-                  PLEASE CHOOSE INWARD TRANSPORT MODE
-                </span>
-              )}
             </div>
           </div>
         )}

@@ -7,6 +7,8 @@ import { UserContext } from "../../../userContex/userContex";
 import { useCoo } from "../context/cooContext";
 import { useNavigate } from "react-router-dom";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import ToastNotification, {useToast} from "../../../components/ToastNotification/toastNotification";
+
 
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -267,6 +269,8 @@ function Item({ setActiveTab, isViewMode }) {
   } = useCoo();
 
   // ------------------ States ------------------
+ const { toast, showToast, hideToast } = useToast();
+
 
   useEffect(() => {
     console.log("PERMIT DETAILS:", permitDetails);
@@ -569,7 +573,28 @@ function Item({ setActiveTab, isViewMode }) {
     fetchHsCodeSuggestions();
   }, []);
   // ------------------ Handle Chage HsCode ------------------
-  const handleHsCodeChange = (e) => {
+  // const handleHsCodeChange = (e) => {
+  //   const val = e.target.value;
+  //   setHsCode(val);
+  //   setHsCodeError(false);
+  //   setHighlightedHsCodeIndex(0);
+
+  //   if (!val) {
+  //     setShowHsCodeDropdown(false);
+  //     setShowVehicle(false);
+  //     return;
+  //   }
+  //   const filtered = hsCodeSuggestions.filter(
+  //     (i) =>
+  //       i.HSCode.toLowerCase().includes(val.toLowerCase()) ||
+  //       i.Description.toLowerCase().includes(val.toLowerCase()),
+  //   );
+
+  //   setFilteredHsCodeSuggestions(filtered.slice(0, 100));
+  //   setShowHsCodeDropdown(filtered.length > 0);
+  // };
+
+    const handleHsCodeChange = (e) => {
     const val = e.target.value;
     setHsCode(val);
     setHsCodeError(false);
@@ -580,17 +605,63 @@ function Item({ setActiveTab, isViewMode }) {
       setShowVehicle(false);
       return;
     }
+
     const filtered = hsCodeSuggestions.filter(
       (i) =>
         i.HSCode.toLowerCase().includes(val.toLowerCase()) ||
         i.Description.toLowerCase().includes(val.toLowerCase()),
     );
 
-    setFilteredHsCodeSuggestions(filtered.slice(0, 100));
-    setShowHsCodeDropdown(filtered.length > 0);
+    const exactMatch = filtered.filter(
+      (i) => i.HSCode.toLowerCase() === val.toLowerCase()
+    );
+
+    const finalList = exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
+
+    setFilteredHsCodeSuggestions(finalList);
+    setShowHsCodeDropdown(finalList.length > 0);
   };
+  
   // ======================== Hscode Keydown========================
-  const handleHsCodeKeyDown = (e) => {
+  // const handleHsCodeKeyDown = (e) => {
+  //   if (!showHscodeDropdown || filteredHsCodeSuggestions.length === 0) return;
+
+  //   if (e.key === "ArrowDown") {
+  //     e.preventDefault();
+  //     setHighlightedHsCodeIndex((prev) =>
+  //       prev + 1 >= filteredHsCodeSuggestions.length ? 0 : prev + 1,
+  //     );
+  //   } else if (e.key === "ArrowUp") {
+  //     e.preventDefault();
+  //     setHighlightedHsCodeIndex((prev) =>
+  //       prev - 1 < 0 ? filteredHsCodeSuggestions.length - 1 : prev - 1,
+  //     );
+  //   } else if (e.key === "Enter" || e.key === "Tab") {
+  //     e.preventDefault();
+  //     handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
+  //   }
+  // };
+
+    const handleHsCodeKeyDown = (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+
+      // If dropdown open, select the highlighted item first
+      if (showHscodeDropdown && filteredHsCodeSuggestions.length > 0) {
+        handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
+      }
+
+      // Then move focus to description
+      setTimeout(() => {
+        const descEl = document.querySelector("textarea.inputStyle");
+        if (descEl) {
+          descEl.focus();
+          descEl.select();
+        }
+      }, 200);
+      return;
+    }
+
     if (!showHscodeDropdown || filteredHsCodeSuggestions.length === 0) return;
 
     if (e.key === "ArrowDown") {
@@ -603,7 +674,7 @@ function Item({ setActiveTab, isViewMode }) {
       setHighlightedHsCodeIndex((prev) =>
         prev - 1 < 0 ? filteredHsCodeSuggestions.length - 1 : prev - 1,
       );
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter") {
       e.preventDefault();
       handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
     }
@@ -833,6 +904,14 @@ function Item({ setActiveTab, isViewMode }) {
 
       applyHsLogic(selected);
     }, 150);
+
+          setTimeout(() => {
+        const descEl = document.querySelector("textarea.inputStyle");
+        if (descEl) {
+          descEl.focus();
+          descEl.select();
+        }
+      }, 50);
   };
 
   // --------------------Hs code uom Checking-------------------
@@ -1489,13 +1568,12 @@ function Item({ setActiveTab, isViewMode }) {
     return check;
   };
 
-
   const formatItemDate = (dateStr) => {
-  if (!dateStr || dateStr.trim() === "") return null;
-  const parts = dateStr.split("/");
-  if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD/MM/YYYY → YYYY-MM-DD
-  return null;
-};
+    if (!dateStr || dateStr.trim() === "") return null;
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD/MM/YYYY → YYYY-MM-DD
+    return null;
+  };
   // ----------------------- Add Item Function ---------------------------
 
   const ItemSave = async () => {
@@ -1580,7 +1658,7 @@ function Item({ setActiveTab, isViewMode }) {
       TexQuotaUOM: textileQuotaUOM || "",
       CerInvNo: cerInvoiceNumber || "",
       // CerInvDate: invDate || "",
-    CerInvDate: formatItemDate(invDate),
+      CerInvDate: formatItemDate(invDate),
       OriginOfCer: originCeritficateDetails || "",
       HSCodeCer: hsCodeCer || "",
       PerContent: percentageOrigin || "",
@@ -1590,7 +1668,7 @@ function Item({ setActiveTab, isViewMode }) {
     try {
       const res = await API.post("/postItemTable/", payload);
       setItemTable(res.data.Records);
-      alert("Item Saved Successfully");
+      showToast("Item Saved Successfully");
       const cascData = ItemCascSave(itemNumber);
       console.log("cascData:", cascData);
       if (cascData.length > 0) {
@@ -1664,8 +1742,6 @@ function Item({ setActiveTab, isViewMode }) {
     return cascArray;
   };
 
-
-
   // --------------------------delete Item-----------
 
   const handleSelectAll = (e) => {
@@ -1714,7 +1790,7 @@ function Item({ setActiveTab, isViewMode }) {
       });
       setItemTable(res.data.Records);
       // const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
-      const nextSerial = (res.data.Records.length + 1)
+      const nextSerial = res.data.Records.length + 1;
       setSerialNumber(nextSerial);
     } catch (error) {
       console.error("Delete failed", error);
@@ -1824,7 +1900,7 @@ function Item({ setActiveTab, isViewMode }) {
     );
 
     // Certificate of Origin
-   setCerItemQty(parseFloat(item.CerItemQty) || 0);
+    setCerItemQty(parseFloat(item.CerItemQty) || 0);
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(parseFloat(item.CIFValOfCer) || 0);
 
@@ -1941,23 +2017,23 @@ function Item({ setActiveTab, isViewMode }) {
     setOutHawb("");
 
     // ---------------- DUTIABLE ----------------
-    setDuitableQuantity(0);
+    setDuitableQuantity("");
     setDuitableQuantityUom("--Select--");
     setTotalDuitableQuantity("");
     setTotalDuitableQuantityUom("--Select--");
-    setInvoiceQuantity(0.0);
-    setHsQuantity(0);
+    setInvoiceQuantity("");
+    setHsQuantity("");
     setHsUom("--Select--");
-    setAlcoholPercentage(0);
+    setAlcoholPercentage("");
     setSelectedInvoice("");
 
     // ---------------- INVOICE ----------------
-    setUnitPrice(0);
+    setUnitPrice("");
     setInvoiceCurrency("");
-    setInvoiceExRate(0);
-    setSumExchangeRate(0);
-    setTotalLineAmount(0);
-    setCifFob(0);
+    setInvoiceExRate("");
+    setSumExchangeRate("");
+    setTotalLineAmount("");
+    setCifFob("");
 
     // ---------------- PACKING ----------------
     setPackingChecked(false);
@@ -1967,26 +2043,26 @@ function Item({ setActiveTab, isViewMode }) {
     setPreferentialCode("");
     setGstRateValue(9);
     setGstUom("");
-    setGstSum(0);
-    setExciseDutyRate(0);
+    setGstSum("");
+    setExciseDutyRate("");
     setExciseDutyUom("");
-    setExciseDutyAmount(0);
-    setCustomsDutyRate(0);
+    setExciseDutyAmount("");
+    setCustomsDutyRate("");
     setCustomsDutyUom("");
-    setCustomsDutyAmount(0);
-    setOtherTaxRate(0);
+    setCustomsDutyAmount("");
+    setOtherTaxRate("");
     setOtherTaxUom("");
-    setOtherTaxAmount(0);
+    setOtherTaxAmount("");
 
     // ---------------- LAST SELLING PRICE ----------------
-    setLastSellingPrice(0);
+    setLastSellingPrice("");
 
     // ---------------- SHIPPING MARKS (single textarea) ----------------
     setShippingMarks("");
 
     // ---------------- OPTIONAL CHARGES ----------------
-    setOptionalCharges(0);
-    setOptionalAmount(0);
+    setOptionalCharges("");
+    setOptionalAmount("");
     setSelectedCurrency(null);
 
     // ---------------- UI VISIBILITY ----------------
@@ -2003,12 +2079,12 @@ function Item({ setActiveTab, isViewMode }) {
     setUnbranded(false);
 
     // ---------------- CERTIFICATE OF ORIGIN ----------------
-    setCerItemQty(0);
+    setCerItemQty("");
     setCerItemUOM("--Select--");
-    setCifCerValue(0);
+    setCifCerValue("");
     setManuDate("");
     setTextileCategory("");
-    setTextileQuotaQty(0);
+    setTextileQuotaQty("");
     setTextileQuotaUOM("--Select--");
     setCerInvoiceNumber("");
     setInvDate("");
@@ -2833,6 +2909,7 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle"
                     value={invoiceQuantity}
+                    placeholder="0.00"
                     onChange={(e) => setInvoiceQuantity(e.target.value)}
                     onBlur={handleInvoiceQuantityFocusOut}
                     tabIndex={13}
@@ -2960,6 +3037,7 @@ function Item({ setActiveTab, isViewMode }) {
                     placeholder="0.00"
                     className="inputStyle"
                     value={cifFob}
+                    onChange={(e) => setCifFob(e.target.value)}
                   />
                 </div>
               </div>
@@ -3012,6 +3090,7 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle CoTypeEmpty"
                     id="TxtCerItemQty"
                     value={cerItemQty}
+                    placeholder="0.00"
                     onChange={(e) => setCerItemQty(e.target.value)}
                   />
                 </div>
@@ -3053,6 +3132,7 @@ function Item({ setActiveTab, isViewMode }) {
                       className="inputStyle CoTypeEmpty"
                       id="TxtCIFCer"
                       value={cifCerValue}
+                      placeholder="0.00"
                       onChange={(e) => setCifCerValue(e.target.value)}
                     />
                   </div>
@@ -3511,15 +3591,15 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
-                {!isViewMode&&(
-                <th>
-                  <input
-                    type="checkbox"
-                    id="ItemHeadCheck"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                  />
-                </th>
+                {!isViewMode && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      id="ItemHeadCheck"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                 )}
                 <th>EDIT</th>
                 <th>S.NO</th>
@@ -3558,20 +3638,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                      <td>
-                        <input
-                          type="checkbox"
-                          name="itemCheckDel"
-                          value={item.ItemNo}
-                          checked={selectedItems.includes(item.ItemNo)}
-                          onChange={
-                            !isViewMode
-                              ? () => handleSelectOne(item.ItemNo)
-                              : undefined
-                          }
-                          readOnly={isViewMode}
-                        />
-                      </td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            name="itemCheckDel"
+                            value={item.ItemNo}
+                            checked={selectedItems.includes(item.ItemNo)}
+                            onChange={
+                              !isViewMode
+                                ? () => handleSelectOne(item.ItemNo)
+                                : undefined
+                            }
+                            readOnly={isViewMode}
+                          />
+                        </td>
                       )}
                       <td>
                         <FaEdit
@@ -3601,7 +3681,6 @@ function Item({ setActiveTab, isViewMode }) {
         </div>
       </div>
 
-
       {/* Del HBL/HAWB */}
       <div className="row mt-4">
         <div className="col-2">
@@ -3614,6 +3693,9 @@ function Item({ setActiveTab, isViewMode }) {
           </button>
         </div>
       </div>
+      {/* Alert Notification */}
+      <ToastNotification toast={toast} onClose={hideToast} />
+
       {/* Popup */}
       {popupType && currentPopupConfig && (
         <SearchPopup

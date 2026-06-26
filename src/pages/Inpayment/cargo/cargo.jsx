@@ -96,6 +96,8 @@ function Cargo({ setActiveTab, isViewMode }) {
     setShowTotalGrossWeightError,
     showGrossUOMError,
     setShowGrossUOMError,
+    showCargoSeaGrossWeightError,
+    setShowCargoSeaGrossWeightError,
     permitGrossWeight,
     setPermitGrossWeight,
     receiptCode,
@@ -162,21 +164,27 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   //  Calculate permit gross weight based on total gross weight and UOM
   useEffect(() => {
+    setShowCargoSeaGrossWeightError(false);
     if (!totalGrossWeight || grossUOM === "--Select--") {
       setPermitGrossWeight("");
       return;
     }
-    const weight = parseFloat(totalGrossWeight);
+    if (inwardTransport === "1 : Sea") {
+      if (grossUOM !== "TNE") {
+        setShowCargoSeaGrossWeightError(true);
+      }
+    }
+    const weight = Number(totalGrossWeight);
     if (isNaN(weight)) {
       setPermitGrossWeight("");
       return;
     }
     if (grossUOM === "TNE") {
-      setPermitGrossWeight((weight / 1000).toFixed(2));
+      setPermitGrossWeight(weight / 1000);
     } else {
-      setPermitGrossWeight(weight.toFixed(2));
+      setPermitGrossWeight(weight);
     }
-  }, [totalGrossWeight, grossUOM]);
+  }, [totalGrossWeight, grossUOM, inwardTransport]);
   // ========================STATES========================
 
   const [totalOuterPack, setTotalOuterPack] = useState([]);
@@ -258,9 +266,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReleaseCodeError(false);
     }
-    const filtered = releaseLocationSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = releaseLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredReleaseLocationSuggestions(filtered.slice(0, 100));
     setShowReleaseLocationDropdown(filtered.length > 0);
   };
@@ -288,6 +301,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReleaseLocationSelect(
         filteredReleaseLocationSuggestions[highlightedReleaseLocationIndex],
       );
+      setShowReleaseLocationDropdown(false);
     }
   };
 
@@ -305,6 +319,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     setReleaseLocationCode(LocationCode);
     setReleaseLocationDescription(Description);
     setReleaseLocationError(false);
+    setShowReleaseLocationDropdown(false);
   };
   // ======================== RELEASE LOCATION FOCUSOUT ========================
   const handleReleaseLocationFocusOut = () => {
@@ -319,7 +334,12 @@ function Cargo({ setActiveTab, isViewMode }) {
       }
       const selected = releaseLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === releaseCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === releaseCode.toLowerCase() ||
+            Description.toLowerCase() === releaseCode.toLowerCase(),
+        );
+
       if (selected) {
         const [Code, LocationCode, Description] = selected;
 
@@ -387,9 +407,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReceiptCodeError(false);
     }
-    const filtered = receiptLocationSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
-    );
+    const filtered = receiptLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredReceiptLocationSuggestions(filtered.slice(0, 100));
     setShowReceiptLocationDropdown(filtered.length > 0);
   };
@@ -415,6 +440,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReceiptLocationSelect(
         filteredReceiptLocationSuggestions[highlightedReceiptLocationIndex],
       );
+      setShowReceiptLocationDropdown(false);
     }
   };
   // ======================== FETCH RECEIPT LOCATION ========================
@@ -444,7 +470,12 @@ function Cargo({ setActiveTab, isViewMode }) {
       }
       const selected = receiptLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === receiptCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === receiptCode.toLowerCase() ||
+            Description.toLowerCase() === receiptCode.toLowerCase(),
+        );
+
       if (selected) {
         const [Code, LocationCode, Description] = selected;
         setReceiptLocation({ Code, LocationCode, Description });
@@ -509,9 +540,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowLoadingPortCodeError(false);
     }
 
-    const filtered = loadingPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = loadingPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
 
     setFilteredLoadingPortSuggestions(filtered.slice(0, 100));
     setShowLoadingPortDropdown(filtered.length > 0);
@@ -536,6 +572,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleLoadingPortSelect(
         filteredLoadingPortSuggestions[highlightedLoadingPortIndex],
       );
+      setShowLoadingPortDropdown(false);
     }
   };
   // ======================== FETCH LOADING PORT========================
@@ -546,6 +583,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     setLoadingPortCode(PortCode);
     setLoadingPortName(PortName);
     setLoadingPortError(false);
+    setShowLoadingPortDropdown(false);
   };
 
   const handleLoadingPortFocusOut = () => {
@@ -562,8 +600,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = loadingPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === loadingPortCode.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === loadingPortCode.toLowerCase() ||
+            PortName.toLowerCase() === loadingPortCode.toLowerCase(),
         );
 
       if (selected) {
@@ -1136,6 +1175,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                 )}
               </div>
             </div>
+            {showCargoSeaGrossWeightError && (
+              <div className="ErrorColor">=1:sea</div>
+            )}
 
             {/* PERMIT GROSS WEIGHT */}
             <div className="row align-items-center compact-row">
@@ -1717,7 +1759,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                             )
                           }
                           disabled={container.isSaved}
-                           style={{ width: "350px" }}
+                          style={{ width: "350px" }}
                         >
                           <option>--Select--</option>
                           {containerType.map((ct) => (

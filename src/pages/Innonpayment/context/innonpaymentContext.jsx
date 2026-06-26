@@ -190,6 +190,8 @@ export const InnonpaymentProvider = ({ children }) => {
     useState(false);
   const [grossUOM, setGrossUOM] = useState("--Select--");
   const [showGrossUOMError, setShowGrossUOMError] = useState(false);
+  const [showCargoSeaGrossWeightError, setShowCargoSeaGrossWeightError] =
+    useState(false);
   const [permitGrossWeight, setPermitGrossWeight] = useState("");
   const [receiptCode, setReceiptCode] = useState("");
   const [showReceiptCodeError, setShowReceiptCodeError] = useState(false);
@@ -205,7 +207,7 @@ export const InnonpaymentProvider = ({ children }) => {
   const [loadingPortName, setLoadingPortName] = useState("");
   const [cargoHawb, setCargoHawb] = useState("");
   const [cargoHawbList, setCargoHawbList] = useState([]);
-  const[outCargoHawb, setOutCargoHawb] = useState("");
+  const [outCargoHawb, setOutCargoHawb] = useState("");
   const [outCargoHawbList, setOutCargoHawbList] = useState([]);
   const [arrivalDate, setArrivalDate] = useState("");
   const [showArriavalDateError, setShowArrivalDateError] = useState(false);
@@ -317,6 +319,7 @@ export const InnonpaymentProvider = ({ children }) => {
   const [hawbList, setHawbList] = useState([]);
   const [showOutItemHawbHbl, setShowOutItemHawbHbl] = useState(false);
   const [itemTable, setItemTable] = useState([]);
+    const[makingLot,setMakingLot]=useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [outHawb, setOutHawb] = useState("");
@@ -329,7 +332,7 @@ export const InnonpaymentProvider = ({ children }) => {
   const [model, setModel] = useState("");
   const [dgIndicator, setDgIndicator] = useState(false);
   const [unbranded, setUnbranded] = useState(false);
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  const [invoiceQuantity, setInvoiceQuantity] = useState("");
   const [hsQuantity, setHsQuantity] = useState("");
   const [hsUom, setHsUom] = useState("--Select--");
   const [duitableQuantity, setDuitableQuantity] = useState("");
@@ -342,22 +345,22 @@ export const InnonpaymentProvider = ({ children }) => {
   const [invoiceExRateItem, setInvoiceExRateItem] = useState("");
   const [unitPrice, setUnitPrice] = useState(0.0);
   const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
-  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
-  const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
+  const [totalLineAmount, setTotalLineAmount] = useState("");
+  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState("");
+  const [cifFob, setCifFob] = useState("");
+  const [exciseDutyRate, setExciseDutyRate] = useState("");
   const [exciseDutyUom, setExciseDutyUom] = useState("");
-  const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
-  const [customsDutyRate, setCustomsDutyRate] = useState(0.0);
+  const [exciseDutyAmount, setExciseDutyAmount] = useState("");
+  const [customsDutyRate, setCustomsDutyRate] = useState("");
   const [customsDutyUom, setCustomsDutyUom] = useState("");
-  const [customsDutyAmount, setCustomsDutyAmount] = useState("");
-  const [otherTaxRate, setOtherTaxRate] = useState(0.0);
+  const [customsDutyAmount, setCustomsDutyAmount] = useState("0.00");
+  const [otherTaxRate, setOtherTaxRate] = useState("");
   const [otherTaxUom, setOtherTaxUom] = useState("");
-  const [otherTaxAmount, setOtherTaxAmount] = useState();
+  const [otherTaxAmount, setOtherTaxAmount] = useState("");
   const [gstRateValue, setGstRateValue] = useState(9);
   const [gstUom, setGstUom] = useState("PER");
   const [gstSum, setGstSum] = useState(0.0);
-  const [lastSellingPrice, setLastSellingPrice] = useState(0.0);
+  const [lastSellingPrice, setLastSellingPrice] = useState("");
   const [preferentialCode, setPreferentialCode] = useState("");
   const [packingChecked, setPackingChecked] = useState(false);
   const [outerPackQuantity, setOuterPackQuantity] = useState("0.00");
@@ -378,6 +381,7 @@ export const InnonpaymentProvider = ({ children }) => {
   const [showItemCasc, setShowItemCasc] = useState(false);
   const [itemCascChecked, setItemCascChecked] = useState(false);
   const [showShippingMarks, setShowShippingMarks] = useState(false);
+  const [showLotId, setShowLotId] = useState(false);
   const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
   const defaultItemCasc = [
     { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc1" },
@@ -385,6 +389,10 @@ export const InnonpaymentProvider = ({ children }) => {
     { code: "", hsQuantity: 0, uom: "", casc: [["", "", ""]], CascId: "Casc3" },
   ];
   const [itemCasc, setItemCasc] = useState(defaultItemCasc);
+  const [currentLot, setCurrentLot] = useState("");
+  const [making, setMaking] = useState("");
+  const [previousLot, setPreviousLot] = useState("");
+
   const [shippingMarks1, setShippingMarks1] = useState("");
   const [shippingMarks2, setShippingMarks2] = useState("");
   const [shippingMarks3, setShippingMarks3] = useState("");
@@ -393,8 +401,8 @@ export const InnonpaymentProvider = ({ children }) => {
   const [engineCapacityValue, setEngineCapcityValue] = useState("");
   const [engineCapacityUom, setEngineCapacityUom] = useState("");
   const [originalRegistrationDate, setOriginalRegistrationDate] = useState("");
-  const [optionalCharges, setOptionalCharges] = useState("0.00");
-  const [optionlAmount, setOptionalAmount] = useState(0);
+  const [optionalCharges, setOptionalCharges] = useState("");
+  const [optionlAmount, setOptionalAmount] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const [dutyTypeId, setDutyTypeId] = useState("");
   const [kgmVisible, setKgmVisible] = useState("");
@@ -426,6 +434,8 @@ export const InnonpaymentProvider = ({ children }) => {
     ]);
 
   // Summary Page
+  const [summaryApprovedBy, setSummaryApprovedBy] = useState("");
+  const [summaryCustomerRemarks, setSummaryCustomerRemarks] = useState("");
   const [summaryDeclaringFor, setSummaryDeclaringFor] = useState("");
   const [summaryImporterCruei, setSummaryImporterCruei] = useState("");
   const [summaryImporterName, setSummaryImporterName] = useState("");
@@ -666,6 +676,8 @@ export const InnonpaymentProvider = ({ children }) => {
         setShowTotalGrossWeightError,
         showGrossUOMError,
         setShowGrossUOMError,
+        showCargoSeaGrossWeightError,
+        setShowCargoSeaGrossWeightError,
         permitGrossWeight,
         setPermitGrossWeight,
         receiptCode,
@@ -841,6 +853,8 @@ export const InnonpaymentProvider = ({ children }) => {
         setShowOutItemHawbHbl,
         itemTable,
         setItemTable,
+               makingLot,
+        setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
         hawb,
@@ -959,11 +973,19 @@ export const InnonpaymentProvider = ({ children }) => {
         setItemCascChecked,
         showShippingMarks,
         setShowShippingMarks,
+        showLotId,
+        setShowLotId,
         showUnitPriceVal,
         setShowUnitPriceVal,
         itemCasc,
         setItemCasc,
         defaultItemCasc,
+        currentLot,
+        setCurrentLot,
+        making,
+        setMaking,
+        previousLot,
+        setPreviousLot,
         shippingMarks1,
         setShippingMarks1,
         shippingMarks2,
@@ -1039,7 +1061,10 @@ export const InnonpaymentProvider = ({ children }) => {
         setDeclarationChecked,
         summaryDeclaringFor,
         setSummaryDeclaringFor,
-
+        summaryApprovedBy,
+        setSummaryApprovedBy,
+        summaryCustomerRemarks,
+        setSummaryCustomerRemarks,
         showOutVoyage,
         setShowOutVoyage,
         outVoyageNumber,

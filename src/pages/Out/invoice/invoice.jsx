@@ -799,7 +799,7 @@ function Invoice({ setActiveTab, isViewMode }) {
       SNo: editingSNo || serialNumber,
       InvoiceNo: invoiceNumber,
       InvoiceDate: formatDate(invoiceDate),
-      TermType: termTypeSelected,
+      TermType: termTypeSelected.toUpperCase(),
       AdValoremIndicator: adValoremIndicator || "False",
       PreDutyRateIndicator: preDutyRateIndicator || "False",
       SupplierImporterRelationship: supplierRelationship || "--Select--",
@@ -946,8 +946,14 @@ function Invoice({ setActiveTab, isViewMode }) {
       setInvoiceExporterName1(name1);
     }
 
+const findInvoiceFormattedRate = (currencyName) => {
+  const found = currency.find((c) => c.Currency === currencyName);
+  return found ? found.CurrencyRate : invoice.TIExRate;
+};
+
     setInvoiceCurrency(invoice.TICurrency);
-    setInvoiceExRate(invoice.TIExRate);
+    // setInvoiceExRate(invoice.TIExRate);
+    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency)); 
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 

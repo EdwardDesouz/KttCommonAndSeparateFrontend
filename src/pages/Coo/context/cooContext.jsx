@@ -63,9 +63,9 @@ export const CooProvider = ({ children }) => {
   const [showCifFobItemValue, setShowCifFobItemValue] = useState(false);
   const [showOriginCriterion, setShowOriginCriterion] = useState(false);
   const [cerDescription, setCerDescription] = useState("");
-  const [cerItemQty, setCerItemQty] = useState(0);
+  const [cerItemQty, setCerItemQty] = useState("");
   const [cerItemUOM, setCerItemUOM] = useState("--Select--");
-  const [cifCerValue, setCifCerValue] = useState("0.00");
+  const [cifCerValue, setCifCerValue] = useState("");
   const [manuDate, setManuDate] = useState("");
   const [textileCategory, setTextileCategory] = useState("");
   const [textileQuotaQty, setTextileQuotaQty] = useState("0.00");
@@ -469,7 +469,7 @@ export const CooProvider = ({ children }) => {
   const [model, setModel] = useState("");
   const [dgIndicator, setDgIndicator] = useState(false);
   const [unbranded, setUnbranded] = useState(false);
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  const [invoiceQuantity, setInvoiceQuantity] = useState("");
   const [hsQuantity, setHsQuantity] = useState("");
   const [hsUom, setHsUom] = useState("--Select--");
   const [duitableQuantity, setDuitableQuantity] = useState("");
@@ -482,9 +482,9 @@ export const CooProvider = ({ children }) => {
   const [invoiceExRateItem, setInvoiceExRateItem] = useState("");
   const [unitPrice, setUnitPrice] = useState(0.0);
   const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
+  const [totalLineAmount, setTotalLineAmount] = useState("");
   const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
+  const [cifFob, setCifFob] = useState("");
   const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
   const [exciseDutyUom, setExciseDutyUom] = useState("");
   const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);

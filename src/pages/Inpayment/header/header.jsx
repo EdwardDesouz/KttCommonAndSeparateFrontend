@@ -70,6 +70,9 @@ function Header({ setActiveTab, isViewMode }) {
     setSelectedFile,
     uploadedFiles,
     setUploadedFiles,
+    // Cargo
+    grossUOM,
+    setGrossUOM,
     // UI Control States
     showInwardTransport,
     setShowInwardTransport,
@@ -299,10 +302,12 @@ function Header({ setActiveTab, isViewMode }) {
     setShowAirCraftRegNumber(false);
     setShowMawbNumber(false);
     setShowNotRequired(true);
+    setGrossUOM("");
     if (value === "1 : Sea") {
       setShowVoyageNumber(true);
       setShowVesselName(true);
       setShowOblNumber(true);
+      setGrossUOM("TNE");
     } else if (value === "2 : Rail") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);

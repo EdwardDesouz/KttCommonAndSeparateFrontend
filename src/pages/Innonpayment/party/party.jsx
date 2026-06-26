@@ -535,14 +535,14 @@ function Party({ setActiveTab, isViewMode }) {
 
     if (!val) {
       setShowFreightForwarderDropdown(false);
-      // setFreightForwarder(null);
-      // setFilteredFreightForwarderSuggestions(freightForwarderSuggestions);
       return;
     }
 
-    const filtered = freightForwarderSuggestions.filter((i) =>
+    const allSuggestions = freightForwarderSuggestions;
+    const filtered = allSuggestions.filter((i) =>
       i.toLowerCase().startsWith(val.toLowerCase()),
     );
+
     setFilteredFreightForwarderSuggestions(filtered.slice(0, 100));
     setShowFreightForwarderDropdown(filtered.length > 0);
   };
@@ -551,14 +551,14 @@ function Party({ setActiveTab, isViewMode }) {
   const handleFreightForwarderKeyDown = (e) => {
     if (
       !showFreightForwarderDropdown ||
-      freightForwarderSuggestions.length === 0
+      filteredFreightForwarderSuggestions.length === 0
     )
       return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setFreightForwarderHighlightedIndex((prev) =>
-        prev + 1 >= freightForwarderSuggestions.length ? 0 : prev + 1,
+       prev + 1 >= filteredFreightForwarderSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -570,7 +570,7 @@ function Party({ setActiveTab, isViewMode }) {
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
       handleFreightForwarderSelect(
-        filteredFreightForwarderSuggestions[inwardHighlightedIndex],
+        filteredFreightForwarderSuggestions[freightForwarderHighlightedIndex],
       );
     }
   };
@@ -1275,8 +1275,8 @@ function Party({ setActiveTab, isViewMode }) {
     }
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
-    const filtered = outwardSuggestions.filter(
-      (i) => i.toLowerCase().includes(val.toLowerCase()), // ✅ includes instead of startsWith
+    const filtered = outwardSuggestions.filter((i) =>
+      i.toLowerCase().startsWith(val.toLowerCase()),
     );
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
@@ -1690,7 +1690,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <label className="col-sm-2 col-form-label">DECLARANT COMPANY</label>
           <div className="col-sm-1"></div>
-          <div className="col-sm-1">
+          <div className="col-sm-2">
             <input
               className="form-control"
               value={permitDetails?.Code || ""}
@@ -1711,7 +1711,7 @@ function Party({ setActiveTab, isViewMode }) {
               readOnly
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               placeholder="Name1"
@@ -1732,7 +1732,7 @@ function Party({ setActiveTab, isViewMode }) {
             />
             <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={importerCodeRef}
               id="importerCode"
@@ -1794,7 +1794,7 @@ function Party({ setActiveTab, isViewMode }) {
               <span className="ErrorColor">Name is required</span>
             )}
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               id="importerName1"
               className="form-control-mandatory"
@@ -1819,7 +1819,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* CODE */}
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={exporterCodeRef}
                 id="exporterCode"
@@ -1893,7 +1893,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* NAME1 */}
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="exporterName1"
                 className="form-control-mandatory"
@@ -1918,7 +1918,7 @@ function Party({ setActiveTab, isViewMode }) {
             />
             <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={inwardCodeRef}
               id="inwardCode"
@@ -1985,7 +1985,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setInwardName(e.target.value)}
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               id="inwardName1"
               className="form-control"
@@ -2012,7 +2012,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* CODE */}
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={outwardCodeRef}
                 id="outwardCode"
@@ -2077,7 +2077,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* NAME1 */}
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="outwardName1"
                 className="form-control"
@@ -2103,7 +2103,7 @@ function Party({ setActiveTab, isViewMode }) {
               onClick={saveFreightForwarder}
             />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
@@ -2165,7 +2165,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               id="freightForwarderName1"
@@ -2195,7 +2195,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CLAIMANT CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={claimantCodeRef}
                   id="claimantPartyCode"
@@ -2262,7 +2262,7 @@ function Party({ setActiveTab, isViewMode }) {
                 />
               </div>
 
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="claimantPartyName1"
                   className="form-control"
@@ -2278,7 +2278,7 @@ function Party({ setActiveTab, isViewMode }) {
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
 
-              <div className="col-sm-1">
+              <div className="col-sm-2">
                 <input
                   type="text"
                   id="claimantId"
@@ -2319,7 +2319,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={congineeCodeRef}
                   id="congineeCode"
@@ -2388,7 +2388,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* NAME1 */}
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeName1"
                   className="form-control"
@@ -2404,7 +2404,7 @@ function Party({ setActiveTab, isViewMode }) {
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
 
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -2424,7 +2424,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeCity"
                   className="form-control"
@@ -2438,7 +2438,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -2460,7 +2460,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeSubDivision(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineePostal"
                   className="form-control"
@@ -2474,7 +2474,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input

@@ -573,10 +573,12 @@ function Header({ setActiveTab, isViewMode }) {
       setShowInwardMode(true);
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInwardCarrier(true);
       setShowInWardDetails(true);
     } else if (value === "3 : Road") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
+      setShowInwardCarrier(true);
       setShowInWardDetails(true);
     } else if (value === "4 : Air") {
       setShowFlightNumber(true);
@@ -588,16 +590,20 @@ function Header({ setActiveTab, isViewMode }) {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
       setShowInWardDetails(true);
+      setShowInwardCarrier(true);
     } else if (value === "6 : Multi-model(Not in use)") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
       setShowInWardDetails(true);
+      setShowInwardCarrier(true);
     } else if (value === "7 : Pipeline") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
       setShowInWardDetails(true);
+      setShowInwardCarrier(true);
     } else if (value === "N : Not Required") {
       setShowInWardDetails(false);
+      setShowInwardCarrier(true);
       // setShowExhibition(true);
       // setShowExhibitionEndDate(true);
       // setShowExhibitionStartDate(true);
@@ -726,6 +732,7 @@ function Header({ setActiveTab, isViewMode }) {
       setShowOutTransportDetails(true);
       setOutHblHawbLabel("HBL");
       setShowSeaStore(false);
+       setShowOutwardCarrier(true);
     } else if (value === "4 : Air") {
       setShowOutHblHawb(true);
       setShowOutFlightNumber(true);

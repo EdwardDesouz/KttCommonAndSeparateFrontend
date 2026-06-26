@@ -98,6 +98,8 @@ function Cargo({ setActiveTab, isViewMode }) {
     setShowTotalGrossWeightError,
     showGrossUOMError,
     setShowGrossUOMError,
+    showCargoSeaGrossWeightError,
+    setShowCargoSeaGrossWeightError,
     permitGrossWeight,
     setPermitGrossWeight,
     receiptCode,
@@ -285,22 +287,29 @@ function Cargo({ setActiveTab, isViewMode }) {
   } = useInnonpayment();
 
   //  Calculate permit gross weight based on total gross weight and UOM
+  //  Calculate permit gross weight based on total gross weight and UOM
   useEffect(() => {
+    setShowCargoSeaGrossWeightError(false);
     if (!totalGrossWeight || grossUOM === "--Select--") {
       setPermitGrossWeight("");
       return;
     }
-    const weight = parseFloat(totalGrossWeight);
+    if (inwardTransport === "1 : Sea") {
+      if (grossUOM !== "TNE") {
+        setShowCargoSeaGrossWeightError(true);
+      }
+    }
+    const weight = Number(totalGrossWeight);
     if (isNaN(weight)) {
       setPermitGrossWeight("");
       return;
     }
     if (grossUOM === "TNE") {
-      setPermitGrossWeight(parseFloat(weight / 1000));
+      setPermitGrossWeight(weight / 1000);
     } else {
-      setPermitGrossWeight(parseFloat(weight));
+      setPermitGrossWeight(weight);
     }
-  }, [totalGrossWeight, grossUOM]);
+  }, [totalGrossWeight, grossUOM, inwardTransport]);
   // ========================STATES========================
 
   const [totalOuterPack, setTotalOuterPack] = useState([]);
@@ -423,9 +432,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReleaseCodeError(false);
     }
-    const filtered = releaseLocationSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = releaseLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredReleaseLocationSuggestions(filtered.slice(0, 100));
     setShowReleaseLocationDropdown(filtered.length > 0);
   };
@@ -453,6 +467,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReleaseLocationSelect(
         filteredReleaseLocationSuggestions[highlightedReleaseLocationIndex],
       );
+      setShowReleaseLocationDropdown(false);
     }
   };
 
@@ -470,6 +485,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     setReleaseLocationCode(LocationCode);
     setReleaseLocationDescription(Description);
     setReleaseLocationError(false);
+    setShowReleaseLocationDropdown(false);
   };
   // ======================== RELEASE LOCATION FOCUSOUT ========================
   const handleReleaseLocationFocusOut = () => {
@@ -482,9 +498,15 @@ function Cargo({ setActiveTab, isViewMode }) {
         setShowReleaseLocationDropdown(false);
         return;
       }
+
       const selected = releaseLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === releaseCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === releaseCode.toLowerCase() ||
+            Description.toLowerCase() === releaseCode.toLowerCase(),
+        );
+
       if (selected) {
         const [Code, LocationCode, Description] = selected;
 
@@ -552,9 +574,16 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReceiptCodeError(false);
     }
-    const filtered = receiptLocationSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
-    );
+
+    const filtered = receiptLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().startsWith(search)
+      );
+    });
+
     setFilteredReceiptLocationSuggestions(filtered.slice(0, 100));
     setShowReceiptLocationDropdown(filtered.length > 0);
   };
@@ -580,6 +609,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReceiptLocationSelect(
         filteredReceiptLocationSuggestions[highlightedReceiptLocationIndex],
       );
+      setShowReceiptLocationDropdown(false);
     }
   };
   // ======================== FETCH RECEIPT LOCATION ========================
@@ -607,9 +637,15 @@ function Cargo({ setActiveTab, isViewMode }) {
         setShowReceiptLocationDropdown(false);
         return;
       }
+
       const selected = receiptLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === receiptCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === receiptCode.toLowerCase() ||
+            Description.toLowerCase() === receiptCode.toLowerCase(),
+        );
+
       if (selected) {
         const [Code, LocationCode, Description] = selected;
         setReceiptLocation({ Code, LocationCode, Description });
@@ -674,9 +710,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowLoadingPortCodeError(false);
     }
 
-    const filtered = loadingPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = loadingPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
 
     setFilteredLoadingPortSuggestions(filtered.slice(0, 100));
     setShowLoadingPortDropdown(filtered.length > 0);
@@ -701,6 +742,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleLoadingPortSelect(
         filteredLoadingPortSuggestions[highlightedLoadingPortIndex],
       );
+      setShowLoadingPortDropdown(false);
     }
   };
   // ======================== FETCH LOADING PORT========================
@@ -711,6 +753,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     setLoadingPortCode(PortCode);
     setLoadingPortName(PortName);
     setLoadingPortError(false);
+    setShowLoadingPortDropdown(false);
   };
 
   const handleLoadingPortFocusOut = () => {
@@ -727,8 +770,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = loadingPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === loadingPortCode.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === loadingPortCode.toLowerCase() ||
+            PortName.toLowerCase() === loadingPortCode.toLowerCase(),
         );
 
       if (selected) {
@@ -789,9 +833,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowStorageCodeError(false);
     }
-    const filtered = storageLocationSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = storageLocationSuggestions.filter((i) => {
+      const [StorageCode, Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        StorageCode.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredStorageLocationSuggestions(filtered.slice(0, 100));
     setShowStorageLocationDropdown(filtered.length > 0);
   };
@@ -818,6 +867,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleStorageLocationSelect(
         filteredStorageLocationSuggestions[highlightedStorageLocationIndex],
       );
+      setShowStorageLocationDropdown(false);
     }
   };
 
@@ -844,8 +894,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = storageLocationSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([, StorageCode]) =>
-            StorageCode.toLowerCase() === storageCode.toLowerCase(),
+          ([StorageCode, Description]) =>
+            StorageCode.toLowerCase() === storageCode.toLowerCase() ||
+            Description.toLowerCase() === storageCode.toLowerCase(),
         );
       if (selected) {
         const [Code, StorageCode, Description] = selected;
@@ -899,9 +950,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowDischargePortDropdown(false);
       return;
     }
-    const filtered = dischargePortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = dischargePortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredDischargePortSuggestions(filtered.slice(0, 100));
     setShowDischargePortDropdown(filtered.length > 0);
   };
@@ -927,6 +983,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleDischargePortSelect(
         filteredDischargePortSuggestions[highlightedDischargePortIndex],
       );
+      setShowDischargePortDropdown(false);
     }
   };
 
@@ -951,8 +1008,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = dischargePortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === dischargePortCode.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === dischargePortCode.toLowerCase() ||
+            PortName.toLowerCase() === dischargePortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
@@ -1002,9 +1060,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowNextPortDropdown(false);
       return;
     }
-    const filtered = nextPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = nextPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredNextPortSuggestions(filtered.slice(0, 100));
     setShowNextPortDropdown(filtered.length > 0);
   };
@@ -1027,6 +1090,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleNextPortSelect(
         filteredNextPortSuggestions[highlightedNextPortIndex],
       );
+      setShowNextPortDropdown(false);
     }
   };
 
@@ -1042,25 +1106,29 @@ function Cargo({ setActiveTab, isViewMode }) {
   const handleNextPortFocusOut = () => {
     setTimeout(() => {
       if (!nextPortCode) {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortCode("");
         setNextPortName("");
         setShowNextPortDropdown(false);
         return;
       }
+
       const selected = nextPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) => PortCode.toLowerCase() === nextPort.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === nextPortCode.toLowerCase() ||
+            PortName.toLowerCase() === nextPortCode.toLowerCase(),
         );
+
       if (selected) {
         const [PortCode, PortName, Country] = selected;
-        setNextPortObj({ PortCode, PortName, Country });
+        setNextPort({ PortCode, PortName, Country });
         setNextPortCode(PortCode);
         setNextPortName(PortName);
         setNextPortError(false);
       } else {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortError(true);
       }
       setShowNextPortDropdown(false);
@@ -1094,16 +1162,21 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const handleLastPortChange = (e) => {
     const val = e.target.value;
-    setLastPort(val);
+    setLastPortCode(val);
     setLastPortError(false);
     setHighlightedLastPortIndex(0);
     if (!val) {
       setShowLastPortDropdown(false);
       return;
     }
-    const filtered = lastPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = lastPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredLastPortSuggestions(filtered.slice(0, 100));
     setShowLastPortDropdown(filtered.length > 0);
   };
@@ -1126,13 +1199,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleLastPortSelect(
         filteredLastPortSuggestions[highlightedLastPortIndex],
       );
+      setShowLastPortDropdown(false);
     }
   };
 
   const handleLastPortSelect = (item) => {
     const [PortCode, PortName, Country] = item.split(":");
-    setLastPortObj({ PortCode, PortName, Country });
-    setLastPort(PortCode);
+    setLastPort({ PortCode, PortName, Country });
+    setLastPortCode(PortCode);
     setLastPortName(PortName);
     setLastPortError(false);
     setShowLastPortDropdown(false);
@@ -1140,9 +1214,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const handleLastPortFocusOut = () => {
     setTimeout(() => {
-      if (!lastPort) {
-        setLastPortObj(null);
-        setLastPort("");
+      if (!lastPortCode) {
+        setLastPort(null);
+        setLastPortCode("");
         setLastPortName("");
         setShowLastPortDropdown(false);
         return;
@@ -1150,16 +1224,18 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = lastPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) => PortCode.toLowerCase() === lastPort.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === lastPortCode.toLowerCase() ||
+            PortName.toLowerCase() === lastPortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
-        setLastPortObj({ PortCode, PortName, Country });
-        setLastPort(PortCode);
+        setLastPort({ PortCode, PortName, Country });
+        setLastPortCode(PortCode);
         setLastPortName(PortName);
         setLastPortError(false);
       } else {
-        setLastPortObj(null);
+        setLastPort(null);
         setLastPortError(true);
       }
       setShowLastPortDropdown(false);
@@ -1372,7 +1448,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       .split(",")
       .map((item) => item.trim())
       .filter((item) => item !== "");
-    setOutCargoHawbList(outHawbArray); 
+    setOutCargoHawbList(outHawbArray);
   };
 
   // ========================HAWB TEXT========================
@@ -1752,9 +1828,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
-                  {totalOuterPack.map((tooupack) => (
-                    <option key={tooupack.Name} value={tooupack.Name}>
-                      {tooupack.Name}
+                  {totalGrossWeightOptions.map((opt, i) => (
+                    <option key={i} value={opt}>
+                      {opt}
                     </option>
                   ))}
                 </select>
@@ -1765,6 +1841,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                 )}
               </div>
             </div>
+            {showCargoSeaGrossWeightError && (
+              <div className="ErrorColor">=1:sea</div>
+            )}
 
             {/* PERMIT GROSS WEIGHT */}
             <div className="row align-items-center compact-row">
@@ -1776,7 +1855,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                   type="text"
                   className="form-control"
                   value={permitGrossWeight}
-                  onChange={(e)=>setPermitGrossWeight(e.target.value)}
+                  onChange={(e) => setPermitGrossWeight(e.target.value)}
                 />
               </div>
             </div>
@@ -1958,11 +2037,6 @@ function Cargo({ setActiveTab, isViewMode }) {
                     onBlur={handleStorageLocationFocusOut}
                     onFocus={() => setStorageLocationError(false)}
                   />
-                  {storageLocationError && (
-                    <span className="ErrorColor">
-                      Please enter a valid storage location code.
-                    </span>
-                  )}
                   {showStorageLocationDropdown &&
                     filteredStorageLocationSuggestions.length > 0 && (
                       <div className="dropdown-suggestions">
@@ -2313,6 +2387,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                         type="text"
                         className="form-control"
                         value={cargoOutwardTransportMode}
+                        onChange={(e) =>
+                          setCargoOutwardTransportMode(e.target.value)
+                        }
                         readOnly
                       />
                     </div>

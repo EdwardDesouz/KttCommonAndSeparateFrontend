@@ -623,14 +623,14 @@ function Party({ setActiveTab, isViewMode }) {
   const handleFreightForwarderKeyDown = (e) => {
     if (
       !showFreightForwarderDropdown ||
-      freightForwarderSuggestions.length === 0
+      filteredFreightForwarderSuggestions.length === 0
     )
       return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setFreightForwarderHighlightedIndex((prev) =>
-        prev + 1 >= freightForwarderSuggestions.length ? 0 : prev + 1,
+        prev + 1 >= filteredFreightForwarderSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -642,7 +642,7 @@ function Party({ setActiveTab, isViewMode }) {
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
       handleFreightForwarderSelect(
-        filteredFreightForwarderSuggestions[inwardHighlightedIndex],
+        filteredFreightForwarderSuggestions[freightForwarderHighlightedIndex],
       );
     }
   };
@@ -1163,7 +1163,8 @@ function Party({ setActiveTab, isViewMode }) {
       try {
         const response = await API.get("/getCommonExporterTableInfo/");
         const list = response.data.map(
-          (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+          (i) =>
+            `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.Address}:${i.Address1}:${i.City}:${i.SubCode}:${i.Sub}:${i.Postal}:${i.Country}`,
         );
         setExporterSuggestions(list);
         setFilteredExporterSuggestions(list);
@@ -1218,12 +1219,43 @@ function Party({ setActiveTab, isViewMode }) {
 
   // ======================== EXPORTER SELECT ========================
   const handleExporterSelect = (item) => {
-    const [code, cruei, name, name1] = item.split(":");
-    setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
+    const [
+      code,
+      cruei,
+      name,
+      name1,
+      addr,
+      addr1,
+      city,
+      subCode,
+      sub,
+      postal,
+      country,
+    ] = item.split(":");
+    setExporter({
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      Address: addr,
+      Address1: addr1,
+      City: city,
+      SubCode: subCode,
+      Sub: sub,
+      Postal: postal,
+      Country: country,
+    });
     setExporterCode(code);
     setExporterCruei(cruei);
     setExporterName(name);
     setExporterName1(name1);
+    setExporterAddress(addr);
+    setExporterAddress1(addr1);
+    setExporterCity(city);
+    setExporterSubCode(subCode);
+    setExporterSubDivision(sub);
+    setExporterPostal(postal);
+    setExporterCountryCode(country);
     setShowExporterDropdown(false);
     setExporterError(false);
   };
@@ -1236,6 +1268,13 @@ function Party({ setActiveTab, isViewMode }) {
         setExporterCruei("");
         setExporterName("");
         setExporterName1("");
+        setExporterAddress("");
+        setExporterAddress1("");
+        setExporterCity("");
+        setExporterSubCode("");
+        setExporterSubDivision("");
+        setExporterPostal("");
+        setExporterCountryCode("");
         setExporterError(true);
         setShowExporterDropdown(false);
         return;
@@ -1246,12 +1285,43 @@ function Party({ setActiveTab, isViewMode }) {
         .find(([code]) => code.toLowerCase() === exporterCode.toLowerCase());
 
       if (selected) {
-        const [code, cruei, name, name1] = selected;
-        setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
+        const [
+          code,
+          cruei,
+          name,
+          name1,
+          addr,
+          addr1,
+          city,
+          subCode,
+          sub,
+          postal,
+          country,
+        ] = selected;
+        setExporter({
+          Code: code,
+          CRUEI: cruei,
+          Name: name,
+          Name1: name1,
+          Address: addr,
+          Address1: addr1,
+          City: city,
+          SubCode: subCode,
+          Sub: sub,
+          Postal: postal,
+          Country: country,
+        });
         setExporterCode(code);
         setExporterCruei(cruei);
         setExporterName(name);
         setExporterName1(name1);
+        setExporterAddress(addr);
+        setExporterAddress1(addr1);
+        setExporterCity(city);
+        setExporterSubCode(subCode);
+        setExporterSubDivision(sub);
+        setExporterPostal(postal);
+        setExporterCountryCode(country);
         setExporterError(false);
       } else {
         setExporter(null);
@@ -1349,7 +1419,7 @@ function Party({ setActiveTab, isViewMode }) {
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
     const filtered = outwardSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
+      i.toLowerCase().startsWith(val.toLowerCase()),
     );
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
@@ -2278,7 +2348,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <label className="col-sm-2 col-form-label">DECLARANT COMPANY</label>
           <div className="col-sm-1"></div>
-          <div className="col-sm-1">
+          <div className="col-sm-2">
             <input
               className="form-control"
               value={permitDetails?.Code || ""}
@@ -2299,7 +2369,7 @@ function Party({ setActiveTab, isViewMode }) {
               readOnly
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               placeholder="Name1"
@@ -2323,7 +2393,7 @@ function Party({ setActiveTab, isViewMode }) {
           </div>
 
           {/* CODE */}
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={exporterCodeRef}
               id="exporterCode"
@@ -2396,7 +2466,7 @@ function Party({ setActiveTab, isViewMode }) {
           </div>
 
           {/* NAME1 */}
-          <div className="col-3">
+          <div className="col-2">
             <input
               id="exporterName1"
               className="inputStyle"
@@ -2411,7 +2481,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row mt-3">
           <div className="col-2"></div>
           <div className="col-1"></div>
-          <div className="col-1"></div>
+          <div className="col-2"></div>
           <div className="col-2">
             <input
               id="exporterAddress"
@@ -2430,7 +2500,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setExporterAddress1(e.target.value)}
             />
           </div>
-          <div className="col-3">
+          <div className="col-2">
             <input
               id="exporterCity"
               className="inputStyle"
@@ -2445,7 +2515,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row mt-3">
           <div className="col-2"></div>
           <div className="col-1"></div>
-          <div className="col-1"></div>
+          <div className="col-2"></div>
           <div className="col-2">
             <input
               id="exporterSubCode"
@@ -2464,7 +2534,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setExporterSubDivision(e.target.value)}
             />
           </div>
-          <div className="col-3">
+          <div className="col-2">
             <input
               id="exporterPostal"
               className="inputStyle"
@@ -2479,7 +2549,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row mt-3">
           <div className="col-2"></div>
           <div className="col-1"></div>
-          <div className="col-1"></div>
+          <div className="col-2"></div>
           <div className="col-2">
             <input
               id="exporterCountryCode"
@@ -2506,7 +2576,7 @@ function Party({ setActiveTab, isViewMode }) {
               />
               <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
             </div>
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={importerCodeRef}
                 id="importerCode"
@@ -2568,7 +2638,7 @@ function Party({ setActiveTab, isViewMode }) {
                 <span className="ErrorColor">Name is required</span>
               )}
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="importerName1"
                 className="form-control-mandatory"
@@ -2594,7 +2664,7 @@ function Party({ setActiveTab, isViewMode }) {
               />
               <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
             </div>
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={inwardCodeRef}
                 id="inwardCode"
@@ -2663,7 +2733,7 @@ function Party({ setActiveTab, isViewMode }) {
                 onChange={(e) => setInwardName(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="inwardName1"
                 className="form-control"
@@ -2674,7 +2744,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
           </div>
         )}
-        
+
         {/* OUTWARD CARRIER AGENT */}
         {showOutwardCarrier && (
           <div className="row align-items-center compact-row">
@@ -2691,7 +2761,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* CODE */}
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={outwardCodeRef}
                 id="outwardCode"
@@ -2756,7 +2826,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* NAME1 */}
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="outwardName1"
                 className="form-control"
@@ -2782,7 +2852,7 @@ function Party({ setActiveTab, isViewMode }) {
               onClick={saveFreightForwarder}
             />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
@@ -2844,7 +2914,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               id="freightForwarderName1"
@@ -2871,7 +2941,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={congineeCodeRef}
                   id="congineeCode"
@@ -2940,7 +3010,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* NAME1 */}
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeName1"
                   className="form-control"
@@ -2956,7 +3026,7 @@ function Party({ setActiveTab, isViewMode }) {
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
 
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -2976,7 +3046,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeCity"
                   className="form-control"
@@ -2990,7 +3060,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3012,7 +3082,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeSubDivision(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineePostal"
                   className="form-control"
@@ -3026,7 +3096,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3107,7 +3177,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={endUserCodeRef}
                   id="endUserCode"
@@ -3176,7 +3246,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* NAME1 */}
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserName1"
                   className="form-control"
@@ -3191,7 +3261,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3211,7 +3281,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setEndUserAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserCity"
                   className="form-control"
@@ -3226,7 +3296,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3246,7 +3316,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setEndUserSubDivision(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserPostal"
                   className="form-control"
@@ -3261,7 +3331,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3294,7 +3364,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onClick={saveManufacturer}
                 />
               </div>
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={manufacturerCodeRef}
                   id="manufacturerCode"
@@ -3360,7 +3430,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setManufacturerName(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="manufacturerName1"
                   className="form-control"
@@ -3377,7 +3447,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
               <div className="col-sm-2">
                 <input
                   id="manufacturerAddress"
@@ -3404,7 +3474,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setManufacturerAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="manufacturerCity"
                   className="form-control"
@@ -3421,7 +3491,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
               <div className="col-sm-2">
                 <input
                   id="manufacturerSub"
@@ -3444,7 +3514,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setManufacturerSubDivi(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="manufacturerPostal"
                   className="form-control"
@@ -3461,7 +3531,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
               <div className="col-sm-2">
                 <input
                   id="manufacturerCountry"

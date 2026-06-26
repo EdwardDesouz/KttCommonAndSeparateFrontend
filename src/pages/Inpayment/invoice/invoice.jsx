@@ -800,7 +800,7 @@ function Invoice({ setActiveTab, isViewMode }) {
       SNo: editingSNo || serialNumber,
       InvoiceNo: invoiceNumber,
       InvoiceDate: formatDate(invoiceDate),
-      TermType: termTypeSelected,
+      TermType: termTypeSelected.toUpperCase(),
       AdValoremIndicator: adValoremIndicator || "False",
       PreDutyRateIndicator: preDutyRateIndicator || "False",
       SupplierImporterRelationship: supplierRelationship || "--Select--",
@@ -947,35 +947,50 @@ function Invoice({ setActiveTab, isViewMode }) {
       setInvoiceImporterName1(name1);
     }
 
-const findFormattedRate = (currencyName) => {
+const findInvoiceFormattedRate = (currencyName) => {
   const found = currency.find((c) => c.Currency === currencyName);
   return found ? found.CurrencyRate : invoice.TIExRate;
 };
 
+const findOtheresFormattedRate = (currencyName) => {
+  const found = currency.find((c) => c.Currency === currencyName);
+  return found ? found.CurrencyRate : invoice.OTCExRate;
+};
+
+const findFreightFormattedRate = (currencyName) => {
+  const found = currency.find((c) => c.Currency === currencyName);
+  return found ? found.CurrencyRate : invoice.FCExRate;
+};
+
+const findInsuranceFormattedRate = (currencyName) => {
+  const found = currency.find((c) => c.Currency === currencyName);
+  return found ? found.CurrencyRate : invoice.ICExRate;
+};
+
     setInvoiceCurrency(invoice.TICurrency);
     // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findFormattedRate(invoice.TICurrency)); 
+    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency)); 
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 
     setOtherValueCharges(invoice.OTCCharge);
     setOtherValueCurrency(invoice.OTCCurrency);
     // setOtherValueExRate(invoice.OTCExRate);
-    setOtherValueExRate(findFormattedRate(invoice.OTCCurrency));
+    setOtherValueExRate(findOtheresFormattedRate(invoice.OTCCurrency));
     setOtherValueAmount(invoice.OTCAmount);
     setOtherValueDollar(invoice.OTCSAmount);
 
     setFreightValueCharges(invoice.FCCharge);
     setFreightValueCurrency(invoice.FCCurrency);
     // setFreightValueExRate(invoice.FCExRate);
-    setFreightValueExRate(findFormattedRate(invoice.FCCurrency));
+    setFreightValueExRate(findFreightFormattedRate(invoice.FCCurrency));
     setFreightValueAmount(invoice.FCAmount);
     setFreightValueDollar(invoice.FCSAmount);
 
     setInsuranceCharges(invoice.ICCharge);
     setInsuranceValueCurrency(invoice.ICCurrency);
     // setInsuranceValueExRate(invoice.ICExRate);
-    setInsuranceValueExRate(findFormattedRate(invoice.ICCurrency)); 
+    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency)); 
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
 

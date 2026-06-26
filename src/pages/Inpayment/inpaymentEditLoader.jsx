@@ -90,6 +90,8 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
     setSummaryInternalRemarks,
     setDeclarationChecked,
     setSummaryDeclaringFor,
+    setSummaryApprovedBy,
+    setSummaryCustomerRemarks,
     setSummaryDate,
     setSummaryTime,
     setInvoiceTable,
@@ -507,6 +509,8 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
       setSummaryDate(d.MRDate || "");
       setSummaryTime(d.MRTime || "");
       setCnBChecked(d.Cnb === "Y");
+      setSummaryApprovedBy(d.gstVerified||"");
+      setSummaryCustomerRemarks(d.CustomerRemarks||"");
 
       // Fetch Invoice data by PermitId
       try {

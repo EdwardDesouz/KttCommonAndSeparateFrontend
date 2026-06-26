@@ -235,7 +235,7 @@ export const TranshipmentProvider = ({ children }) => {
   const [handlingAgentCruei, setHandlingAgentCruei] = useState("");
   const [handlingAgentName, setHandlingAgentName] = useState("");
   const [handlingAgentName1, setHandlingAgentName1] = useState("");
- 
+
   // HEADER PAGE FUNCTION FOR DECLARATION TYPE SELECTION
   const [showInwardTransport, setShowInwardTransport] = useState(true);
   const [showOutwardTransport, setShowOutwardTransport] = useState(false);
@@ -432,6 +432,7 @@ export const TranshipmentProvider = ({ children }) => {
   const [hawbList, setHawbList] = useState([]);
   const [showOutItemHawbHbl, setShowOutItemHawbHbl] = useState(true);
   const [itemTable, setItemTable] = useState([]);
+  const [makingLot, setMakingLot] = useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [outHawb, setOutHawb] = useState("");
@@ -444,7 +445,7 @@ export const TranshipmentProvider = ({ children }) => {
   const [model, setModel] = useState("");
   const [dgIndicator, setDgIndicator] = useState(false);
   const [unbranded, setUnbranded] = useState(false);
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  const [invoiceQuantity, setInvoiceQuantity] = useState("");
   const [hsQuantity, setHsQuantity] = useState("");
   const [hsUom, setHsUom] = useState("--Select--");
   const [duitableQuantity, setDuitableQuantity] = useState("");
@@ -493,6 +494,7 @@ export const TranshipmentProvider = ({ children }) => {
   const [showItemCasc, setShowItemCasc] = useState(false);
   const [itemCascChecked, setItemCascChecked] = useState(false);
   const [showShippingMarks, setShowShippingMarks] = useState(false);
+  const [showLotId, setShowLotId] = useState(false);
   const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
   const defaultItemCasc = [
     {
@@ -518,6 +520,9 @@ export const TranshipmentProvider = ({ children }) => {
     },
   ];
   const [itemCasc, setItemCasc] = useState(defaultItemCasc);
+  const [currentLot, setCurrentLot] = useState("");
+  const [making, setMaking] = useState("");
+  const [previousLot, setPreviousLot] = useState("");
   const [shippingMarks1, setShippingMarks1] = useState("");
   const [shippingMarks2, setShippingMarks2] = useState("");
   const [shippingMarks3, setShippingMarks3] = useState("");
@@ -526,8 +531,8 @@ export const TranshipmentProvider = ({ children }) => {
   const [engineCapacityValue, setEngineCapcityValue] = useState("");
   const [engineCapacityUom, setEngineCapacityUom] = useState("");
   const [originalRegistrationDate, setOriginalRegistrationDate] = useState("");
-  const [optionalCharges, setOptionalCharges] = useState("0.00");
-  const [optionlAmount, setOptionalAmount] = useState(0);
+  const [optionalCharges, setOptionalCharges] = useState("");
+  const [optionlAmount, setOptionalAmount] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const [dutyTypeId, setDutyTypeId] = useState("");
   const [kgmVisible, setKgmVisible] = useState("");
@@ -1150,6 +1155,8 @@ export const TranshipmentProvider = ({ children }) => {
         setShowOutItemHawbHbl,
         itemTable,
         setItemTable,
+        makingLot,
+        setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
         hawb,
@@ -1268,11 +1275,19 @@ export const TranshipmentProvider = ({ children }) => {
         setItemCascChecked,
         showShippingMarks,
         setShowShippingMarks,
+        showLotId,
+        setShowLotId,
         showUnitPriceVal,
         setShowUnitPriceVal,
         itemCasc,
         setItemCasc,
         defaultItemCasc,
+        currentLot,
+        setCurrentLot,
+        making,
+        setMaking,
+        previousLot,
+        setPreviousLot,
         shippingMarks1,
         setShippingMarks1,
         shippingMarks2,

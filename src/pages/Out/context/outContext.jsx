@@ -420,6 +420,7 @@ export const OutProvider = ({ children }) => {
   const [hawbList, setHawbList] = useState([]);
   const [showOutItemHawbHbl, setShowOutItemHawbHbl] = useState(true);
   const [itemTable, setItemTable] = useState([]);
+    const[makingLot,setMakingLot]=useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [outHawb, setOutHawb] = useState("");
@@ -432,7 +433,7 @@ export const OutProvider = ({ children }) => {
   const [model, setModel] = useState("");
   const [dgIndicator, setDgIndicator] = useState(false);
   const [unbranded, setUnbranded] = useState(false);
-  const [invoiceQuantity, setInvoiceQuantity] = useState("0.00");
+  const [invoiceQuantity, setInvoiceQuantity] = useState("");
   const [hsQuantity, setHsQuantity] = useState("");
   const [hsUom, setHsUom] = useState("--Select--");
   const [duitableQuantity, setDuitableQuantity] = useState("");
@@ -445,9 +446,9 @@ export const OutProvider = ({ children }) => {
   const [invoiceExRateItem, setInvoiceExRateItem] = useState("");
   const [unitPrice, setUnitPrice] = useState(0.0);
   const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
-  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
+  const [totalLineAmount, setTotalLineAmount] = useState("");
+  const [totalInvoiceCharge, setTotalInvoiceCharge] = useState("");
+  const [cifFob, setCifFob] = useState("");
   const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
   const [exciseDutyUom, setExciseDutyUom] = useState("");
   const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
@@ -460,7 +461,7 @@ export const OutProvider = ({ children }) => {
   const [gstRateValue, setGstRateValue] = useState(0);
   const [gstUom, setGstUom] = useState("");
   const [gstSum, setGstSum] = useState(0.0);
-  const [lastSellingPrice, setLastSellingPrice] = useState(0.0);
+  const [lastSellingPrice, setLastSellingPrice] = useState("");
   const [preferentialCode, setPreferentialCode] = useState("");
   const [packingChecked, setPackingChecked] = useState(false);
   const [outerPackQuantity, setOuterPackQuantity] = useState("0.00");
@@ -481,6 +482,7 @@ export const OutProvider = ({ children }) => {
   const [showItemCasc, setShowItemCasc] = useState(false);
   const [itemCascChecked, setItemCascChecked] = useState(false);
   const [showShippingMarks, setShowShippingMarks] = useState(false);
+   const [showLotId, setShowLotId] = useState(false);
   const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
   const defaultItemCasc = [
     {
@@ -506,6 +508,9 @@ export const OutProvider = ({ children }) => {
     },
   ];
   const [itemCasc, setItemCasc] = useState(defaultItemCasc);
+   const [currentLot, setCurrentLot] = useState("");
+  const [making, setMaking] = useState("");
+  const [previousLot, setPreviousLot] = useState("");
   const [shippingMarks1, setShippingMarks1] = useState("");
   const [shippingMarks2, setShippingMarks2] = useState("");
   const [shippingMarks3, setShippingMarks3] = useState("");
@@ -1126,6 +1131,8 @@ export const OutProvider = ({ children }) => {
         setShowOutItemHawbHbl,
         itemTable,
         setItemTable,
+                makingLot,
+        setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
         hawb,
@@ -1244,11 +1251,19 @@ export const OutProvider = ({ children }) => {
         setItemCascChecked,
         showShippingMarks,
         setShowShippingMarks,
+               showLotId,
+        setShowLotId,
         showUnitPriceVal,
         setShowUnitPriceVal,
         itemCasc,
         setItemCasc,
         defaultItemCasc,
+                currentLot,
+        setCurrentLot,
+        making,
+        setMaking,
+        previousLot,
+        setPreviousLot,
         shippingMarks1,
         setShippingMarks1,
         shippingMarks2,

@@ -633,16 +633,12 @@ function Party({ setActiveTab, isViewMode }) {
 
   // ======================== FREIGHTFORWARDER KEYDOWN ========================
   const handleFreightForwarderKeyDown = (e) => {
-    if (
-      !showFreightForwarderDropdown ||
-      freightForwarderSuggestions.length === 0
-    )
-      return;
+if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length === 0) return;
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setFreightForwarderHighlightedIndex((prev) =>
-        prev + 1 >= freightForwarderSuggestions.length ? 0 : prev + 1,
+       prev + 1 >= filteredFreightForwarderSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -654,7 +650,7 @@ function Party({ setActiveTab, isViewMode }) {
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
       handleFreightForwarderSelect(
-        filteredFreightForwarderSuggestions[inwardHighlightedIndex],
+        filteredFreightForwarderSuggestions[freightForwarderHighlightedIndex],
       );
     }
   };
@@ -1361,7 +1357,7 @@ function Party({ setActiveTab, isViewMode }) {
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
     const filtered = outwardSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
+        i.toLowerCase().startsWith(val.toLowerCase()),
     );
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
@@ -2003,7 +1999,7 @@ function Party({ setActiveTab, isViewMode }) {
           (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
         );
         setHandlingAgentSuggestions(list);
-        setFilteredSuggestions(list);
+        setHandleFilteredSuggestions(list);
       } catch (err) {
         console.error("Failed to fetch handling agents", err);
       }
@@ -2033,7 +2029,7 @@ function Party({ setActiveTab, isViewMode }) {
       i.toLowerCase().startsWith(val.toLowerCase()),
     );
 
-    setFilteredSuggestions(filtered.slice(0, 100));
+setHandleFilteredSuggestions(filtered.slice(0, 100));
     setShowHandlingAgentDropdown(filtered.length > 0);
   };
   // ======================== HANDLING AGENT KEYDOWN ========================
@@ -2477,7 +2473,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <label className="col-sm-2 col-form-label">DECLARANT COMPANY</label>
           <div className="col-sm-1"></div>
-          <div className="col-sm-1">
+          <div className="col-sm-2">
             <input
               className="form-control"
               value={permitDetails?.Code || ""}
@@ -2498,7 +2494,7 @@ function Party({ setActiveTab, isViewMode }) {
               readOnly
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               placeholder="Name1"
@@ -2520,7 +2516,7 @@ function Party({ setActiveTab, isViewMode }) {
               />
               <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
             </div>
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={importerCodeRef}
                 id="importerCode"
@@ -2582,7 +2578,7 @@ function Party({ setActiveTab, isViewMode }) {
                 <span className="ErrorColor">Name is required</span>
               )}
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="importerName1"
                 className="form-control-mandatory"
@@ -2596,98 +2592,101 @@ function Party({ setActiveTab, isViewMode }) {
 
         {/* HANDLING AGENT */}
         {showHandlingAgent && (
-        <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">HANDLING AGENT</div>
-          <div className="col-sm-1">
-            <FaSearch
-              className="me-3"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleIconClick("handlingAgent")}
-            />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveHandlingAgent} />
-          </div>
+          <div className="row align-items-center compact-row">
+            <div className="col-sm-2 col-form-label">HANDLING AGENT</div>
+            <div className="col-sm-1">
+              <FaSearch
+                className="me-3"
+                style={{ cursor: "pointer" }}
+                onClick={() => handleIconClick("handlingAgent")}
+              />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveHandlingAgent}
+              />
+            </div>
 
-          {/* CODE */}
-          <div className="col-sm-1 position-relative">
-            <input
-              ref={handlingAgentCodeRef}
-              id="handlingAgentCode"
-              className="inputStyle"
-              placeholder="CODE"
-              value={handlingAgentCode}
-              onChange={handleHandlingAgentChange}
-              onKeyDown={handleHandlingAgentKeyDown}
-              onBlur={handleHandlingAgentFocusOut}
-              onFocus={() => setHandlingAgentError(false)}
-            />
-            {showHandlingAgentDropdown &&
-              filteredHandlingAgentSuggestions.length > 0 && (
-                <div className="dropdown-suggestions">
-                  {filteredHandlingAgentSuggestions.map((item, index) => {
-                    const [code, , name] = item.split(":");
-                    return (
-                      <div
-                        key={code}
-                        className="dropdown-item"
-                        style={{
-                          backgroundColor:
-                            index === handlingAgentHighlightedIndex
-                              ? "#234263"
-                              : "white",
-                          color:
-                            index === handlingAgentHighlightedIndex
-                              ? "white"
-                              : "black",
-                          cursor: "pointer",
-                        }}
-                        onMouseDown={() => handleHandlingAgentSelect(item)}
-                        onMouseEnter={() =>
-                          setHandlingAgentHighlightedIndex(index)
-                        }
-                      >
-                        {code} - {name}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-          </div>
+            {/* CODE */}
+            <div className="col-sm-2 position-relative">
+              <input
+                ref={handlingAgentCodeRef}
+                id="handlingAgentCode"
+                className="inputStyle"
+                placeholder="CODE"
+                value={handlingAgentCode}
+                onChange={handleHandlingAgentChange}
+                onKeyDown={handleHandlingAgentKeyDown}
+                onBlur={handleHandlingAgentFocusOut}
+                onFocus={() => setHandlingAgentError(false)}
+              />
+              {showHandlingAgentDropdown &&
+                filteredHandlingAgentSuggestions.length > 0 && (
+                  <div className="dropdown-suggestions">
+                    {filteredHandlingAgentSuggestions.map((item, index) => {
+                      const [code, , name] = item.split(":");
+                      return (
+                        <div
+                          key={code}
+                          className="dropdown-item"
+                          style={{
+                            backgroundColor:
+                              index === handlingAgentHighlightedIndex
+                                ? "#234263"
+                                : "white",
+                            color:
+                              index === handlingAgentHighlightedIndex
+                                ? "white"
+                                : "black",
+                            cursor: "pointer",
+                          }}
+                          onMouseDown={() => handleHandlingAgentSelect(item)}
+                          onMouseEnter={() =>
+                            setHandlingAgentHighlightedIndex(index)
+                          }
+                        >
+                          {code} - {name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+            </div>
 
-          {/* CRUEI */}
-          <div className="col-2">
-            <input
-              id="handlingAgentCruei"
-              className="inputStyle HighLight"
-              placeholder="CRUEI"
-              value={handlingAgent?.CRUEI || handlingAgentCruei || ""}
-              onChange={(e) => setHandlingAgentCruei(e.target.value)}
-            />
-            <br />
-          </div>
+            {/* CRUEI */}
+            <div className="col-2">
+              <input
+                id="handlingAgentCruei"
+                className="inputStyle HighLight"
+                placeholder="CRUEI"
+                value={handlingAgent?.CRUEI || handlingAgentCruei || ""}
+                onChange={(e) => setHandlingAgentCruei(e.target.value)}
+              />
+              <br />
+            </div>
 
-          {/* NAME */}
-          <div className="col-3">
-            <input
-              id="handlingAgentName"
-              className="inputStyle HighLight"
-              placeholder="NAME"
-              value={handlingAgent?.Name || handlingAgentName || ""}
-              onChange={(e) => setHandlingAgentName(e.target.value)}
-            />
-            <br />
-          </div>
+            {/* NAME */}
+            <div className="col-3">
+              <input
+                id="handlingAgentName"
+                className="inputStyle HighLight"
+                placeholder="NAME"
+                value={handlingAgent?.Name || handlingAgentName || ""}
+                onChange={(e) => setHandlingAgentName(e.target.value)}
+              />
+              <br />
+            </div>
 
-          {/* NAME1 */}
-          <div className="col-3">
-            <input
-              id="handlingAgentName1"
-              className="inputStyle"
-              placeholder="NAME1"
-              value={handlingAgent?.Name1 || handlingAgentName1 || ""}
-              onChange={(e) => setHandlingAgentName1(e.target.value)}
-            />
+            {/* NAME1 */}
+            <div className="col-2">
+              <input
+                id="handlingAgentName1"
+                className="inputStyle"
+                placeholder="NAME1"
+                value={handlingAgent?.Name1 || handlingAgentName1 || ""}
+                onChange={(e) => setHandlingAgentName1(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
         )}
 
         {/* INWARD CARRIER AGENT */}
@@ -2704,7 +2703,7 @@ function Party({ setActiveTab, isViewMode }) {
               />
               <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
             </div>
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={inwardCodeRef}
                 id="inwardCode"
@@ -2773,7 +2772,7 @@ function Party({ setActiveTab, isViewMode }) {
                 onChange={(e) => setInwardName(e.target.value)}
               />
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="inwardName1"
                 className="form-control"
@@ -2801,7 +2800,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* CODE */}
-            <div className="col-sm-1 position-relative">
+            <div className="col-sm-2 position-relative">
               <input
                 ref={outwardCodeRef}
                 id="outwardCode"
@@ -2866,7 +2865,7 @@ function Party({ setActiveTab, isViewMode }) {
             </div>
 
             {/* NAME1 */}
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <input
                 id="outwardName1"
                 className="form-control"
@@ -2892,7 +2891,7 @@ function Party({ setActiveTab, isViewMode }) {
               onClick={saveFreightForwarder}
             />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
@@ -2954,7 +2953,7 @@ function Party({ setActiveTab, isViewMode }) {
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
           </div>
-          <div className="col-sm-3">
+          <div className="col-sm-2">
             <input
               className="form-control"
               id="freightForwarderName1"
@@ -2981,7 +2980,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={congineeCodeRef}
                   id="congineeCode"
@@ -3050,7 +3049,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* NAME1 */}
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeName1"
                   className="form-control"
@@ -3066,7 +3065,7 @@ function Party({ setActiveTab, isViewMode }) {
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
 
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3086,7 +3085,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineeCity"
                   className="form-control"
@@ -3100,7 +3099,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3122,7 +3121,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setCongineeSubDivision(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="congineePostal"
                   className="form-control"
@@ -3136,7 +3135,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3192,6 +3191,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-3"></div>
           </div>
         </div>
+
         {showPartyEndUser && (
           <div>
             <div className="row align-items-center compact-row">
@@ -3217,7 +3217,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
-              <div className="col-sm-1 position-relative">
+              <div className="col-sm-2 position-relative">
                 <input
                   ref={endUserCodeRef}
                   id="endUserCode"
@@ -3286,7 +3286,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
 
               {/* NAME1 */}
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserName1"
                   className="form-control"
@@ -3301,7 +3301,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3321,7 +3321,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setEndUserAddress1(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserCity"
                   className="form-control"
@@ -3336,7 +3336,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3356,7 +3356,7 @@ function Party({ setActiveTab, isViewMode }) {
                   onChange={(e) => setEndUserSubDivision(e.target.value)}
                 />
               </div>
-              <div className="col-sm-3">
+              <div className="col-sm-2">
                 <input
                   id="endUserPostal"
                   className="form-control"
@@ -3371,7 +3371,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
-              <div className="col-sm-1"></div>
+              <div className="col-sm-2"></div>
 
               <div className="col-sm-2">
                 <input
@@ -3389,9 +3389,9 @@ function Party({ setActiveTab, isViewMode }) {
         )}
 
         {/* MANUFACTURER */}
-        {showCertificateOfOrigin && (
+        {/* {showCertificateOfOrigin && (
           <div>
-            {/* MANUFACTURER ROW 1 */}
+  
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label">MANUFACTURER</label>
               <div className="col-sm-1">
@@ -3484,7 +3484,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
             </div>
 
-            {/* MANUFACTURER ROW 2 */}
+     
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1 icon-contaniner"></div>
@@ -3528,7 +3528,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
             </div>
 
-            {/* MANUFACTURER ROW 3 */}
+      
             <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
@@ -3568,8 +3568,7 @@ function Party({ setActiveTab, isViewMode }) {
               </div>
             </div>
 
-            {/* MANUFACTURER ROW 4 */}
-            <div className="row align-items-center compact-row">
+                  <div className="row align-items-center compact-row">
               <label className="col-sm-2 col-form-label"></label>
               <div className="col-sm-1"></div>
               <div className="col-sm-1"></div>
@@ -3590,7 +3589,7 @@ function Party({ setActiveTab, isViewMode }) {
               <div className="col-sm-3"></div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Navigation Buttons */}
         <div className="mt-4 d-flex justify-content-center gap-3">

@@ -292,15 +292,15 @@ function Cargo({ setActiveTab, isViewMode }) {
       setPermitGrossWeight("");
       return;
     }
-    const weight = parseFloat(totalGrossWeight);
+    const weight = Number(totalGrossWeight);
     if (isNaN(weight)) {
       setPermitGrossWeight("");
       return;
     }
     if (grossUOM === "TNE") {
-      setPermitGrossWeight((weight / 1000).toFixed(2));
+      setPermitGrossWeight(weight / 1000);
     } else {
-      setPermitGrossWeight(weight.toFixed(2));
+      setPermitGrossWeight(weight);
     }
   }, [totalGrossWeight, grossUOM]);
   // ========================STATES========================

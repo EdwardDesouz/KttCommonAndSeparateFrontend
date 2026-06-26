@@ -119,6 +119,10 @@ function Summary({ setActiveTab, isViewMode }) {
     setDeclarationChecked,
     summaryDeclaringFor,
     setSummaryDeclaringFor,
+    summaryApprovedBy,
+    setSummaryApprovedBy,
+    summaryCustomerRemarks,
+    setSummaryCustomerRemarks,
     // CPC
     showAeo,
     showCwc,
@@ -138,8 +142,15 @@ function Summary({ setActiveTab, isViewMode }) {
     showMawbNumber,
     // prepareCpcData,
   } = useInpayment();
+
+  // Party Page Datas Not Saving
+
+  const [showPartyNotSavedModal, setShowPartyNotSavedModal] = useState(false);
+  const [missingPartyCodes, setMissingPartyCodes] = useState([]);
+
   // summary declraing for
   const [declaringFor, setDeclaringFor] = useState([]);
+
   // DeclaringFor
   const fetchDeclaringFor = async () => {
     try {
@@ -659,6 +670,137 @@ function Summary({ setActiveTab, isViewMode }) {
   // ════════════════════════════════════════════════════════════════════════
   //  HANDLE SAVE PERMIT
   // ════════════════════════════════════════════════════════════════════════
+  // const handleSavePermit = async () => {
+  //   // ── Step 1: Validate ───────────────────────────────────────────────
+  //   const { isValid, errors } = runValidation();
+  //   if (!isValid) {
+  //     setValidationErrors(errors);
+  //     setShowValidationModal(true);
+  //     return;
+  //   }
+
+  //   // ── Step 2: Touch Info ─────────────────────────────────────────────
+  //   const touchUser = (user?.username || "").toUpperCase();
+  //   const touchTime = new Date().toISOString();
+
+  //   // ── Step 3: Permit Status ──────────────────────────────────────────
+  //   let PermitStatus = "NEW";
+  //   let PermitNumber = permitDetails?.PermitNumber || "";
+  //   if (PermitNumber === "None" || PermitNumber === "NONE") PermitNumber = "";
+  //   // Wire when Refund/Cancel/Amend tabs ready:
+  //   // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
+  //   // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
+  //   // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
+
+  //   // ── Step 4: Build CPC Payload ──────────────────────────────────────
+  //   const cpcData = prepareCpcData();
+
+  //   // ── Step 5: Build Header Payload ───────────────────────────────────
+  //   const headerPayload = {
+  //     // Permit IDs
+  //     Refid: toBigInt(permitDetails?.RefId),
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+
+  //     // Header
+  //     TradeNetMailboxID: permitDetails?.MailBoxId || "",
+  //     MessageType: "IPTDEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "Y" : "N",
+  //     ReferenceDocuments: refDocs ? "Y" : "N",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+
+  //     // Party
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     ImporterCompanyCode: importerCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+
+  //     // Cargo
+  //     HBL: cargoHawb.toUpperCase() || "",
+  //     ArrivalDate: formatDate(arrivalDate) || null,
+  //     LoadingPortCode: loadingPortCode || "",
+  //     VoyageNumber: voyageNumber || "",
+  //     VesselName: vesselName || "",
+  //     OceanBillofLadingNo: obl || "",
+  //     ConveyanceRefNo: conveyanceNumber || "",
+  //     TransportId: transportDetails || "",
+  //     FlightNO: flightNumber || "",
+  //     AircraftRegNo: airCraftRegNumber || "",
+  //     MasterAirwayBill: mawbNumber || "",
+  //     ReleaseLocation: releaseCode || "",
+  //     ResLoaName: releaseLocationDescription || "",
+  //     RecepitLocation: receiptCode || "",
+  //     RecepitLocName: receiptLocationDescription || "",
+  //     TotalOuterPack: totalOuterPackValue || "",
+  //     TotalOuterPackUOM: totalOuterPackName || "",
+  //     TotalGrossWeight: totalGrossWeight || "",
+  //     TotalGrossWeightUOM: grossUOM || "",
+  //     BlanketStartDate: formatDate(blanketStartDate) || null,
+
+  //     // Summary / Remarks
+  //     GrossReference: summaryCrossReference || "",
+  //     TradeRemarks: summaryRemarks || "",
+  //     InternalRemarks: summaryInternalReamarks || "",
+  //     DeclareIndicator: declarationChecked ? "Y" : "N",
+  //     gstVerified: summaryApprovedBy || "",
+  //     CustomerRemarks: summaryCustomerRemarks || "",
+  //     // Totals
+  //     NumberOfItems: toDecimal(itemTable.length),
+  //     TotalCIFFOBValue: toDecimal(totalItemCifValue),
+  //     TotalGSTTaxAmt: toDecimal(totalItemGstAmount),
+  //     TotalExDutyAmt: toDecimal(sumOfExciseDutyAmount),
+  //     TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
+  //     TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
+  //     TotalAmtPay: toDecimal(totalAmountPayable),
+
+  //     // Status & Touch
+  //     Status: "NEW",
+  //     TouchUser: touchUser,
+  //     TouchTime: touchTime,
+  //     PermitNumber: PermitNumber,
+  //     prmtStatus: PermitStatus,
+
+  //     // Other
+  //     Cnb: cnBChecked ? "Y" : "N",
+  //     DeclarningFor: declFor || "--Select--",
+  //     MRDate: formatDate(summaryDate) || null,
+  //     MRTime: summaryTime || "",
+  //   };
+
+  //   // ── Step 6: API Calls ──────────────────────────────────────────────
+  //   try {
+  //     console.log("SENDING HEADER:", headerPayload);
+  //     await saveAllContainers(touchUser, touchTime);
+  //     // 6a. Save CPC — only if CPC rows exist
+  //     if (cpcData.length > 0) {
+  //       await API.post("/postCpcTable/", cpcData);
+  //     }
+  //     // 6b. Save Header
+  //     await API.post("/postCommonHeaderTable/", headerPayload);
+
+  //     alert("Permit Saved Successfully!");
+  //     navigate("/inpayment");
+  //   } catch (err) {
+  //     if (err.response) {
+  //       console.error("Save Error:", err.response.data);
+  //       alert(
+  //         `Database Error: ${err.response.data.error || "Check console for details"}`,
+  //       );
+  //     } else {
+  //       console.error("Network Error:", err.message);
+  //       alert("Network Error: Could not reach the server.");
+  //     }
+  //   }
+  // };
+
   const handleSavePermit = async () => {
     // ── Step 1: Validate ───────────────────────────────────────────────
     const { isValid, errors } = runValidation();
@@ -668,31 +810,95 @@ function Summary({ setActiveTab, isViewMode }) {
       return;
     }
 
-    // ── Step 2: Touch Info ─────────────────────────────────────────────
+    // ── Step 2: Check only filled party codes against master tables ────
+    const missing = [];
+
+    try {
+      // -- IMPORTER (only if filled) --
+      if (importerCode && importerCode.trim() !== "") {
+        const res = await API.get("/getCommonImporterTableInfo/");
+        const exists = res.data.some(
+          (i) =>
+            String(i.Code).toLowerCase() === importerCode.trim().toLowerCase(),
+        );
+        if (!exists)
+          missing.push({ label: "IMPORTER", code: importerCode.trim() });
+      }
+
+      // -- INWARD CARRIER AGENT (only if filled) --
+      if (inwardCode && inwardCode.trim() !== "") {
+        const res = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+        const exists = res.data.some(
+          (i) =>
+            String(i.Code).toLowerCase() === inwardCode.trim().toLowerCase(),
+        );
+        if (!exists)
+          missing.push({
+            label: "INWARD CARRIER AGENT",
+            code: inwardCode.trim(),
+          });
+      }
+
+      // -- FREIGHT FORWARDER (only if filled) --
+      if (freightForwarderCode && freightForwarderCode.trim() !== "") {
+        const res = await API.get("/getCommonFreightForwarderTable/");
+        const exists = res.data.some(
+          (i) =>
+            String(i.Code).toLowerCase() ===
+            freightForwarderCode.trim().toLowerCase(),
+        );
+        if (!exists)
+          missing.push({
+            label: "FREIGHT FORWARDER",
+            code: freightForwarderCode.trim(),
+          });
+      }
+
+      // -- CLAIMANT PARTY (only if filled) --
+      if (claimantCode && claimantCode.trim() !== "") {
+        const res = await API.get("/getCommonClaimantPartyTable/");
+        const exists = res.data.some(
+          (i) =>
+            String(i.ClaimantCode).toLowerCase() ===
+            claimantCode.trim().toLowerCase(),
+        );
+        if (!exists)
+          missing.push({ label: "CLAIMANT PARTY", code: claimantCode.trim() });
+      }
+    } catch (err) {
+      console.error("Failed to verify party codes in master tables:", err);
+      // If check itself fails, don't block the save
+    }
+
+    if (missing.length > 0) {
+      setMissingPartyCodes(missing);
+      setShowPartyNotSavedModal(true);
+      return; // block permit save
+    }
+
+    // ── Step 3: All checks passed — save permit ────────────────────────
+    await doSavePermit();
+  };
+
+  const doSavePermit = async () => {
     const touchUser = (user?.username || "").toUpperCase();
     const touchTime = new Date().toISOString();
 
-    // ── Step 3: Permit Status ──────────────────────────────────────────
     let PermitStatus = "NEW";
     let PermitNumber = permitDetails?.PermitNumber || "";
     if (PermitNumber === "None" || PermitNumber === "NONE") PermitNumber = "";
-    // Wire when Refund/Cancel/Amend tabs ready:
-    // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
-    // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
-    // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
+  // Wire when Refund/Cancel/Amend tabs ready:
+  //   // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
+  //   // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
+  //   // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
 
-    // ── Step 4: Build CPC Payload ──────────────────────────────────────
     const cpcData = prepareCpcData();
 
-    // ── Step 5: Build Header Payload ───────────────────────────────────
     const headerPayload = {
-      // Permit IDs
       Refid: toBigInt(permitDetails?.RefId),
       JobId: permitDetails?.JobId || "",
       MSGId: permitDetails?.MsgId || "",
       PermitId: (permitDetails?.PermitId || "").toUpperCase(),
-
-      // Header
       TradeNetMailboxID: permitDetails?.MailBoxId || "",
       MessageType: "IPTDEC",
       DeclarationType: decType || "",
@@ -704,15 +910,11 @@ function Summary({ setActiveTab, isViewMode }) {
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-
-      // Party
       DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
       ImporterCompanyCode: importerCode || "",
       InwardCarrierAgentCode: inwardCode || "",
       FreightForwarderCode: freightForwarderCode || "",
       ClaimantPartyCode: claimantCode || "",
-
-      // Cargo
       HBL: cargoHawb.toUpperCase() || "",
       ArrivalDate: formatDate(arrivalDate) || null,
       LoadingPortCode: loadingPortCode || "",
@@ -733,15 +935,12 @@ function Summary({ setActiveTab, isViewMode }) {
       TotalGrossWeight: totalGrossWeight || "",
       TotalGrossWeightUOM: grossUOM || "",
       BlanketStartDate: formatDate(blanketStartDate) || null,
-
-      // Summary / Remarks
       GrossReference: summaryCrossReference || "",
       TradeRemarks: summaryRemarks || "",
       InternalRemarks: summaryInternalReamarks || "",
-      CustomerRemarks: "",
       DeclareIndicator: declarationChecked ? "Y" : "N",
-
-      // Totals
+      gstVerified: summaryApprovedBy || "",
+      CustomerRemarks: summaryCustomerRemarks || "",
       NumberOfItems: toDecimal(itemTable.length),
       TotalCIFFOBValue: toDecimal(totalItemCifValue),
       TotalGSTTaxAmt: toDecimal(totalItemGstAmount),
@@ -749,32 +948,23 @@ function Summary({ setActiveTab, isViewMode }) {
       TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
       TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
       TotalAmtPay: toDecimal(totalAmountPayable),
-
-      // Status & Touch
       Status: "NEW",
       TouchUser: touchUser,
       TouchTime: touchTime,
       PermitNumber: PermitNumber,
       prmtStatus: PermitStatus,
-
-      // Other
       Cnb: cnBChecked ? "Y" : "N",
       DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
 
-    // ── Step 6: API Calls ──────────────────────────────────────────────
     try {
-      console.log("SENDING HEADER:", headerPayload);
       await saveAllContainers(touchUser, touchTime);
-      // 6a. Save CPC — only if CPC rows exist
       if (cpcData.length > 0) {
         await API.post("/postCpcTable/", cpcData);
       }
-      // 6b. Save Header
       await API.post("/postCommonHeaderTable/", headerPayload);
-
       alert("Permit Saved Successfully!");
       navigate("/inpayment");
     } catch (err) {
@@ -885,7 +1075,7 @@ function Summary({ setActiveTab, isViewMode }) {
         GrossReference: summaryCrossReference || "",
         TradeRemarks: summaryRemarks || "",
         Message: draftReason.trim().toUpperCase(),
-        CustomerRemarks: "",
+        CustomerRemarks: summaryCustomerRemarks || "",
         DeclareIndicator: declarationChecked ? "Y" : "N",
         Status: "SAVEASDRF",
         prmtStatus: "SAVEASDRF",
@@ -1080,6 +1270,7 @@ function Summary({ setActiveTab, isViewMode }) {
     if (isNaN(num)) return "";
     return parseFloat(num.toFixed(6)).toString();
   };
+
   // ====================UI================================================
   return (
     <div className="row g-2">
@@ -1363,6 +1554,28 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-3"></div>
         </div>
 
+        {/* ── APPROVED BY ───────────────────────────────────────────── */}
+        <div className="row align-items-center compact-row mt-1">
+          <div className="col-1">APPROVED BY</div>
+          <div className="col-sm-2">
+            <input
+              type="text"
+              className="form-control"
+              value={summaryApprovedBy}
+              onChange={(e) => setSummaryApprovedBy(e.target.value)}
+            />
+          </div>
+          <label className="col-sm-1 col-form-label">CUSTOMER REMARKS</label>
+          <div className="col-sm-3">
+            <input
+              type="text"
+              className="form-control"
+              value={summaryCustomerRemarks}
+              onChange={(e) => setSummaryCustomerRemarks(e.target.value)}
+            />
+          </div>
+        </div>
+
         {/* ── TRADER REMARKS ───────────────────────────────────────────── */}
         <div className="row align-items-center compact-row mt-1">
           <div className="col-1">TRADER REMARKS</div>
@@ -1417,7 +1630,7 @@ function Summary({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <div className="col-sm-12">
             <textarea
-              className="form-control"
+              className="form-control summary-remarks-textarea"
               value={summaryRemarks}
               onChange={(e) => setSummaryRemarks(e.target.value)}
             />
@@ -1512,7 +1725,10 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">MAWB/OBL</div>
-                <div className="col-6">{obl}</div>
+                <div className="col-6">
+                  {" "}
+                  {showMawbNumber ? mawbNumber : showOblNumber ? obl : ""}
+                </div>
               </div>
             </div>
             <div className="col-6">
@@ -1692,6 +1908,197 @@ function Summary({ setActiveTab, isViewMode }) {
           </button>
         )}
       </div>
+
+      {/* ── PARTY CODES NOT SAVED IN MASTER TABLE MODAL ──────────────────── */}
+      {showPartyNotSavedModal && (
+        <>
+          {/* Backdrop */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 1040,
+            }}
+            onClick={() => setShowPartyNotSavedModal(false)}
+          />
+          {/* Modal */}
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              zIndex: 1050,
+              width: "500px",
+              overflow: "hidden",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                backgroundColor: "#c0392b",
+                color: "#fff",
+                padding: "14px 20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                ⚠ PARTY CODE(S) NOT SAVED IN MASTER TABLE
+              </span>
+              <span
+                style={{
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                }}
+                onClick={() => setShowPartyNotSavedModal(false)}
+              >
+                ✕
+              </span>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "20px 24px" }}>
+              <div
+                style={{
+                  backgroundColor: "#fdf0f0",
+                  border: "1px solid #e74c3c",
+                  borderRadius: "6px",
+                  padding: "12px 16px",
+                  fontSize: "13px",
+                  color: "#922b21",
+                  marginBottom: "16px",
+                  lineHeight: "1.6",
+                }}
+              >
+                The following code(s) are filled but{" "}
+                <strong>not yet saved</strong> in their master tables. Please go
+                to the <strong>PARTY</strong> tab, click the{" "}
+                <strong>+ (Plus)</strong> button next to each field to save
+                them, then come back and click <strong>SAVE</strong> again.
+              </div>
+
+              {/* Table listing missing codes */}
+              <table
+                style={{
+                  width: "100%",
+                  fontSize: "13px",
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr style={{ backgroundColor: "#f5b7b1" }}>
+                    <th
+                      style={{
+                        padding: "7px 10px",
+                        textAlign: "left",
+                        border: "1px solid #e74c3c",
+                        color: "#922b21",
+                      }}
+                    >
+                      PARTY FIELD
+                    </th>
+                    <th
+                      style={{
+                        padding: "7px 10px",
+                        textAlign: "left",
+                        border: "1px solid #e74c3c",
+                        color: "#922b21",
+                      }}
+                    >
+                      CODE ENTERED
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {missingPartyCodes.map((item, idx) => (
+                    <tr
+                      key={idx}
+                      style={{
+                        backgroundColor: idx % 2 === 0 ? "#fff" : "#fdf2f2",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "7px 10px",
+                          border: "1px solid #fadbd8",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {item.label}
+                      </td>
+                      <td
+                        style={{
+                          padding: "7px 10px",
+                          border: "1px solid #fadbd8",
+                          color: "#c0392b",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {item.code}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "12px 24px 20px",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <button
+                className="NextpageBtns"
+                onClick={() => setShowPartyNotSavedModal(false)}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                CLOSE
+              </button>
+              <button
+                className="NextpageBtns"
+                onClick={() => {
+                  setShowPartyNotSavedModal(false);
+                  setActiveTab("PartyTab");
+                }}
+                style={{
+                  backgroundColor: "#c0392b",
+                  color: "#fff",
+                  border: "none",
+                  padding: "7px 20px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                }}
+              >
+                GO TO PARTY PAGE →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       {showDraftModal && (
         <>
           {/* Backdrop */}

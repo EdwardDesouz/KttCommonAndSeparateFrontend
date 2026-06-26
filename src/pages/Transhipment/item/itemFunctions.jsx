@@ -221,6 +221,7 @@ export const currentPopup = (popupType, setters) => {
           updated[activeRowIndex] = {
             ...updated[activeRowIndex],
             code: item.CASCCode,
+            description: item.Description,
             uom: item.UOM,
           };
 

@@ -268,6 +268,10 @@
   background-color: #b9c2c5;
 }
 
+.form-control summary-remarks-textarea {
+  font-size: 0.65rem;
+}
+
 .form-check {
   display: flex;
   align-items: center;
@@ -511,15 +515,17 @@
   padding: 8px 8px;
   text-align: center;
   vertical-align: middle;
-  font-size: 0.75rem;
-  line-height: 1;
+  font-size: 0.60rem;
+  line-height: 2;
   white-space: nowrap;
+  font-weight: bold;
+ 
 }
 
 #inpaymentTable th {
   background-color: #01445e;
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 #inpaymentTable tfoot input {
@@ -527,6 +533,7 @@
   padding: 4px 6px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  font-size: 0.55rem;
 }
 
 #inpaymentTable tbody tr:hover {
@@ -1235,8 +1242,5 @@ textarea {
   cursor: pointer !important;
   opacity: 1 !important;
 }
-
-
-
 
 /* for mobile and tab view */

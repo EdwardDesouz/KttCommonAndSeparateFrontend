@@ -19,12 +19,12 @@ function Header({ setActiveTab, isViewMode }) {
   const [bgIndicator, setBgIndicator] = useState([]);
   const [documentAttachType, setDocumentAttachType] = useState([]);
   const [permitConditions, setPermitConditions] = useState(null);
- 
- // Decelaring for visible depends account id
- 
-   const fieldConfig = getFieldConfig(user?.accountId);
-   console.log("accountId:", user?.accountId);
-   console.log("fieldConfig:", fieldConfig);
+
+  // Decelaring for visible depends account id
+
+  const fieldConfig = getFieldConfig(user?.accountId);
+  console.log("accountId:", user?.accountId);
+  console.log("fieldConfig:", fieldConfig);
 
   // User Context States
   const {
@@ -76,6 +76,9 @@ function Header({ setActiveTab, isViewMode }) {
     setSelectedFile,
     uploadedFiles,
     setUploadedFiles,
+    // Cargo
+    grossUOM,
+    setGrossUOM,
     showExporter,
     setShowExporter,
     showOutwardCarrier,
@@ -379,6 +382,8 @@ function Header({ setActiveTab, isViewMode }) {
     setShowOutwardCarrier(false);
     setShowStorageLocation(true);
     setShowInHawbInward(false);
+    setTransportMode("");
+    setOutTransportMode("");
 
     if (!value || value === "--Select--") {
       setShowDeclarationTypeError(true);
@@ -471,6 +476,7 @@ function Header({ setActiveTab, isViewMode }) {
     setInwardTransport(value);
     if (value === "--Select--") {
       setShowInwardTransportError(true);
+      setInwardTransport("");
     } else {
       setShowInwardTransportError(false);
     }
@@ -496,13 +502,14 @@ function Header({ setActiveTab, isViewMode }) {
     setShowAirCraftRegNumber(false);
     setShowMawbNumber(false);
     setShowNotRequired(true);
+    setGrossUOM("");
     if (value === "1 : Sea") {
       setShowVoyageNumber(true);
       setShowVesselName(true);
       setShowOblNumber(true);
       setShowInwardMode(true);
       setShowInHawbInward(true);
-
+      setGrossUOM("TNE");
     } else if (value === "2 : Rail") {
       setShowInwardMode(true);
       setShowconveyanceNumber(true);
@@ -546,12 +553,14 @@ function Header({ setActiveTab, isViewMode }) {
   // ====================== Handle Outward Transport Mode Change =================
   const OutwardTransportModeChange = (e) => {
     const value = e.target.value;
+    console.log("value:", value);
     setOutTransportMode(value);
     setCargoOutwardTransportMode(value);
     setShowOutWardDetails(true);
 
-    if (value === "--Select--") {
+    if (value === "--Select--" || value === "") {
       setShowOutwardTransportError(true);
+      setCargoOutwardTransportMode("");
       // Clear fields on --Select--
       setDischargePortCode("");
       setDischargePortName("");
@@ -1083,34 +1092,34 @@ function Header({ setActiveTab, isViewMode }) {
         )}
 
         {/* DECLARING FOR */}
-                {fieldConfig.showDeclaringFor && (
-        <div className="row align-items-center compact-row">
-          <label className="col-sm-4 col-form-label">DECLARING FOR</label>
-          <div className="col-sm-8">
-            <select
-              className="Dropdown HighLight mandatory"
-              value={declFor}
-              onChange={(e) => {
-                setDeclFor(e.target.value);
-                if (e.target.value) setShowDeclaringForError(false);
-              }}
-              tabIndex="5"
-            >
-              <option value="">--Select--</option>
-              {declaringFor.map((dclrfor) => (
-                <option key={dclrfor.Name} value={dclrfor.Name}>
-                  {dclrfor.Name}
-                </option>
-              ))}
-            </select>
-            {showDeclaringForError && (
-              <span className="ErrorColor" id="DeclaringForSpan">
-                PLEASE CHOOSE DECLARING FOR
-              </span>
-            )}
+        {fieldConfig.showDeclaringFor && (
+          <div className="row align-items-center compact-row">
+            <label className="col-sm-4 col-form-label">DECLARING FOR</label>
+            <div className="col-sm-8">
+              <select
+                className="Dropdown HighLight mandatory"
+                value={declFor}
+                onChange={(e) => {
+                  setDeclFor(e.target.value);
+                  if (e.target.value) setShowDeclaringForError(false);
+                }}
+                tabIndex="5"
+              >
+                <option value="">--Select--</option>
+                {declaringFor.map((dclrfor) => (
+                  <option key={dclrfor.Name} value={dclrfor.Name}>
+                    {dclrfor.Name}
+                  </option>
+                ))}
+              </select>
+              {showDeclaringForError && (
+                <span className="ErrorColor" id="DeclaringForSpan">
+                  PLEASE CHOOSE DECLARING FOR
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-                )}
+        )}
 
         {/* BG INDICATOR */}
         <div className="row align-items-center compact-row">

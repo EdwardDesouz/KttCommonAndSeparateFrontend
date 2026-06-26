@@ -7,6 +7,9 @@ import { UserContext } from "../../../userContex/userContex";
 import { useOut } from "../context/outContext";
 import { useNavigate } from "react-router-dom";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import ToastNotification, {
+  useToast,
+} from "../../../components/ToastNotification/toastNotification";
 
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -33,6 +36,8 @@ function Item({ setActiveTab, isViewMode }) {
     setShowOutItemHawbHbl,
     itemTable,
     setItemTable,
+    makingLot,
+    setMakingLot,
     itemSerialNumber,
     setItemSerialNumber,
     hawb,
@@ -186,12 +191,19 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeCer,
     percentageOrigin,
     setPercentageOrigin,
-
+    showLotId,
+    setShowLotId,
     showUnitPriceVal,
     setShowUnitPriceVal,
     itemCasc,
     setItemCasc,
     defaultItemCasc,
+    currentLot,
+    setCurrentLot,
+    making,
+    setMaking,
+    previousLot,
+    setPreviousLot,
     shippingMarks1,
     setShippingMarks1,
     shippingMarks2,
@@ -264,6 +276,7 @@ function Item({ setActiveTab, isViewMode }) {
   } = useOut();
 
   // ------------------ States ------------------
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     console.log("PERMIT DETAILS:", permitDetails);
@@ -493,6 +506,15 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
+  const toggleLotId = (checked) => {
+    setShowLotId(checked);
+    if (!checked) {
+      setCurrentLot("");
+      setMaking("");
+      setPreviousLot("");
+    }
+  };
+
   const toggleUnitPriceVal = (checked) => {
     setShowUnitPriceVal(checked);
   };
@@ -565,7 +587,27 @@ function Item({ setActiveTab, isViewMode }) {
     fetchHsCodeSuggestions();
   }, []);
   // ------------------ Handle Chage HsCode ------------------
-  const handleHsCodeChange = (e) => {
+  // const handleHsCodeChange = (e) => {
+  //   const val = e.target.value;
+  //   setHsCode(val);
+  //   setHsCodeError(false);
+  //   setHighlightedHsCodeIndex(0);
+
+  //   if (!val) {
+  //     setShowHsCodeDropdown(false);
+  //     setShowVehicle(false);
+  //     return;
+  //   }
+  //   const filtered = hsCodeSuggestions.filter(
+  //     (i) =>
+  //       i.HSCode.toLowerCase().includes(val.toLowerCase()) ||
+  //       i.Description.toLowerCase().includes(val.toLowerCase()),
+  //   );
+
+  //   setFilteredHsCodeSuggestions(filtered.slice(0, 100));
+  //   setShowHsCodeDropdown(filtered.length > 0);
+  // };
+    const handleHsCodeChange = (e) => {
     const val = e.target.value;
     setHsCode(val);
     setHsCodeError(false);
@@ -576,17 +618,62 @@ function Item({ setActiveTab, isViewMode }) {
       setShowVehicle(false);
       return;
     }
+
     const filtered = hsCodeSuggestions.filter(
       (i) =>
         i.HSCode.toLowerCase().includes(val.toLowerCase()) ||
         i.Description.toLowerCase().includes(val.toLowerCase()),
     );
 
-    setFilteredHsCodeSuggestions(filtered.slice(0, 100));
-    setShowHsCodeDropdown(filtered.length > 0);
+    const exactMatch = filtered.filter(
+      (i) => i.HSCode.toLowerCase() === val.toLowerCase()
+    );
+
+    const finalList = exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
+
+    setFilteredHsCodeSuggestions(finalList);
+    setShowHsCodeDropdown(finalList.length > 0);
   };
   // ======================== Hscode Keydown========================
+  // const handleHsCodeKeyDown = (e) => {
+  //   if (!showHscodeDropdown || filteredHsCodeSuggestions.length === 0) return;
+
+  //   if (e.key === "ArrowDown") {
+  //     e.preventDefault();
+  //     setHighlightedHsCodeIndex((prev) =>
+  //       prev + 1 >= filteredHsCodeSuggestions.length ? 0 : prev + 1,
+  //     );
+  //   } else if (e.key === "ArrowUp") {
+  //     e.preventDefault();
+  //     setHighlightedHsCodeIndex((prev) =>
+  //       prev - 1 < 0 ? filteredHsCodeSuggestions.length - 1 : prev - 1,
+  //     );
+  //   } else if (e.key === "Enter" || e.key === "Tab") {
+  //     e.preventDefault();
+  //     handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
+  //   }
+  // };
+
   const handleHsCodeKeyDown = (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+
+      // If dropdown open, select the highlighted item first
+      if (showHscodeDropdown && filteredHsCodeSuggestions.length > 0) {
+        handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
+      }
+
+      // Then move focus to description
+      setTimeout(() => {
+        const descEl = document.querySelector("textarea.inputStyle");
+        if (descEl) {
+          descEl.focus();
+          descEl.select();
+        }
+      }, 200);
+      return;
+    }
+
     if (!showHscodeDropdown || filteredHsCodeSuggestions.length === 0) return;
 
     if (e.key === "ArrowDown") {
@@ -599,12 +686,11 @@ function Item({ setActiveTab, isViewMode }) {
       setHighlightedHsCodeIndex((prev) =>
         prev - 1 < 0 ? filteredHsCodeSuggestions.length - 1 : prev - 1,
       );
-    } else if (e.key === "Enter" || e.key === "Tab") {
+    } else if (e.key === "Enter") {
       e.preventDefault();
       handleHsCodeSelect(filteredHsCodeSuggestions[highlightedHsCodeIndex]);
     }
   };
-
   // ======================== FETCH LOADING PORT========================
   const handleHsCodeSelect = async (item) => {
     setHsCode(item.HSCode);
@@ -834,6 +920,14 @@ function Item({ setActiveTab, isViewMode }) {
       setHsCodeError(false);
 
       applyHsLogic(selected);
+
+      setTimeout(() => {
+        const descEl = document.querySelector("textarea.inputStyle");
+        if (descEl) {
+          descEl.focus();
+          descEl.select();
+        }
+      }, 50);
     }, 150);
   };
 
@@ -1327,11 +1421,11 @@ function Item({ setActiveTab, isViewMode }) {
   };
   // ------------------Optional Charges Calculation -------------
   const optionalChargesFunction = (e) => {
-    const value = parseFloat(e.target.value) || 0;
+    const value = e.target.value || 0;
     setOptionalAmount(value);
     const rate = selectedCurrency?.CurrencyRate || 0;
     const charges = value * rate;
-    setOptionalCharges(charges.toFixed(2));
+    setOptionalCharges(charges);
   };
 
   // ------------------Alchohol Calculation Function-------------
@@ -1686,6 +1780,9 @@ function Item({ setActiveTab, isViewMode }) {
       OtherTaxUOM: otherTaxUom || "",
       OtherTaxAmount: otherTaxAmount || 0,
       LSPValue: lastSellingPrice || 0,
+      CurrentLot: currentLot || "",
+      PreviousLot: previousLot || "",
+      Making: making || "",
       ShippingMarks1: shippingMarks1 || "",
       ShippingMarks2: shippingMarks2 || "",
       ShippingMarks3: shippingMarks3 || "",
@@ -1719,7 +1816,7 @@ function Item({ setActiveTab, isViewMode }) {
     try {
       const res = await API.post("/postItemTable/", payload);
       setItemTable(res.data.Records);
-      alert("Item Saved Successfully");
+      showToast("Item Saved Successfully");
       const cascData = ItemCascSave(itemNumber);
       console.log("cascData:", cascData);
       if (cascData.length > 0) {
@@ -1922,6 +2019,16 @@ function Item({ setActiveTab, isViewMode }) {
     setOtherTaxUom(item.OtherTaxUOM || "");
     setOtherTaxAmount(item.OtherTaxAmount || 0);
     setLastSellingPrice(item.LSPValue || 0);
+
+    const hasLotId =
+      item.CurrentLot?.trim() ||
+      item.Making?.trim() ||
+      item.PreviousLot?.trim();
+    setShowLotId(!!hasLotId);
+    setCurrentLot(item.CurrentLot || "");
+    setMaking(item.Making || "");
+    setPreviousLot(item.PreviousLot || "");
+
     const hasShippingMarks =
       item.ShippingMarks1?.trim() ||
       item.ShippingMarks2?.trim() ||
@@ -2053,24 +2160,24 @@ function Item({ setActiveTab, isViewMode }) {
     setOutHawb((outCargoHawbList?.[0] || "").toUpperCase());
 
     // ---------------- DUTIABLE ----------------
-    setDuitableQuantity(0);
+    setDuitableQuantity("");
     setDuitableQuantityUom("--Select--");
     setTotalDuitableQuantity("");
     setTotalDuitableQuantityUom("--Select--");
-    setInvoiceQuantity(0.0);
-    setHsQuantity(0);
+    setInvoiceQuantity("");
+    setHsQuantity("");
     setHsUom("--Select--");
-    setAlcoholPercentage(0);
+    setAlcoholPercentage("");
     setSelectedInvoice("");
 
     // ---------------- INVOICE ----------------
-    setUnitPrice(0);
+    setUnitPrice("");
     setInvoiceCurrency("");
-    setInvoiceExRate(0);
-    setSumExchangeRate(0);
-    setTotalLineAmount(0);
-    setTotalInvoiceCharge(0);
-    setCifFob(0);
+    setInvoiceExRate("");
+    setSumExchangeRate("");
+    setTotalLineAmount("");
+    setTotalInvoiceCharge("");
+    setCifFob("");
 
     // ---------------- PACKING ----------------
     setPackingChecked(false);
@@ -2079,19 +2186,19 @@ function Item({ setActiveTab, isViewMode }) {
     setPreferentialCode("");
     setGstRateValue(9);
     setGstUom("");
-    setGstSum(0);
-    setExciseDutyRate(0);
+    setGstSum("");
+    setExciseDutyRate("");
     setExciseDutyUom("");
-    setExciseDutyAmount(0);
-    setCustomsDutyRate(0);
+    setExciseDutyAmount("");
+    setCustomsDutyRate("");
     setCustomsDutyUom("");
-    setCustomsDutyAmount(0);
-    setOtherTaxRate(0);
+    setCustomsDutyAmount("");
+    setOtherTaxRate("");
     setOtherTaxUom("");
-    setOtherTaxAmount(0);
+    setOtherTaxAmount("");
 
     // ---------------- LAST SELLING PRICE ----------------
-    setLastSellingPrice(0);
+    setLastSellingPrice("");
 
     // ---------------- SHIPPING MARKS ----------------
     setShippingMarks1("");
@@ -2099,9 +2206,14 @@ function Item({ setActiveTab, isViewMode }) {
     setShippingMarks3("");
     setShippingMarks4("");
 
+    // ---------------- LOT ID ----------------
+    setCurrentLot("");
+    setMaking("");
+    setPreviousLot("");
+
     // ---------------- OPTIONAL CHARGES ----------------
-    setOptionalCharges(0);
-    setOptionalAmount(0);
+    setOptionalCharges("");
+    setOptionalAmount("");
     setSelectedCurrency(null);
 
     // ---------------- UI VISIBILITY ----------------
@@ -2116,6 +2228,7 @@ function Item({ setActiveTab, isViewMode }) {
     setShowOptionalCharges(false);
     setShowUnitPriceVal(false);
     setUnbranded(false);
+    setShowLotId(false);
 
     // -------------------Certificate Of Origin----------------
     setCerItemQty(0);
@@ -2394,6 +2507,17 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
+  const fetchMakingLot = async () => {
+    try {
+      const response = await API.get("/getMakingLotFromCommonMaster/");
+      setMakingLot(response.data);
+    } catch (error) {
+      console.error("Error fetching makingLot data:", error);
+    }
+  };
+  useEffect(() => {
+    fetchMakingLot();
+  }, []);
   // ====================Next item Previous Item Function====================
   const NextItem = () => {
     const inputVal = document.getElementById("ItemNextItemID").value.trim();
@@ -3279,6 +3403,7 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle"
                     value={invoiceQuantity}
+                    placeholder="0.00"
                     onBlur={itemInvoiceQuantityFunction}
                     onChange={(e) => setInvoiceQuantity(e.target.value)}
                     tabIndex={13}
@@ -3426,6 +3551,25 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ cursor: "pointer" }}
                     >
                       SHIPPING MARK
+                    </label>
+                  </div>
+                </div>
+                <div className="col-2">
+                  <div className="d-flex align-items-center">
+                    <input
+                      type="checkbox"
+                      id="lotIdCheck"
+                      className="me-2"
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        cursor: "pointer",
+                      }}
+                      checked={showLotId}
+                      onChange={(e) => toggleLotId(e.target.checked)}
+                    />
+                    <label htmlFor="lotIdCheck" style={{ cursor: "pointer" }}>
+                      LOT ID
                     </label>
                   </div>
                 </div>
@@ -3835,6 +3979,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <input
                     type="text"
                     className="inputStyle"
+                    placeholder="0.00"
                     value={lastSellingPrice}
                     onChange={(e) => setLastSellingPrice(e.target.value)}
                     onBlur={() => {
@@ -4123,7 +4268,18 @@ function Item({ setActiveTab, isViewMode }) {
                     </button>
                   </div>
                 </div>
-
+                {item.description && (
+                  <small
+                    style={{
+                      color: "#f10e0e",
+                      fontSize: "11px",
+                      marginTop: "3px",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {item.description}
+                  </small>
+                )}
                 {/* Textarea + Table */}
                 <div className="row g-3 align-items-start">
                   {/* Textarea */}
@@ -4201,6 +4357,51 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* LOT ID */}
+      {showLotId && (
+        <div className="col-12 mt-4">
+          <div className="col-sm-8 border-bottom pb-1 full-width-title">
+            LOT ID
+          </div>
+          <div className="row mt-2">
+            <div className="col-4">CURRENT LOT</div>
+            <div className="col-4">MAKING</div>
+            <div className="col-4">PREVIOUS LOT</div>
+          </div>
+          <div className="row mt-3">
+            <div className="col-4">
+              <input
+                className="inputStyle"
+                value={currentLot}
+                onChange={(e) => setCurrentLot(e.target.value)}
+              />
+            </div>
+            <div className="col-4">
+              <select
+                className="Dropdown HighLight mandatory"
+                id="makingLot"
+                value={making}
+                onChange={(e) => setMaking(e.target.value)}
+              >
+                <option value="">--Select--</option>
+                {makingLot.map((lot) => (
+                  <option key={lot.Name} value={lot.Name}>
+                    {lot.Name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-4">
+              <input
+                className="inputStyle"
+                value={previousLot}
+                onChange={(e) => setPreviousLot(e.target.value)}
+              />
+            </div>
+          </div>
         </div>
       )}
 
@@ -4750,16 +4951,16 @@ function Item({ setActiveTab, isViewMode }) {
           <table id="ItemTable">
             <thead>
               <tr className="fontTable">
-                  {!isViewMode&&(
-                <th>
-                  <input
-                    type="checkbox"
-                    id="ItemHeadCheck"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                  />
-                </th>
-                      )}
+                {!isViewMode && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      id="ItemHeadCheck"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
+                )}
                 <th>EDIT</th>
                 <th>S.NO</th>
                 <th>HS CODE</th>
@@ -4797,20 +4998,20 @@ function Item({ setActiveTab, isViewMode }) {
                       style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
-                      <td>
-                        <input
-                          type="checkbox"
-                          name="itemCheckDel"
-                          value={item.ItemNo}
-                          checked={selectedItems.includes(item.ItemNo)}
-                          onChange={
-                            !isViewMode
-                              ? () => handleSelectOne(item.ItemNo)
-                              : undefined
-                          }
-                          readOnly={isViewMode}
-                        />
-                      </td>
+                        <td>
+                          <input
+                            type="checkbox"
+                            name="itemCheckDel"
+                            value={item.ItemNo}
+                            checked={selectedItems.includes(item.ItemNo)}
+                            onChange={
+                              !isViewMode
+                                ? () => handleSelectOne(item.ItemNo)
+                                : undefined
+                            }
+                            readOnly={isViewMode}
+                          />
+                        </td>
                       )}
                       <td>
                         <FaEdit
@@ -4852,6 +5053,9 @@ function Item({ setActiveTab, isViewMode }) {
           </button>
         </div>
       </div>
+      {/* Alert Notification */}
+      <ToastNotification toast={toast} onClose={hideToast} />
+
       {/* Popup */}
       {popupType && currentPopupConfig && (
         <SearchPopup
