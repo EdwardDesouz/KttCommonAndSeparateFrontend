@@ -212,9 +212,14 @@ function Party({ setActiveTab, isViewMode }) {
       setShowImporterNameError(false);
     }
 
-    const filtered = importerSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = importerSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
 
     setFilteredSuggestions(filtered.slice(0, 100));
     setShowImporterDropdown(filtered.length > 0);
@@ -381,9 +386,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = inwardSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = inwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredInwardSuggestions(filtered.slice(0, 100));
     setShowInwardDropdown(filtered.length > 0);
   };
@@ -538,10 +548,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const allSuggestions = freightForwarderSuggestions;
-    const filtered = allSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = freightForwarderSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
 
     setFilteredFreightForwarderSuggestions(filtered.slice(0, 100));
     setShowFreightForwarderDropdown(filtered.length > 0);
@@ -558,7 +572,7 @@ function Party({ setActiveTab, isViewMode }) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setFreightForwarderHighlightedIndex((prev) =>
-       prev + 1 >= filteredFreightForwarderSuggestions.length ? 0 : prev + 1,
+        prev + 1 >= filteredFreightForwarderSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -712,9 +726,15 @@ function Party({ setActiveTab, isViewMode }) {
       setShowClaimantDropdown(false);
       return;
     }
-    const filtered = claimantSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = claimantSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
+
     setFilteredClaimantSuggestions(filtered.slice(0, 100));
     setShowClaimantDropdown(filtered.length > 0);
   };
@@ -890,9 +910,14 @@ function Party({ setActiveTab, isViewMode }) {
       setShowCongineeDropdown(false);
       return;
     }
-    const filtered = congineeSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = congineeSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredCongineeSuggestions(filtered.slice(0, 100));
     setShowCongineeDropdown(filtered.length > 0);
   };
@@ -1114,9 +1139,15 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = exporterSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = exporterSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
+
     setFilteredExporterSuggestions(filtered.slice(0, 100));
     setShowExporterDropdown(filtered.length > 0);
   };
@@ -1275,9 +1306,14 @@ function Party({ setActiveTab, isViewMode }) {
     }
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
-    const filtered = outwardSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = outwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
     setShowOutwardDropdown(filtered.length > 0);

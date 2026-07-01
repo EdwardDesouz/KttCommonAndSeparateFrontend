@@ -723,11 +723,10 @@ function Invoice({ setActiveTab, isViewMode }) {
     // setFreightValueDollar(frDollar.toFixed(2));
     // setInsuranceValueDollar(insDollar.toFixed(2));
 
-    const totalCIF =
-      invDollar 
-      // othDollar +
-      // (showFreightRow ? frDollar : 0) +
-      // (showInsuranceRow ? insDollar : 0);
+    const totalCIF = invDollar;
+    // othDollar +
+    // (showFreightRow ? frDollar : 0) +
+    // (showInsuranceRow ? insDollar : 0);
     setCifTotal(totalCIF.toFixed(2));
 
     // const gstPercent = parseFloat(gstCharge) || 0;
@@ -792,7 +791,7 @@ function Invoice({ setActiveTab, isViewMode }) {
 
   // ======================== SAVE INVOICE ========================
   const saveInvoice = async () => {
-    console.log('hello')
+    console.log("hello");
     if (!validateInvoiceFields()) return;
     const payload = {
       PermitId: permitDetails?.PermitId,
@@ -946,14 +945,14 @@ function Invoice({ setActiveTab, isViewMode }) {
       setInvoiceExporterName1(name1);
     }
 
-const findInvoiceFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.TIExRate;
-};
+    const findInvoiceFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.TIExRate;
+    };
 
     setInvoiceCurrency(invoice.TICurrency);
     // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency)); 
+    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 
@@ -1268,7 +1267,6 @@ const findInvoiceFormattedRate = (currencyName) => {
   return (
     <div className="row g-2">
       <div className="col-12">
-
         {/* EXPORTER ROW */}
         <div className="row align-items-center compact-row mt-3">
           <label className="col-sm-2 col-form-label">EXPORTER</label>
@@ -1441,6 +1439,10 @@ const findInvoiceFormattedRate = (currencyName) => {
               onChange={(e) => setTermTypeSelected(e.target.value)}
             >
               <option value="">--Select--</option>
+              {termTypeSelected &&
+                !termType.find((t) => t.Name === termTypeSelected) && (
+                  <option value={termTypeSelected}>{termTypeSelected}</option>
+                )}
               {termType.map((ttype) => (
                 <option key={ttype.Name} value={ttype.Name}>
                   {ttype.Name}
@@ -1457,6 +1459,14 @@ const findInvoiceFormattedRate = (currencyName) => {
               onChange={(e) => setSupplierRelationship(e.target.value)}
             >
               <option value="">--Select--</option>
+              {supplierRelationship &&
+                !supplierImporterRelationship.includes(
+                  supplierRelationship,
+                ) && (
+                  <option value={supplierRelationship}>
+                    {supplierRelationship}
+                  </option>
+                )}
               {supplierImporterRelationship.map((opt, i) => (
                 <option key={i} value={opt}>
                   {opt}
@@ -1496,6 +1506,12 @@ const findInvoiceFormattedRate = (currencyName) => {
                     }
                   >
                     <option value="">--Select--</option>
+                    {invoiceCurrency &&
+                      !currency.find((c) => c.Currency === invoiceCurrency) && (
+                        <option value={invoiceCurrency}>
+                          {invoiceCurrency}
+                        </option>
+                      )}
                     {currency.map((cur) => (
                       <option key={cur.Currency} value={cur.Currency}>
                         {cur.Currency}

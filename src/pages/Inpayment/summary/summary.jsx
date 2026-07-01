@@ -887,10 +887,10 @@ function Summary({ setActiveTab, isViewMode }) {
     let PermitStatus = "NEW";
     let PermitNumber = permitDetails?.PermitNumber || "";
     if (PermitNumber === "None" || PermitNumber === "NONE") PermitNumber = "";
-  // Wire when Refund/Cancel/Amend tabs ready:
-  //   // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
-  //   // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
-  //   // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
+    // Wire when Refund/Cancel/Amend tabs ready:
+    //   // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
+    //   // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
+    //   // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
 
     const cpcData = prepareCpcData();
 
@@ -1679,6 +1679,12 @@ function Summary({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
+                {summaryDeclaringFor &&
+                  !declaringFor.find((d) => d.Name === summaryDeclaringFor) && (
+                    <option value={summaryDeclaringFor}>
+                      {summaryDeclaringFor}
+                    </option>
+                  )}
                 {declaringFor.map((dclrfor) => (
                   <option key={dclrfor.Name} value={dclrfor.Name}>
                     {dclrfor.Name}

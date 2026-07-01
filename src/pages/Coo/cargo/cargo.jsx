@@ -900,9 +900,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowDischargePortDropdown(false);
       return;
     }
-    const filtered = dischargePortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+ const filtered = dischargePortSuggestions.filter((i) => {
+  const [PortCode, PortName] = i.split(":");
+  const search = val.toLowerCase();
+  return (
+    PortCode.toLowerCase().startsWith(search) ||
+    PortName.toLowerCase().startsWith(search)
+  );
+});
     setFilteredDischargePortSuggestions(filtered.slice(0, 100));
     setShowDischargePortDropdown(filtered.length > 0);
   };
@@ -928,6 +933,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleDischargePortSelect(
         filteredDischargePortSuggestions[highlightedDischargePortIndex],
       );
+        setShowDischargePortDropdown(false);
     }
   };
 
@@ -949,12 +955,13 @@ function Cargo({ setActiveTab, isViewMode }) {
         setShowDischargePortDropdown(false);
         return;
       }
-      const selected = dischargePortSuggestions
-        .map((i) => i.split(":"))
-        .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === dischargePortCode.toLowerCase(),
-        );
+const selected = dischargePortSuggestions
+  .map((i) => i.split(":"))
+  .find(
+    ([PortCode, PortName]) =>
+      PortCode.toLowerCase() === dischargePortCode.toLowerCase() ||
+      PortName.toLowerCase() === dischargePortCode.toLowerCase()
+  );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
         setDischargePort({ PortCode, PortName, Country });
@@ -1043,7 +1050,7 @@ function Cargo({ setActiveTab, isViewMode }) {
   const handleNextPortFocusOut = () => {
     setTimeout(() => {
       if (!nextPortCode) {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortCode("");
         setNextPortName("");
         setShowNextPortDropdown(false);
@@ -1052,16 +1059,16 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = nextPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) => PortCode.toLowerCase() === nextPort.toLowerCase(),
+          ([PortCode]) => PortCode.toLowerCase() === nextPortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
-        setNextPortObj({ PortCode, PortName, Country });
+        setNextPort({ PortCode, PortName, Country });
         setNextPortCode(PortCode);
         setNextPortName(PortName);
         setNextPortError(false);
       } else {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortError(true);
       }
       setShowNextPortDropdown(false);
@@ -1788,14 +1795,15 @@ function Cargo({ setActiveTab, isViewMode }) {
                           }
                         >
                           <option value="">--Select--</option>
-                          {countryList.map((country) => (
-                            <option
-                              key={country.CountryCode}
-                              value={country.CountryCode}
-                            >
-                              {country.CountryCode}:{country.Description}
-                            </option>
-                          ))}
+  {finalDestinationCountry &&
+    !countryList.find((c) => c.CountryCode === finalDestinationCountry) && (
+      <option value={finalDestinationCountry}>{finalDestinationCountry}</option>
+  )}
+  {countryList.map((country) => (
+    <option key={country.CountryCode} value={country.CountryCode}>
+      {country.CountryCode}:{country.Description}
+    </option>
+  ))}
                         </select>
                       </div>
                     </div>

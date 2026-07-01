@@ -626,9 +626,15 @@ setSummaryCertificateType,
       return;
     }
 
-    const filtered = freightForwarderSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = freightForwarderSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
+
     setFilteredFreightForwarderSuggestions(filtered.slice(0, 100));
     setShowFreightForwarderDropdown(filtered.length > 0);
   };
@@ -976,9 +982,14 @@ setSummaryCertificateType,
       setShowCongineeDropdown(false);
       return;
     }
-    const filtered = congineeSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = congineeSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredCongineeSuggestions(filtered.slice(0, 100));
     setShowCongineeDropdown(filtered.length > 0);
   };
@@ -1200,9 +1211,14 @@ setSummaryCertificateType,
       return;
     }
 
-    const filtered = exporterSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = exporterSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredExporterSuggestions(filtered.slice(0, 100));
     setShowExporterDropdown(filtered.length > 0);
   };
@@ -1362,9 +1378,14 @@ setSummaryCertificateType,
     }
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
-    const filtered = outwardSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
-    );
+    const filtered = outwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
     setShowOutwardDropdown(filtered.length > 0);
@@ -1777,9 +1798,14 @@ setSummaryCertificateType,
       setShowManufacturerDropdown(false);
       return;
     }
-    const filtered = manufacturerSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = manufacturerSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredManufacturerSuggestions(filtered.slice(0, 100));
     setShowManufacturerDropdown(filtered.length > 0);
   };

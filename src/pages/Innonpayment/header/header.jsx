@@ -79,6 +79,9 @@ function Header({ setActiveTab, isViewMode }) {
     // Cargo
     grossUOM,
     setGrossUOM,
+    totalOuterPackName,
+    setTotalOuterPackName,
+
     showExporter,
     setShowExporter,
     showOutwardCarrier,
@@ -149,6 +152,14 @@ function Header({ setActiveTab, isViewMode }) {
     setShowOutItemHawbHbl,
     mawbNumber,
     setMawbNumber,
+    loadingPortCode,
+    setLoadingPortCode,
+    loadingPortName,
+    setLoadingPortName,
+    cargoHawb,
+    setCargoHawb,
+    arrivalDate,
+    setArrivalDate,
     showDeclarationTypeError,
     setShowDeclarationTypeError,
     showCargoPackTypeError,
@@ -220,14 +231,12 @@ function Header({ setActiveTab, isViewMode }) {
     setShowLastPort,
     outHblHawbLabel,
     setOutHblHawbLabel,
-    dischargePortCode,
-    setDischargePortCode,
-    dischargePortName,
-    setDischargePortName,
     finalDestinationCountry,
     setFinalDestinationCountry,
     departureDate,
     setDepartureDate,
+    outCargoHawb,
+    setOutCargoHawb,
     showDepartureDateError,
     nextPortCode,
     setNextPortCode,
@@ -237,6 +246,11 @@ function Header({ setActiveTab, isViewMode }) {
     setLastPortCode,
     lastPortName,
     setLastPortName,
+    dischargePortCode,
+    setDischargePortCode,
+    dischargePortName,
+    setDischargePortName,
+
     vesselNationality,
     setVesselNationality,
     towingVesselId,
@@ -467,11 +481,19 @@ function Header({ setActiveTab, isViewMode }) {
     } else {
       setShowCargoType(false);
     }
+    if (transportMode === "1 : Sea") {
+      if (value === "9: Containerized") {
+        setTotalOuterPackName("UNT");
+      } else if (value === "5 : Other non-Containerized") {
+        setTotalOuterPackName("--Select--");
+      }
+    }
   };
 
   // ==================== Handle Inward Transport Mode Change =================
   const InwardTrasnPortModeChange = (e) => {
     const value = e.target.value;
+    const isContainer = cargo;
     setTransportMode(value);
     setInwardTransport(value);
     if (value === "--Select--") {
@@ -489,10 +511,12 @@ function Header({ setActiveTab, isViewMode }) {
     setFlightNumber("");
     setAirCraftRegNumber("");
     setMawbNumber("");
-
+    // setLoadingPortCode("");
+    // setLoadingPortName("");
+    // setCargoHawb("");
+    // setArrivalDate("");
     setShowInWardDetails(true);
     setShowInwardTransport(true);
-
     setShowVoyageNumber(false);
     setShowVesselName(false);
     setShowOblNumber(false);
@@ -510,6 +534,11 @@ function Header({ setActiveTab, isViewMode }) {
       setShowInwardMode(true);
       setShowInHawbInward(true);
       setGrossUOM("TNE");
+      if (isContainer === "9: Containerized") {
+        setTotalOuterPackName("UNT");
+      } else if (isContainer === "5 : Other non-Containerized") {
+        setTotalOuterPackName("--Select--");
+      }
     } else if (value === "2 : Rail") {
       setShowInwardMode(true);
       setShowconveyanceNumber(true);
@@ -526,6 +555,8 @@ function Header({ setActiveTab, isViewMode }) {
       setShowInwardMode(true);
       setShowMawbNumber(true);
       setShowInHawbInward(true);
+      setTotalOuterPackName("PKG");
+      setGrossUOM("KGM");
     } else if (value === "5 : Mail") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
@@ -598,6 +629,7 @@ function Header({ setActiveTab, isViewMode }) {
       setNextPortName("");
       setLastPortCode("");
       setLastPortName("");
+
       return;
     }
 
@@ -643,6 +675,11 @@ function Header({ setActiveTab, isViewMode }) {
     setNextPortName("");
     setLastPortCode("");
     setLastPortName("");
+    // setDischargePortCode("");
+    // setDischargePortName("");
+    // setFinalDestinationCountry("");
+    // setDepartureDate("");
+    setOutCargoHawb("");
 
     // RESET label
     setOutHblHawbLabel("HAWB/HBL");
@@ -970,6 +1007,9 @@ function Header({ setActiveTab, isViewMode }) {
               onChange={DeclarationChange}
             >
               <option value="">--Select--</option>
+              {decType && !declarantType.find((d) => d.Name === decType) && (
+                <option value={decType}>{decType}</option>
+              )}
               {declarantType.map((dectype) => (
                 <option key={dectype.Name} value={dectype.Name}>
                   {dectype.Name}
@@ -1009,6 +1049,9 @@ function Header({ setActiveTab, isViewMode }) {
               onChange={CargoPackTypeChange}
             >
               <option value="">--Select--</option>
+              {cargo && !cargoType.find((c) => c.Name === cargo) && (
+                <option value={cargo}>{cargo}</option>
+              )}
               {cargoType.map((cargotype) => (
                 <option key={cargotype.Name} value={cargotype.Name}>
                   {cargotype.Name}
@@ -1038,6 +1081,10 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex={4}
               >
                 <option value="">--Select--</option>
+                {transportMode &&
+                  !inwardTransportMode.find(
+                    (t) => t.Name === transportMode,
+                  ) && <option value={transportMode}>{transportMode}</option>}
                 {inwardTransportMode.map((inwardTransward) => (
                   <option
                     key={inwardTransward.Name}
@@ -1073,6 +1120,12 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex={4}
               >
                 <option value="">--Select--</option>
+                {outTransportMode &&
+                  !outWardTransportModeList.find(
+                    (t) => t.Name === outTransportMode,
+                  ) && (
+                    <option value={outTransportMode}>{outTransportMode}</option>
+                  )}
                 {outWardTransportModeList.map((outwardTransward) => (
                   <option
                     key={outwardTransward.Name}
@@ -1106,6 +1159,9 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
+                {declFor && !declaringFor.find((d) => d.Name === declFor) && (
+                  <option value={declFor}>{declFor}</option>
+                )}
                 {declaringFor.map((dclrfor) => (
                   <option key={dclrfor.Name} value={dclrfor.Name}>
                     {dclrfor.Name}
@@ -1132,6 +1188,9 @@ function Header({ setActiveTab, isViewMode }) {
               tabIndex="6"
             >
               <option value="">--Select--</option>
+              {bgInd && !bgIndicator.find((b) => b.Name === bgInd) && (
+                <option value={bgInd}>{bgInd}</option>
+              )}
               {bgIndicator.map((bgindr) => (
                 <option key={bgindr.Name} value={bgindr.Name}>
                   {bgindr.Name}
@@ -1460,6 +1519,10 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={handleDocTypeChange}
                   >
                     <option value="">--Select--</option>
+                    {documentType &&
+                      !documentAttachType.find(
+                        (d) => d.Name === documentType,
+                      ) && <option value={documentType}>{documentType}</option>}
                     {documentAttachType.map((doc) => (
                       <option key={doc.Name} value={doc.Name}>
                         {doc.Name}

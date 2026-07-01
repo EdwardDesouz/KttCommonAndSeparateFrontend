@@ -275,7 +275,7 @@ function Inpayment() {
           enabled.DOWNLOADDATA = true;
           enabled.PRINTCCP = true;
           enabled.DOWNLOADCCP = false;
-          enabled.PRINTGSTALL=true;
+          enabled.PRINTGSTALL = true;
         } else if (commonStatus === "DRF" || commonStatus === "SAVEASDRF") {
           enabled.DOWNLOADDATA = true;
           enabled.PRINTCCP = false;
@@ -481,7 +481,33 @@ function Inpayment() {
       const username = userData?.username;
       const touchTime = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-      const response = await API.post("/transmitInnonpayment/", {
+      const response = await API.post("/transmitInpayment/", {
+        permitIds: selectedPermits,
+        declarationType: inDecTypeSelected,
+        user: username,
+        touchTime: touchTime,
+      });
+
+      alert(response.data.message || "Transmit successful");
+      setSelectedPermits([]);
+      setInDecTypeSelected("");
+      setShowInTransmitData(false);
+      fetchTableData(showAll);
+    } catch (error) {
+      console.error("Inpayment Transmit failed:", error);
+      alert(error.response?.data?.error || "Transmit failed");
+    }
+  };
+
+  const handleOutTransmit = async () => {
+    if (!selectedPermits.length || !inDecTypeSelected) return;
+
+    try {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      const username = userData?.username;
+      const touchTime = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+      const response = await API.post("/transmitOut/", {
         permitIds: selectedPermits,
         declarationType: inDecTypeSelected,
         user: username,
@@ -874,7 +900,7 @@ function Inpayment() {
                       if (!e.target.checked) setInDecTypeSelected("");
                     }}
                   />
-                  <label htmlFor="InPaymentCheck">INPAYMENT</label>
+                  <label htmlFor="InPaymentCheck">INPAYMENT & OUT</label>
                 </li>
                 <li>
                   <select
@@ -965,7 +991,16 @@ function Inpayment() {
                       disabled={!isInTransmitReady}
                       onClick={handleInTransmit}
                     >
-                      Transmit
+                      Transmit Inpayment
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className="btn1"
+                      disabled={!isInTransmitReady}
+                      onClick={handleInTransmit}
+                    >
+                      Transmit Out
                     </button>
                   </li>
                   {!isInTransmitReady && (

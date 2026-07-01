@@ -76,6 +76,10 @@ function Item({ setActiveTab, isViewMode }) {
     setInvoiceCurrencyItem,
     invoiceExRateItem,
     setInvoiceExRateItem,
+    invoiceCurrency,
+    setInvoiceCurrency,
+    invoiceExRate,
+    setInvoiceExRate,
     unitPrice,
     setUnitPrice,
     sumExchangeRate,
@@ -660,10 +664,11 @@ function Item({ setActiveTab, isViewMode }) {
     );
 
     const exactMatch = filtered.filter(
-      (i) => i.HSCode.toLowerCase() === val.toLowerCase()
+      (i) => i.HSCode.toLowerCase() === val.toLowerCase(),
     );
 
-    const finalList = exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
+    const finalList =
+      exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
 
     setFilteredHsCodeSuggestions(finalList);
     setShowHsCodeDropdown(finalList.length > 0);
@@ -1066,9 +1071,9 @@ function Item({ setActiveTab, isViewMode }) {
 
   // -------------------Invoices States-------------
   // const [selectedInvoice, setSelectedInvoice] = useState("");
-  const [invoiceCurrency, setInvoiceCurrency] = useState("");
+  // const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceCurrencyError, setInvoiceCurrencyError] = useState(false);
-  const [invoiceExRate, setInvoiceExRate] = useState("");
+  // const [invoiceExRate, setInvoiceExRate] = useState("");
   // -------------------Invoices changes-------------
 
   const applyInvoiceChange = (invoiceNo, clearIfNotFound = true) => {
@@ -2437,7 +2442,6 @@ function Item({ setActiveTab, isViewMode }) {
         PermitId: permitDetails?.PermitId,
       });
       setItemTable(res.data.Item);
-      // localStorage.setItem("itemTableData", JSON.stringify(res.data.Item));
       alert(res.data.message);
     } catch (error) {
       console.error("Edit All failed", error);
@@ -3199,6 +3203,12 @@ function Item({ setActiveTab, isViewMode }) {
                         onChange={(e) => setVehicleType(e.target.value)}
                       >
                         <option value="">--Select--</option>
+                        {vehicleType &&
+                          !vehicleTypeOptions?.find(
+                            (v) => v.Name === vehicleType,
+                          ) && (
+                            <option value={vehicleType}>{vehicleType}</option>
+                          )}
                         {vehicleTypeOptions?.map((vecopt) => (
                           <option key={vecopt.Name} value={vecopt.Name}>
                             {vecopt.Name}
@@ -3231,6 +3241,14 @@ function Item({ setActiveTab, isViewMode }) {
                         onChange={(e) => setEngineCapacityUom(e.target.value)}
                       >
                         <option value="">--Select--</option>
+                        {engineCapacityUom &&
+                          !engineCapacity?.find(
+                            (e) => e.Name === engineCapacityUom,
+                          ) && (
+                            <option value={engineCapacityUom}>
+                              {engineCapacityUom}
+                            </option>
+                          )}
                         {engineCapacity?.map((encpt) => (
                           <option key={encpt.Name} value={encpt.Name}>
                             {encpt.Name}
@@ -3284,6 +3302,15 @@ function Item({ setActiveTab, isViewMode }) {
                       onChange={(e) => setDuitableQuantityUom(e.target.value)}
                     >
                       <option>--Select--</option>
+                      {duitableQuantityUom &&
+                        duitableQuantityUom !== "--Select--" &&
+                        !totalOuterPack.find(
+                          (t) => t.Name === duitableQuantityUom,
+                        ) && (
+                          <option value={duitableQuantityUom}>
+                            {duitableQuantityUom}
+                          </option>
+                        )}
                       {totalOuterPack.map((tooupack) => (
                         <option key={tooupack.Name} value={tooupack.Name}>
                           {tooupack.Name}
@@ -3319,6 +3346,15 @@ function Item({ setActiveTab, isViewMode }) {
                     }
                   >
                     <option>--Select--</option>
+                    {/* {totalDuitableQuantityUom &&
+                      totalDuitableQuantityUom !== "--Select--" &&
+                      !totalOuterPack.find(
+                        (t) => t.Name === totalDuitableQuantityUom,
+                      ) && (
+                        <option value={totalDuitableQuantityUom}>
+                          {totalDuitableQuantityUom}
+                        </option>
+                      )} */}
                     {totalOuterPack.map((tooupack) => (
                       <option key={tooupack.Name} value={tooupack.Name}>
                         {tooupack.Name}
@@ -3373,6 +3409,11 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={(e) => handleUomChange(e.target.value)}
                   >
                     <option>--Select--</option>
+                    {hsUom &&
+                      hsUom !== "--Select--" &&
+                      !totalOuterPack.find((t) => t.Name === hsUom) && (
+                        <option value={hsUom}>{hsUom}</option>
+                      )}
                     {totalOuterPack.map((tooupack) => (
                       <option key={tooupack.Name} value={tooupack.Name}>
                         {tooupack.Name}
@@ -3524,6 +3565,14 @@ function Item({ setActiveTab, isViewMode }) {
                     }}
                   >
                     <option value="">--Select--</option>
+                    {preferentialCode &&
+                      !preferential?.find(
+                        (p) => p.Name === preferentialCode,
+                      ) && (
+                        <option value={preferentialCode}>
+                          {preferentialCode}
+                        </option>
+                      )}
                     {preferential?.map((pref) => (
                       <option key={pref.Name} value={pref.Name}>
                         {pref.Name}
@@ -3674,6 +3723,14 @@ function Item({ setActiveTab, isViewMode }) {
                             }}
                           >
                             <option value="">--Select--</option>
+                            {otherTaxUom &&
+                              !totalOuterPack?.find(
+                                (i) => i.Name === otherTaxUom,
+                              ) && (
+                                <option value={otherTaxUom}>
+                                  {otherTaxUom}
+                                </option>
+                              )}
                             {totalOuterPack?.map((i, index) => (
                               <option key={index} value={i.Name}>
                                 {i.Name}
@@ -3712,6 +3769,14 @@ function Item({ setActiveTab, isViewMode }) {
                     defaultValue=""
                   >
                     <option value="">--Select--</option>
+                    {selectedInvoice &&
+                      !invoiceNumbers.find(
+                        (inv) => inv.InvoiceNo === selectedInvoice,
+                      ) && (
+                        <option value={selectedInvoice}>
+                          {selectedInvoice}
+                        </option>
+                      )}
                     {invoiceNumbers.map((inv) => (
                       <option key={inv.InvoiceNo} value={inv.InvoiceNo}>
                         {inv.InvoiceNo}
@@ -3805,7 +3870,8 @@ function Item({ setActiveTab, isViewMode }) {
                     <div className="col-4">
                       <select
                         className="Dropdown"
-                        defaultValue=""
+                        placeholder=""
+                        // value={optionalCharges}
                         onChange={(e) => {
                           const selected = currency.find(
                             (cur) => cur.Currency === e.target.value,
@@ -3814,6 +3880,14 @@ function Item({ setActiveTab, isViewMode }) {
                         }}
                       >
                         <option value="">--Select--</option>
+                        {selectedCurrency &&
+                          !currency.find(
+                            (c) => c.Currency === selectedCurrency.CurrencyUOM,
+                          ) && (
+                            <option value={selectedCurrency.CurrencyUOM}>
+                              {selectedCurrency.CurrencyUOM}
+                            </option>
+                          )}
                         {currency.map((cur) => (
                           <option key={cur.Currency} value={cur.Currency}>
                             {cur.Currency}
@@ -3965,6 +4039,14 @@ function Item({ setActiveTab, isViewMode }) {
                       onChange={(e) => setOuterPackQuantityUom(e.target.value)}
                     >
                       <option value="">--Select--</option>
+                      {outerPackQuantityUom &&
+                        !totalOuterPack?.find(
+                          (t) => t.Name === outerPackQuantityUom,
+                        ) && (
+                          <option value={outerPackQuantityUom}>
+                            {outerPackQuantityUom}
+                          </option>
+                        )}
                       {totalOuterPack?.map((i, idx) => (
                         <option key={idx} value={i.Name}>
                           {i.Name}
@@ -4193,6 +4275,10 @@ function Item({ setActiveTab, isViewMode }) {
                       }
                     >
                       <option value="">--Select--</option>
+                      {item.uom &&
+                        !totalOuterPack.find((t) => t.Name === item.uom) && (
+                          <option value={item.uom}>{item.uom}</option>
+                        )}
                       {totalOuterPack.map((pack, i) => (
                         <option key={i} value={pack.Name}>
                           {pack.Name}
@@ -4308,6 +4394,9 @@ function Item({ setActiveTab, isViewMode }) {
                 onChange={(e) => setMaking(e.target.value)}
               >
                 <option value="">--Select--</option>
+                {making && !makingLot.find((m) => m.Name === making) && (
+                  <option value={making}>{making}</option>
+                )}
                 {makingLot.map((lot) => (
                   <option key={lot.Name} value={lot.Name}>
                     {lot.Name}
@@ -4610,6 +4699,23 @@ function Item({ setActiveTab, isViewMode }) {
             className="inputStyle"
             placeholder="SEARCH BY ITEM NO..."
           />
+        </div>
+        <div className="col-2">
+          <input
+            type="text"
+            className="inputStyle"
+            placeholder="ENTER ALL BRAND NAME..."
+          />
+        </div>
+        <div className="col-2">
+          <button className="MoveOnButtons showDisable" type="button">
+            ALL ITEM BRAND
+          </button>
+        </div>
+        <div className="col-2">
+          <button className="MoveOnButtons showDisable" type="button">
+            DELETE BRAND
+          </button>
         </div>
       </div>
 

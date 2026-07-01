@@ -296,10 +296,14 @@ function Party({ setActiveTab, isViewMode }) {
       setShowImporterNameError(false);
     }
 
-    const filtered = importerSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
-
+    const filtered = importerSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredSuggestions(filtered.slice(0, 100));
     setShowImporterDropdown(filtered.length > 0);
   };
@@ -465,9 +469,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = inwardSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = inwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredInwardSuggestions(filtered.slice(0, 100));
     setShowInwardDropdown(filtered.length > 0);
   };
@@ -624,9 +633,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = freightForwarderSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = freightForwarderSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredFreightForwarderSuggestions(filtered.slice(0, 100));
     setShowFreightForwarderDropdown(filtered.length > 0);
   };
@@ -970,9 +984,14 @@ if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length 
       setShowCongineeDropdown(false);
       return;
     }
-    const filtered = congineeSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = congineeSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredCongineeSuggestions(filtered.slice(0, 100));
     setShowCongineeDropdown(filtered.length > 0);
   };
@@ -1356,9 +1375,14 @@ if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length 
     }
 
     console.log("outwardSuggestions length:", outwardSuggestions.length);
-    const filtered = outwardSuggestions.filter((i) =>
-        i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = outwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     console.log("filtered:", filtered);
     setFilteredOutwardSuggestions(filtered.slice(0, 100));
     setShowOutwardDropdown(filtered.length > 0);
@@ -1520,9 +1544,14 @@ if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length 
       setShowEndUserDropdown(false);
       return;
     }
-    const filtered = endUserSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = endUserSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredEndUserSuggestions(filtered.slice(0, 100));
     setShowEndUserDropdown(filtered.length > 0);
   };
@@ -2011,7 +2040,7 @@ if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length 
     const val = e.target.value;
     setHandlingAgentCode(val);
     setHandlingAgentError(false);
-    setHighlightedIndex(0);
+    setHandleHighlightedIndex(0);
 
     if (!val) {
       setShowHandlingAgentDropdown(false);
@@ -2025,30 +2054,34 @@ if (!showFreightForwarderDropdown || filteredFreightForwarderSuggestions.length 
       setShowHandlingAgentNameError(false);
     }
 
-    const filtered = handlingAgentSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = handlingAgentSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
 
 setHandleFilteredSuggestions(filtered.slice(0, 100));
     setShowHandlingAgentDropdown(filtered.length > 0);
   };
   // ======================== HANDLING AGENT KEYDOWN ========================
-  const handleHandlingAgentKeyDown = (e) => {
-    if (!showHandlingAgentDropdown || filteredSuggestions.length === 0) return;
-
+const handleHandlingAgentKeyDown = (e) => {
+    if (!showHandlingAgentDropdown || handlefilteredSuggestions.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev + 1 >= filteredSuggestions.length ? 0 : prev + 1,
+      setHandleHighlightedIndex((prev) =>
+        prev + 1 >= handlefilteredSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev - 1 < 0 ? filteredSuggestions.length - 1 : prev - 1,
+      setHandleHighlightedIndex((prev) =>
+        prev - 1 < 0 ? handlefilteredSuggestions.length - 1 : prev - 1,
       );
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
-      handleHandlingAgentSelect(filteredSuggestions[highlightedIndex]);
+      handleHandlingAgentSelect(handlefilteredSuggestions[handlehighlightedIndex]);
     }
   };
   // ======================== HANDLING AGENT SELECT ========================

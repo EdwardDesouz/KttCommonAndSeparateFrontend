@@ -947,29 +947,29 @@ function Invoice({ setActiveTab, isViewMode }) {
       setInvoiceImporterName1(name1);
     }
 
-const findInvoiceFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.TIExRate;
-};
+    const findInvoiceFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.TIExRate;
+    };
 
-const findOtheresFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.OTCExRate;
-};
+    const findOtheresFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.OTCExRate;
+    };
 
-const findFreightFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.FCExRate;
-};
+    const findFreightFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.FCExRate;
+    };
 
-const findInsuranceFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.ICExRate;
-};
+    const findInsuranceFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.ICExRate;
+    };
 
     setInvoiceCurrency(invoice.TICurrency);
     // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency)); 
+    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 
@@ -990,7 +990,7 @@ const findInsuranceFormattedRate = (currencyName) => {
     setInsuranceCharges(invoice.ICCharge);
     setInsuranceValueCurrency(invoice.ICCurrency);
     // setInsuranceValueExRate(invoice.ICExRate);
-    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency)); 
+    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency));
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
 
@@ -1571,6 +1571,10 @@ const findInsuranceFormattedRate = (currencyName) => {
               onChange={(e) => handleTermChange(e.target.value)}
             >
               <option value="">--Select--</option>
+              {termTypeSelected &&
+                !termType.find((t) => t.Name === termTypeSelected) && (
+                  <option value={termTypeSelected}>{termTypeSelected}</option>
+                )}
               {termType.map((ttype) => (
                 <option key={ttype.Name} value={ttype.Name}>
                   {ttype.Name}
@@ -1587,6 +1591,14 @@ const findInsuranceFormattedRate = (currencyName) => {
               onChange={(e) => setSupplierRelationship(e.target.value)}
             >
               <option value="">--Select--</option>
+              {supplierRelationship &&
+                !supplierImporterRelationship.includes(
+                  supplierRelationship,
+                ) && (
+                  <option value={supplierRelationship}>
+                    {supplierRelationship}
+                  </option>
+                )}
               {supplierImporterRelationship.map((opt, i) => (
                 <option key={i} value={opt}>
                   {opt}
@@ -1626,6 +1638,12 @@ const findInsuranceFormattedRate = (currencyName) => {
                     }
                   >
                     <option value="">--Select--</option>
+                    {invoiceCurrency &&
+                      !currency.find((c) => c.Currency === invoiceCurrency) && (
+                        <option value={invoiceCurrency}>
+                          {invoiceCurrency}
+                        </option>
+                      )}
                     {currency.map((cur) => (
                       <option key={cur.Currency} value={cur.Currency}>
                         {cur.Currency}
@@ -1693,6 +1711,14 @@ const findInsuranceFormattedRate = (currencyName) => {
                     }
                   >
                     <option value="">--Select--</option>
+                    {otherValueCurrency &&
+                      !currency.find(
+                        (c) => c.Currency === otherValueCurrency,
+                      ) && (
+                        <option value={otherValueCurrency}>
+                          {otherValueCurrency}
+                        </option>
+                      )}
                     {currency.map((cur) => (
                       <option key={cur.Currency} value={cur.Currency}>
                         {cur.Currency}
@@ -1768,6 +1794,14 @@ const findInsuranceFormattedRate = (currencyName) => {
                       }
                     >
                       <option value="">--Select--</option>
+                      {freightValueCurrency &&
+                        !currency.find(
+                          (c) => c.Currency === freightValueCurrency,
+                        ) && (
+                          <option value={freightValueCurrency}>
+                            {freightValueCurrency}
+                          </option>
+                        )}
                       {currency.map((cur) => (
                         <option key={cur.Currency} value={cur.Currency}>
                           {cur.Currency}
@@ -1845,6 +1879,14 @@ const findInsuranceFormattedRate = (currencyName) => {
                       }
                     >
                       <option value="">--Select--</option>
+                      {insuranceValueCurrency &&
+                        !currency.find(
+                          (c) => c.Currency === insuranceValueCurrency,
+                        ) && (
+                          <option value={insuranceValueCurrency}>
+                            {insuranceValueCurrency}
+                          </option>
+                        )}
                       {currency.map((cur) => (
                         <option key={cur.Currency} value={cur.Currency}>
                           {cur.Currency}

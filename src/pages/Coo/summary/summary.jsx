@@ -1755,6 +1755,12 @@ function Summary({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
+                   {summaryDeclaringFor &&
+                  !declaringFor.find((d) => d.Name === summaryDeclaringFor) && (
+                    <option value={summaryDeclaringFor}>
+                      {summaryDeclaringFor}
+                    </option>
+                  )}
                 {declaringFor.map((dclrfor) => (
                   <option key={dclrfor.Name} value={dclrfor.Name}>
                     {dclrfor.Name}

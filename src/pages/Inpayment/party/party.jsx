@@ -163,9 +163,17 @@ function Party({ setActiveTab, isViewMode }) {
       setShowImporterNameError(false);
     }
 
-    const filtered = importerSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
+    const filtered = importerSuggestions.filter(
+      (i) => {
+        const [Code, Cruei, Name, Name1] = i.split(":");
+        const search = val.toLowerCase();
+        return (
+          Code.toLowerCase().startsWith(search) ||
+          Name.toLowerCase().startsWith(search)
+        );
+      },
     );
+    // console.log("Filtered:", filtered);
 
     setFilteredSuggestions(filtered.slice(0, 100));
     setShowImporterDropdown(filtered.length > 0);
@@ -332,9 +340,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = inwardSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = inwardSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredInwardSuggestions(filtered.slice(0, 100));
     setShowInwardDropdown(filtered.length > 0);
   };
@@ -489,10 +502,14 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const allSuggestions = freightForwarderSuggestions;
-    const filtered = allSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = freightForwarderSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
 
     setFilteredFreightForwarderSuggestions(filtered.slice(0, 100));
     setShowFreightForwarderDropdown(filtered.length > 0);
@@ -662,9 +679,15 @@ function Party({ setActiveTab, isViewMode }) {
       setShowClaimantDropdown(false);
       return;
     }
-    const filtered = claimantSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = claimantSuggestions.filter((i) => {
+      const [Code, Cruei, Name] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
+
     setFilteredClaimantSuggestions(filtered.slice(0, 100));
     setShowClaimantDropdown(filtered.length > 0);
   };

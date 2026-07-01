@@ -7,8 +7,9 @@ import { UserContext } from "../../../userContex/userContex";
 import { useCoo } from "../context/cooContext";
 import { useNavigate } from "react-router-dom";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
-import ToastNotification, {useToast} from "../../../components/ToastNotification/toastNotification";
-
+import ToastNotification, {
+  useToast,
+} from "../../../components/ToastNotification/toastNotification";
 
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -200,6 +201,11 @@ function Item({ setActiveTab, isViewMode }) {
 
     showUnitPriceVal,
     setShowUnitPriceVal,
+    invoiceCurrency,
+    setInvoiceCurrency,
+    invoiceExRate,
+    setInvoiceExRate,
+
     itemCasc,
     setItemCasc,
     defaultItemCasc,
@@ -269,8 +275,7 @@ function Item({ setActiveTab, isViewMode }) {
   } = useCoo();
 
   // ------------------ States ------------------
- const { toast, showToast, hideToast } = useToast();
-
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     console.log("PERMIT DETAILS:", permitDetails);
@@ -594,7 +599,7 @@ function Item({ setActiveTab, isViewMode }) {
   //   setShowHsCodeDropdown(filtered.length > 0);
   // };
 
-    const handleHsCodeChange = (e) => {
+  const handleHsCodeChange = (e) => {
     const val = e.target.value;
     setHsCode(val);
     setHsCodeError(false);
@@ -613,15 +618,16 @@ function Item({ setActiveTab, isViewMode }) {
     );
 
     const exactMatch = filtered.filter(
-      (i) => i.HSCode.toLowerCase() === val.toLowerCase()
+      (i) => i.HSCode.toLowerCase() === val.toLowerCase(),
     );
 
-    const finalList = exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
+    const finalList =
+      exactMatch.length > 0 ? exactMatch : filtered.slice(0, 100);
 
     setFilteredHsCodeSuggestions(finalList);
     setShowHsCodeDropdown(finalList.length > 0);
   };
-  
+
   // ======================== Hscode Keydown========================
   // const handleHsCodeKeyDown = (e) => {
   //   if (!showHscodeDropdown || filteredHsCodeSuggestions.length === 0) return;
@@ -642,7 +648,7 @@ function Item({ setActiveTab, isViewMode }) {
   //   }
   // };
 
-    const handleHsCodeKeyDown = (e) => {
+  const handleHsCodeKeyDown = (e) => {
     if (e.key === "Tab") {
       e.preventDefault();
 
@@ -700,7 +706,7 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
-  const applyHsLogic = (item) => {
+ const applyHsLogic = (item) => {
     const {
       HSCode,
       UOM,
@@ -871,6 +877,7 @@ function Item({ setActiveTab, isViewMode }) {
       setTotalDuitableQuantityUom(DuitableUom);
     }
   };
+  
   // ── HS CODE FOCUS OUT ────────────────────────────────────
   const handleHsCodeFocusOut = () => {
     setTimeout(() => {
@@ -905,13 +912,13 @@ function Item({ setActiveTab, isViewMode }) {
       applyHsLogic(selected);
     }, 150);
 
-          setTimeout(() => {
-        const descEl = document.querySelector("textarea.inputStyle");
-        if (descEl) {
-          descEl.focus();
-          descEl.select();
-        }
-      }, 50);
+    setTimeout(() => {
+      const descEl = document.querySelector("textarea.inputStyle");
+      if (descEl) {
+        descEl.focus();
+        descEl.select();
+      }
+    }, 50);
   };
 
   // --------------------Hs code uom Checking-------------------
@@ -1033,9 +1040,9 @@ function Item({ setActiveTab, isViewMode }) {
 
   // -------------------Invoices States-------------
   // const [selectedInvoice, setSelectedInvoice] = useState("");
-  const [invoiceCurrency, setInvoiceCurrency] = useState("");
+  // const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceCurrencyError, setInvoiceCurrencyError] = useState(false);
-  const [invoiceExRate, setInvoiceExRate] = useState("");
+  // const [invoiceExRate, setInvoiceExRate] = useState("");
   // -------------------Invoices changes-------------
   const handleCurrencyChange = (currencyName, row) => {
     const selected = currency.find((item) => item.Currency === currencyName);
@@ -2424,7 +2431,7 @@ function Item({ setActiveTab, isViewMode }) {
         MSGId: permitDetails?.MsgId || "",
         TradeNetMailboxID:
           permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
-        MessageType: "TNPDEC",
+        MessageType: "COODEC",
 
         // ── Header fields ──────────────────────────────────
         DeclarationType: decType || "",
@@ -2522,7 +2529,7 @@ function Item({ setActiveTab, isViewMode }) {
   //     MSGId: permitDetails?.MsgId || "",
   //     TradeNetMailboxID:
   //       permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
-  //     MessageType: "TNPDEC",
+  //     MessageType: "COODEC",
   //     DeclarationType: decType || "",
   //     PreviousPermit: prevPermitNo || "",
   //     CargoPackType: cargo || "",
@@ -2942,6 +2949,11 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={(e) => handleUomChange(e.target.value)}
                   >
                     <option>--Select--</option>
+                    {hsUom &&
+                      hsUom !== "--Select--" &&
+                      !totalOuterPack.find((t) => t.Name === hsUom) && (
+                        <option value={hsUom}>{hsUom}</option>
+                      )}
                     {totalOuterPack.map((tooupack) => (
                       <option key={tooupack.Name} value={tooupack.Name}>
                         {tooupack.Name}
@@ -2986,6 +2998,12 @@ function Item({ setActiveTab, isViewMode }) {
                     }
                   >
                     <option value="">--Select--</option>
+                    {invoiceCurrency &&
+                      !currency.find((c) => c.Currency === invoiceCurrency) && (
+                        <option value={invoiceCurrency}>
+                          {invoiceCurrency}
+                        </option>
+                      )}
                     {currency.map((cur) => (
                       <option key={cur.Currency} value={cur.Currency}>
                         {cur.Currency}
@@ -3102,6 +3120,11 @@ function Item({ setActiveTab, isViewMode }) {
                     onChange={(e) => setCerItemUOM(e.target.value)}
                   >
                     <option value="">--Select--</option>
+                    {cerItemUOM &&
+                      cerItemUOM !== "--Select--" &&
+                      !totalOuterPack.find((t) => t.Name === cerItemUOM) && (
+                        <option value={cerItemUOM}>{cerItemUOM}</option>
+                      )}
                     {totalOuterPack.map((tooupack) => (
                       <option key={tooupack.Name} value={tooupack.Name}>
                         {tooupack.Name}
@@ -3174,6 +3197,15 @@ function Item({ setActiveTab, isViewMode }) {
                       onChange={(e) => setTextileQuotaUOM(e.target.value)}
                     >
                       <option value="">--Select--</option>
+                      {textileQuotaUOM &&
+                        textileQuotaUOM !== "--Select--" &&
+                        !totalOuterPack.find(
+                          (t) => t.Name === textileQuotaUOM,
+                        ) && (
+                          <option value={textileQuotaUOM}>
+                            {textileQuotaUOM}
+                          </option>
+                        )}
                       {totalOuterPack.map((tooupack) => (
                         <option key={tooupack.Name} value={tooupack.Name}>
                           {tooupack.Name}

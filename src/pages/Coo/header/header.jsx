@@ -312,6 +312,8 @@ function Header({ setActiveTab, isViewMode }) {
     setDischargePortName,
     finalDestinationCountry,
     setFinalDestinationCountry,
+    outCargoHawb,
+    setOutCargoHawb,
     departureDate,
     setDepartureDate,
     showDepartureDateError,
@@ -482,15 +484,15 @@ function Header({ setActiveTab, isViewMode }) {
     fetchCurrency();
   }, []);
 
-    // declaring for hide show use effect for empty save
-  
-    useEffect(() => {
-      const config = getFieldConfig(user?.accountId);
-      if (!config.showDeclaringFor) {
-        setDeclFor("");
-        setShowDeclaringForError(false);
-      }
-    }, [user?.accountId]);
+  // declaring for hide show use effect for empty save
+
+  useEffect(() => {
+    const config = getFieldConfig(user?.accountId);
+    if (!config.showDeclaringFor) {
+      setDeclFor("");
+      setShowDeclaringForError(false);
+    }
+  }, [user?.accountId]);
 
   // ===================== Handle Declaration Type Change =================
 
@@ -729,6 +731,12 @@ function Header({ setActiveTab, isViewMode }) {
     setNextPortName("");
     setLastPortCode("");
     setLastPortName("");
+    // setDepartureDate("");
+    // setDischargePortCode("");
+    // setDischargePortName("");
+    // setFinalDestinationCountry("");
+    setOutCargoHawb("");
+    setOutMawbNumber("");
 
     // RESET label
     setOutHblHawbLabel("HAWB/HBL");
@@ -772,7 +780,7 @@ function Header({ setActiveTab, isViewMode }) {
       setOutHblHawbLabel("HBL");
       setShowSeaStore(false);
       setShowOutConveyanceNumber(false);
-    } else if ((value === value) === "7 : Pipeline") {
+    } else if (value === "7 : Pipeline") {
       setShowOutHblHawb(true);
       setShowOutConveyanceNumber(true);
       setShowOutTransportDetails(false);
@@ -1241,6 +1249,12 @@ function Header({ setActiveTab, isViewMode }) {
               tabIndex={4}
             >
               <option value="">--Select--</option>
+              {outTransportMode &&
+                !outWardTransportModeList.find(
+                  (t) => t.Name === outTransportMode,
+                ) && (
+                  <option value={outTransportMode}>{outTransportMode}</option>
+                )}
               {outWardTransportModeList.map((outwardTransward) => (
                 <option
                   key={outwardTransward.Name}
@@ -1273,6 +1287,9 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
+                {declFor && !declaringFor.find((d) => d.Name === declFor) && (
+                  <option value={declFor}>{declFor}</option>
+                )}
                 {declaringFor.map((dclrfor) => (
                   <option key={dclrfor.Name} value={dclrfor.Name}>
                     {dclrfor.Name}
@@ -1592,6 +1609,10 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={handleDocTypeChange}
                   >
                     <option value="">--Select--</option>
+                    {documentType &&
+                      !documentAttachType.find(
+                        (d) => d.Name === documentType,
+                      ) && <option value={documentType}>{documentType}</option>}
                     {documentAttachType.map((doc) => (
                       <option key={doc.Name} value={doc.Name}>
                         {doc.Name}
@@ -1694,6 +1715,9 @@ function Header({ setActiveTab, isViewMode }) {
                     tabIndex={4}
                   >
                     <option value="">--Select--</option>
+                    {coType && !coTypeList.find((c) => c.Name === coType) && (
+                      <option value={coType}>{coType}</option>
+                    )}
                     {coTypeList.map((cotype) => (
                       <option key={cotype.Name} value={cotype.Name}>
                         {cotype.Name}
@@ -1717,6 +1741,14 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={handleCertificateType1Change}
                   >
                     <option value="">--Select--</option>
+                    {certificateType1 &&
+                      !certificateList.find(
+                        (c) => c.Name === certificateType1,
+                      ) && (
+                        <option value={certificateType1}>
+                          {certificateType1}
+                        </option>
+                      )}
                     {certificateList.map((clist) => (
                       <option key={clist.Name} value={clist.Name}>
                         {clist.Name}
@@ -1739,6 +1771,14 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={(e) => setCertficateType2(e.target.value)}
                   >
                     <option value="">--Select--</option>
+                    {certificateType2 &&
+                      !certificateList.find(
+                        (c) => c.Name === certificateType2,
+                      ) && (
+                        <option value={certificateType2}>
+                          {certificateType2}
+                        </option>
+                      )}
                     {certificateList.map((clist) => (
                       <option key={clist.Name} value={clist.Name}>
                         {clist.Name}
@@ -1781,6 +1821,11 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={(e) => setCurrencyCode(e.target.value)}
                   >
                     <option value="">--Select--</option>
+                    {currencyCode &&
+                      !currency.find(
+                        (c) =>
+                          `${c.Currency}:${c.CurrencyCountry}` === currencyCode,
+                      ) && <option value={currencyCode}>{currencyCode}</option>}
                     {currency.map((cur) => (
                       <option key={cur.Currency} value={cur.Currency}>
                         {cur.Currency}:{cur.CurrencyCountry}

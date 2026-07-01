@@ -425,9 +425,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReleaseCodeError(false);
     }
-    const filtered = releaseLocationSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = releaseLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().includes(search)
+      );
+    });
     setFilteredReleaseLocationSuggestions(filtered.slice(0, 100));
     setShowReleaseLocationDropdown(filtered.length > 0);
   };
@@ -455,6 +460,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReleaseLocationSelect(
         filteredReleaseLocationSuggestions[highlightedReleaseLocationIndex],
       );
+      setShowReleaseLocationDropdown(false);
     }
   };
 
@@ -472,6 +478,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     setReleaseLocationCode(LocationCode);
     setReleaseLocationDescription(Description);
     setReleaseLocationError(false);
+    setShowReleaseLocationDropdown(false);
   };
   // ======================== RELEASE LOCATION FOCUSOUT ========================
   const handleReleaseLocationFocusOut = () => {
@@ -486,7 +493,12 @@ function Cargo({ setActiveTab, isViewMode }) {
       }
       const selected = releaseLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === releaseCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === releaseCode.toLowerCase() ||
+            Description.toLowerCase() === releaseCode.toLowerCase(),
+        );
+
       if (selected) {
         const [Code, LocationCode, Description] = selected;
 
@@ -554,9 +566,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     } else {
       setShowReceiptCodeError(false);
     }
-    const filtered = receiptLocationSuggestions.filter((i) =>
-      i.toLowerCase().includes(val.toLowerCase()),
-    );
+    const filtered = receiptLocationSuggestions.filter((i) => {
+      const [Code, , Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().includes(search)
+      );
+    });
     setFilteredReceiptLocationSuggestions(filtered.slice(0, 100));
     setShowReceiptLocationDropdown(filtered.length > 0);
   };
@@ -582,6 +599,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleReceiptLocationSelect(
         filteredReceiptLocationSuggestions[highlightedReceiptLocationIndex],
       );
+      setShowReceiptLocationDropdown(false);
     }
   };
   // ======================== FETCH RECEIPT LOCATION ========================
@@ -611,7 +629,11 @@ function Cargo({ setActiveTab, isViewMode }) {
       }
       const selected = receiptLocationSuggestions
         .map((i) => i.split(":"))
-        .find(([Code]) => Code.toLowerCase() === receiptCode.toLowerCase());
+        .find(
+          ([Code, , Description]) =>
+            Code.toLowerCase() === receiptCode.toLowerCase() ||
+            Description.toLowerCase() === receiptCode.toLowerCase(),
+        );
       if (selected) {
         const [Code, LocationCode, Description] = selected;
         setReceiptLocation({ Code, LocationCode, Description });
@@ -676,9 +698,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowLoadingPortCodeError(false);
     }
 
-    const filtered = loadingPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = loadingPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().includes(search)
+      );
+    });
 
     setFilteredLoadingPortSuggestions(filtered.slice(0, 100));
     setShowLoadingPortDropdown(filtered.length > 0);
@@ -703,6 +730,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleLoadingPortSelect(
         filteredLoadingPortSuggestions[highlightedLoadingPortIndex],
       );
+      setShowLoadingPortDropdown(false);
     }
   };
   // ======================== FETCH LOADING PORT========================
@@ -729,8 +757,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = loadingPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === loadingPortCode.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === loadingPortCode.toLowerCase() ||
+            PortName.toLowerCase() === loadingPortCode.toLowerCase(),
         );
 
       if (selected) {
@@ -788,12 +817,15 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!val) {
       setShowStorageLocationDropdown(false);
       return;
-    } else {
-      setShowStorageCodeError(false);
     }
-    const filtered = storageLocationSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = storageLocationSuggestions.filter((i) => {
+      const [, StorageCode, Description] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        StorageCode.toLowerCase().startsWith(search) ||
+        Description.toLowerCase().includes(search)
+      );
+    });
     setFilteredStorageLocationSuggestions(filtered.slice(0, 100));
     setShowStorageLocationDropdown(filtered.length > 0);
   };
@@ -820,6 +852,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleStorageLocationSelect(
         filteredStorageLocationSuggestions[highlightedStorageLocationIndex],
       );
+      setShowStorageLocationDropdown(false);
     }
   };
 
@@ -846,8 +879,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = storageLocationSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([, StorageCode]) =>
-            StorageCode.toLowerCase() === storageCode.toLowerCase(),
+          ([, StorageCode, Description]) =>
+            StorageCode.toLowerCase() === storageCode.toLowerCase() ||
+            Description.toLowerCase() === storageCode.toLowerCase(),
         );
       if (selected) {
         const [Code, StorageCode, Description] = selected;
@@ -901,9 +935,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowDischargePortDropdown(false);
       return;
     }
-    const filtered = dischargePortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = dischargePortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().includes(search)
+      );
+    });
     setFilteredDischargePortSuggestions(filtered.slice(0, 100));
     setShowDischargePortDropdown(filtered.length > 0);
   };
@@ -929,6 +968,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleDischargePortSelect(
         filteredDischargePortSuggestions[highlightedDischargePortIndex],
       );
+      setShowDischargePortDropdown(false);
     }
   };
 
@@ -953,8 +993,9 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = dischargePortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) =>
-            PortCode.toLowerCase() === dischargePortCode.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === dischargePortCode.toLowerCase() ||
+            PortName.toLowerCase() === dischargePortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
@@ -1004,9 +1045,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowNextPortDropdown(false);
       return;
     }
-    const filtered = nextPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = nextPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().includes(search)
+      );
+    });
     setFilteredNextPortSuggestions(filtered.slice(0, 100));
     setShowNextPortDropdown(filtered.length > 0);
   };
@@ -1029,6 +1075,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleNextPortSelect(
         filteredNextPortSuggestions[highlightedNextPortIndex],
       );
+      setShowNextPortDropdown(false);
     }
   };
 
@@ -1044,7 +1091,7 @@ function Cargo({ setActiveTab, isViewMode }) {
   const handleNextPortFocusOut = () => {
     setTimeout(() => {
       if (!nextPortCode) {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortCode("");
         setNextPortName("");
         setShowNextPortDropdown(false);
@@ -1053,16 +1100,18 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = nextPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) => PortCode.toLowerCase() === nextPort.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === nextPortCode.toLowerCase() ||
+            PortName.toLowerCase() === nextPortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
-        setNextPortObj({ PortCode, PortName, Country });
+        setNextPort({ PortCode, PortName, Country });
         setNextPortCode(PortCode);
         setNextPortName(PortName);
         setNextPortError(false);
       } else {
-        setNextPortObj(null);
+        setNextPort(null);
         setNextPortError(true);
       }
       setShowNextPortDropdown(false);
@@ -1096,16 +1145,22 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const handleLastPortChange = (e) => {
     const val = e.target.value;
-    setLastPort(val);
+
+    setLastPortCode(val);
     setLastPortError(false);
     setHighlightedLastPortIndex(0);
     if (!val) {
       setShowLastPortDropdown(false);
       return;
     }
-    const filtered = lastPortSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
+    const filtered = lastPortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().includes(search)
+      );
+    });
     setFilteredLastPortSuggestions(filtered.slice(0, 100));
     setShowLastPortDropdown(filtered.length > 0);
   };
@@ -1128,13 +1183,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleLastPortSelect(
         filteredLastPortSuggestions[highlightedLastPortIndex],
       );
+      setShowLastPortDropdown(false);
     }
   };
 
   const handleLastPortSelect = (item) => {
     const [PortCode, PortName, Country] = item.split(":");
-    setLastPortObj({ PortCode, PortName, Country });
-    setLastPort(PortCode);
+    setLastPort({ PortCode, PortName, Country });
+    setLastPortCode(PortCode);
     setLastPortName(PortName);
     setLastPortError(false);
     setShowLastPortDropdown(false);
@@ -1142,9 +1198,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const handleLastPortFocusOut = () => {
     setTimeout(() => {
-      if (!lastPort) {
-        setLastPortObj(null);
-        setLastPort("");
+      if (!lastPortCode) {
+        setLastPort(null);
+        setLastPortCode("");
         setLastPortName("");
         setShowLastPortDropdown(false);
         return;
@@ -1152,16 +1208,18 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = lastPortSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([PortCode]) => PortCode.toLowerCase() === lastPort.toLowerCase(),
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === lastPortCode.toLowerCase() ||
+            PortName.toLowerCase() === lastPortCode.toLowerCase(),
         );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
-        setLastPortObj({ PortCode, PortName, Country });
-        setLastPort(PortCode);
+        setLastPort({ PortCode, PortName, Country });
+        setLastPortCode(PortCode);
         setLastPortName(PortName);
         setLastPortError(false);
       } else {
-        setLastPortObj(null);
+        setLastPort(null);
         setLastPortError(true);
       }
       setShowLastPortDropdown(false);
@@ -1703,6 +1761,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {totalOuterPackName &&
+                    !totalOuterPack.find(
+                      (t) => t.Name === totalOuterPackName,
+                    ) && (
+                      <option value={totalOuterPackName}>
+                        {totalOuterPackName}
+                      </option>
+                    )}
                   {totalOuterPack.map((tooupack) => (
                     <option key={tooupack.Name} value={tooupack.Name}>
                       {tooupack.Name}
@@ -1754,6 +1820,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {grossUOM && !totalGrossWeightOptions.includes(grossUOM) && (
+                    <option value={grossUOM}>{grossUOM}</option>
+                  )}
                   {totalGrossWeightOptions.map((opt, i) => (
                     <option key={i} value={opt}>
                       {opt}
@@ -1960,11 +2029,6 @@ function Cargo({ setActiveTab, isViewMode }) {
                     onBlur={handleStorageLocationFocusOut}
                     onFocus={() => setStorageLocationError(false)}
                   />
-                  {storageLocationError && (
-                    <span className="ErrorColor">
-                      Please enter a valid storage location code.
-                    </span>
-                  )}
                   {showStorageLocationDropdown &&
                     filteredStorageLocationSuggestions.length > 0 && (
                       <div className="dropdown-suggestions">
@@ -2444,6 +2508,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           }
                         >
                           <option value="">--Select--</option>
+                          {finalDestinationCountry &&
+                            !countryList.find(
+                              (c) => c.CountryCode === finalDestinationCountry,
+                            ) && (
+                              <option value={finalDestinationCountry}>
+                                {finalDestinationCountry}
+                              </option>
+                            )}
                           {countryList.map((country) => (
                             <option
                               key={country.CountryCode}
@@ -2560,6 +2632,12 @@ function Cargo({ setActiveTab, isViewMode }) {
                           onChange={(e) => setVesselType(e.target.value)}
                         >
                           <option value="">--Select--</option>
+                          {vesselType &&
+                            !vesselTypeList.find(
+                              (v) => v.Name === vesselType,
+                            ) && (
+                              <option value={vesselType}>{vesselType}</option>
+                            )}
                           {vesselTypeList.map((v) => (
                             <option key={v.Name} value={v.Name}>
                               {v.Name}
@@ -2602,6 +2680,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           onChange={(e) => setVesselNationality(e.target.value)}
                         >
                           <option value="">--Select--</option>
+                          {vesselNationality &&
+                            !nationalityList.find(
+                              (n) => n.CountryCode === vesselNationality,
+                            ) && (
+                              <option value={vesselNationality}>
+                                {vesselNationality}
+                              </option>
+                            )}
                           {nationalityList.map((n) => (
                             <option key={n.CountryCode} value={n.CountryCode}>
                               {n.CountryCode}:{n.Description}
@@ -3069,6 +3155,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           disabled={container.isSaved}
                         >
                           <option>--Select--</option>
+                          {container.sizeType &&
+                            !containerType.find(
+                              (ct) => ct.Name === container.sizeType,
+                            ) && (
+                              <option value={container.sizeType}>
+                                {container.sizeType}
+                              </option>
+                            )}
                           {containerType.map((ct) => (
                             <option key={ct.Name} value={ct.Name}>
                               {ct.Name}

@@ -271,7 +271,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         Code.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().startsWith(search)
+        Description.toLowerCase().includes(search)
       );
     });
     setFilteredReleaseLocationSuggestions(filtered.slice(0, 100));
@@ -412,7 +412,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         Code.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().startsWith(search)
+        Description.toLowerCase().includes(search)
       );
     });
     setFilteredReceiptLocationSuggestions(filtered.slice(0, 100));
@@ -545,7 +545,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         PortCode.toLowerCase().startsWith(search) ||
-        PortName.toLowerCase().startsWith(search)
+        PortName.toLowerCase().includes(search)
       );
     });
 
@@ -1111,6 +1111,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {totalOuterPackName &&
+                    !totalOuterPack.find(
+                      (t) => t.Name === totalOuterPackName,
+                    ) && (
+                      <option value={totalOuterPackName}>
+                        {totalOuterPackName}
+                      </option>
+                    )}
                   {totalOuterPack.map((tooupack) => (
                     <option key={tooupack.Name} value={tooupack.Name}>
                       {tooupack.Name}
@@ -1162,6 +1170,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {grossUOM && !totalGrossWeightOptions.includes(grossUOM) && (
+                    <option value={grossUOM}>{grossUOM}</option>
+                  )}
                   {totalGrossWeightOptions.map((opt, i) => (
                     <option key={i} value={opt}>
                       {opt}
@@ -1762,6 +1773,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           style={{ width: "350px" }}
                         >
                           <option>--Select--</option>
+                              {container.sizeType &&
+                            !containerType.find(
+                              (ct) => ct.Name === container.sizeType,
+                            ) && (
+                              <option value={container.sizeType}>
+                                {container.sizeType}
+                              </option>
+                            )}
                           {containerType.map((ct) => (
                             <option key={ct.Name} value={ct.Name}>
                               {ct.Name}

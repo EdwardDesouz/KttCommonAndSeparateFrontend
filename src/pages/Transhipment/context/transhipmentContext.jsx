@@ -458,9 +458,9 @@ export const TranshipmentProvider = ({ children }) => {
   const [invoiceExRateItem, setInvoiceExRateItem] = useState("");
   const [unitPrice, setUnitPrice] = useState(0.0);
   const [sumExchangeRate, setSumExchangeRate] = useState(0.0);
-  const [totalLineAmount, setTotalLineAmount] = useState(0.0);
+  const [totalLineAmount, setTotalLineAmount] = useState("");
   const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
-  const [cifFob, setCifFob] = useState(0.0);
+  const [cifFob, setCifFob] = useState("");
   const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
   const [exciseDutyUom, setExciseDutyUom] = useState("");
   const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);

@@ -437,7 +437,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         Code.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().startsWith(search)
+        Description.toLowerCase().includes(search)
       );
     });
     setFilteredReleaseLocationSuggestions(filtered.slice(0, 100));
@@ -580,7 +580,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         Code.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().startsWith(search)
+        Description.toLowerCase().includes(search)
       );
     });
 
@@ -830,15 +830,13 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!val) {
       setShowStorageLocationDropdown(false);
       return;
-    } else {
-      setShowStorageCodeError(false);
     }
     const filtered = storageLocationSuggestions.filter((i) => {
-      const [StorageCode, Description] = i.split(":");
+      const [, StorageCode, Description] = i.split(":");
       const search = val.toLowerCase();
       return (
         StorageCode.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().startsWith(search)
+        Description.toLowerCase().includes(search)
       );
     });
     setFilteredStorageLocationSuggestions(filtered.slice(0, 100));
@@ -894,7 +892,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const selected = storageLocationSuggestions
         .map((i) => i.split(":"))
         .find(
-          ([StorageCode, Description]) =>
+          ([, StorageCode, Description]) =>
             StorageCode.toLowerCase() === storageCode.toLowerCase() ||
             Description.toLowerCase() === storageCode.toLowerCase(),
         );
@@ -955,7 +953,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         PortCode.toLowerCase().startsWith(search) ||
-        PortName.toLowerCase().startsWith(search)
+        PortName.toLowerCase().includes(search)
       );
     });
     setFilteredDischargePortSuggestions(filtered.slice(0, 100));
@@ -1065,7 +1063,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         PortCode.toLowerCase().startsWith(search) ||
-        PortName.toLowerCase().startsWith(search)
+        PortName.toLowerCase().includes(search)
       );
     });
     setFilteredNextPortSuggestions(filtered.slice(0, 100));
@@ -1174,7 +1172,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         PortCode.toLowerCase().startsWith(search) ||
-        PortName.toLowerCase().startsWith(search)
+        PortName.toLowerCase().includes(search)
       );
     });
     setFilteredLastPortSuggestions(filtered.slice(0, 100));
@@ -1777,6 +1775,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {totalOuterPackName &&
+                    !totalOuterPack.find(
+                      (t) => t.Name === totalOuterPackName,
+                    ) && (
+                      <option value={totalOuterPackName}>
+                        {totalOuterPackName}
+                      </option>
+                    )}
                   {totalOuterPack.map((tooupack) => (
                     <option key={tooupack.Name} value={tooupack.Name}>
                       {tooupack.Name}
@@ -1828,6 +1834,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                   }}
                 >
                   <option>--Select--</option>
+                  {grossUOM && !totalGrossWeightOptions.includes(grossUOM) && (
+                    <option value={grossUOM}>{grossUOM}</option>
+                  )}
                   {totalGrossWeightOptions.map((opt, i) => (
                     <option key={i} value={opt}>
                       {opt}
@@ -2112,6 +2121,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           className="form-control"
                           value={inwardTransport}
                           onChange={(e) => setInwardTransport(e.target.value)}
+                          disabled
                         />
                       </div>
                     </div>
@@ -2465,6 +2475,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           type="text"
                           className="form-control"
                           value={dischargePortName}
+                          onChange={(e) => setDischargePortName(e.target.value)}
                           readOnly
                         />
                       </div>
@@ -2485,6 +2496,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           }
                         >
                           <option value="">--Select--</option>
+                          {finalDestinationCountry &&
+                            !countryList.find(
+                              (c) => c.CountryCode === finalDestinationCountry,
+                            ) && (
+                              <option value={finalDestinationCountry}>
+                                {finalDestinationCountry}
+                              </option>
+                            )}
                           {countryList.map((country) => (
                             <option
                               key={country.CountryCode}
@@ -2570,7 +2589,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           className="form-control"
                           value={outAircraftRegNumber}
                           onChange={(e) =>
-                            setOutAirCraftRegNumber(e.target.value)
+                            setOutAircraftRegNumber(e.target.value)
                           }
                         />
                       </div>
@@ -2709,6 +2728,12 @@ function Cargo({ setActiveTab, isViewMode }) {
                           onChange={(e) => setVesselType(e.target.value)}
                         >
                           <option value="">--Select--</option>
+                          {vesselType &&
+                            !vesselTypeList.find(
+                              (v) => v.Name === vesselType,
+                            ) && (
+                              <option value={vesselType}>{vesselType}</option>
+                            )}
                           {vesselTypeList.map((v) => (
                             <option key={v.Name} value={v.Name}>
                               {v.Name}
@@ -2751,6 +2776,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           onChange={(e) => setVesselNationality(e.target.value)}
                         >
                           <option value="">--Select--</option>
+                          {vesselNationality &&
+                            !nationalityList.find(
+                              (n) => n.CountryCode === vesselNationality,
+                            ) && (
+                              <option value={vesselNationality}>
+                                {vesselNationality}
+                              </option>
+                            )}
                           {nationalityList.map((n) => (
                             <option key={n.CountryCode} value={n.CountryCode}>
                               {n.CountryCode}:{n.Description}
@@ -3129,6 +3162,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                           disabled={container.isSaved}
                         >
                           <option>--Select--</option>
+                          {container.sizeType &&
+                            !containerType.find(
+                              (ct) => ct.Name === container.sizeType,
+                            ) && (
+                              <option value={container.sizeType}>
+                                {container.sizeType}
+                              </option>
+                            )}
                           {containerType.map((ct) => (
                             <option key={ct.Name} value={ct.Name}>
                               {ct.Name}

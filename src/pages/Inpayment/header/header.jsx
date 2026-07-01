@@ -71,6 +71,8 @@ function Header({ setActiveTab, isViewMode }) {
     uploadedFiles,
     setUploadedFiles,
     // Cargo
+    totalOuterPackName,
+    setTotalOuterPackName,
     grossUOM,
     setGrossUOM,
     // UI Control States
@@ -116,6 +118,16 @@ function Header({ setActiveTab, isViewMode }) {
     setAirCraftRegNumber,
     mawbNumber,
     setMawbNumber,
+    loadingPortCode,
+    setLoadingPortCode,
+    loadingPortName,
+    setLoadingPortName,
+    cargoHawb,
+    setCargoHawb,
+    arrivalDate,
+    setArrivalDate,
+    blanketStartDate,
+    setBlanketStartDate,
     showDeclarationTypeError,
     setShowDeclarationTypeError,
     showCargoPackTypeError,
@@ -271,11 +283,19 @@ function Header({ setActiveTab, isViewMode }) {
     } else {
       setShowCargoType(false);
     }
+    if (transportMode === "1 : Sea") {
+      if (value === "9: Containerized") {
+        setTotalOuterPackName("UNT");
+      } else if (value === "5 : Other non-Containerized") {
+        setTotalOuterPackName("-");
+      }
+    }
   };
 
   // ==================== Handle Inward Transport Mode Change =================
   const InwardTrasnPortModeChange = (e) => {
     const value = e.target.value;
+    const isContainer = cargo;
     setTransportMode(value);
     setInwardTransport(value);
     if (value === "--Select--") {
@@ -292,6 +312,11 @@ function Header({ setActiveTab, isViewMode }) {
     setFlightNumber("");
     setAirCraftRegNumber("");
     setMawbNumber("");
+    // setLoadingPortCode("");
+    // setLoadingPortName("");
+    // setCargoHawb("");
+    setArrivalDate("");
+    setBlanketStartDate("");
     setShowInwardTransport(true);
     setShowVoyageNumber(false);
     setShowVesselName(false);
@@ -303,11 +328,18 @@ function Header({ setActiveTab, isViewMode }) {
     setShowMawbNumber(false);
     setShowNotRequired(true);
     setGrossUOM("");
+    setTotalOuterPackName("");
+
     if (value === "1 : Sea") {
       setShowVoyageNumber(true);
       setShowVesselName(true);
       setShowOblNumber(true);
       setGrossUOM("TNE");
+      if (isContainer === "9: Containerized") {
+        setTotalOuterPackName("UNT");
+      } else if (isContainer === "5 : Other non-Containerized") {
+        setTotalOuterPackName("-");
+      }
     } else if (value === "2 : Rail") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
@@ -318,6 +350,8 @@ function Header({ setActiveTab, isViewMode }) {
       setShowFlightNumber(true);
       setShowAirCraftRegNumber(true);
       setShowMawbNumber(true);
+      setTotalOuterPackName("PKG");
+      setGrossUOM("KGM");
     } else if (value === "5 : Mail") {
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
@@ -622,6 +656,9 @@ function Header({ setActiveTab, isViewMode }) {
               onChange={DeclarationChange}
             >
               <option value="">--Select--</option>
+              {decType && !declarantType.find((d) => d.Name === decType) && (
+                <option value={decType}>{decType}</option>
+              )}
               {declarantType.map((dectype) => (
                 <option key={dectype.Name} value={dectype.Name}>
                   {dectype.Name}
@@ -661,9 +698,12 @@ function Header({ setActiveTab, isViewMode }) {
               onChange={CargoPackTypeChange}
             >
               <option value="">--Select--</option>
-              {cargoType.map((cargotype) => (
-                <option key={cargotype.Name} value={cargotype.Name}>
-                  {cargotype.Name}
+              {cargo && !cargoType.find((c) => c.Name === cargo) && (
+                <option value={cargo}>{cargo}</option>
+              )}
+              {cargoType.map((c) => (
+                <option key={c.Name} value={c.Name}>
+                  {c.Name}
                 </option>
               ))}
             </select>
@@ -690,12 +730,13 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex={4}
               >
                 <option value="">--Select--</option>
-                {inwardTransportMode.map((inwardTransward) => (
-                  <option
-                    key={inwardTransward.Name}
-                    value={inwardTransward.Name}
-                  >
-                    {inwardTransward.Name}
+                {transportMode &&
+                  !inwardTransportMode.find(
+                    (t) => t.Name === transportMode,
+                  ) && <option value={transportMode}>{transportMode}</option>}
+                {inwardTransportMode.map((t) => (
+                  <option key={t.Name} value={t.Name}>
+                    {t.Name}
                   </option>
                 ))}
               </select>
@@ -723,6 +764,9 @@ function Header({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
+                {declFor && !declaringFor.find((d) => d.Name === declFor) && (
+                  <option value={declFor}>{declFor}</option>
+                )}
                 {declaringFor.map((dclrfor) => (
                   <option key={dclrfor.Name} value={dclrfor.Name}>
                     {dclrfor.Name}
@@ -749,6 +793,9 @@ function Header({ setActiveTab, isViewMode }) {
               tabIndex="6"
             >
               <option value="">--Select--</option>
+              {bgInd && !bgIndicator.find((b) => b.Name === bgInd) && (
+                <option value={bgInd}>{bgInd}</option>
+              )}
               {bgIndicator.map((bgindr) => (
                 <option key={bgindr.Name} value={bgindr.Name}>
                   {bgindr.Name}
@@ -1077,6 +1124,10 @@ function Header({ setActiveTab, isViewMode }) {
                     onChange={handleDocTypeChange}
                   >
                     <option value="">--Select--</option>
+                    {documentType &&
+                      !documentAttachType.find(
+                        (d) => d.Name === documentType,
+                      ) && <option value={documentType}>{documentType}</option>}
                     {documentAttachType.map((doc) => (
                       <option key={doc.Name} value={doc.Name}>
                         {doc.Name}
