@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext ,useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../userContex/userContex";
 import API from "../api/api";
@@ -59,6 +59,14 @@ function LoginPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const msg = sessionStorage.getItem("forcedLogoutMsg");
+    if (msg) {
+      setApiError(msg);
+      sessionStorage.removeItem("forcedLogoutMsg");
+    }
+  }, []);
 
   return (
     <MDBContainer className="my-5 gradient-form">

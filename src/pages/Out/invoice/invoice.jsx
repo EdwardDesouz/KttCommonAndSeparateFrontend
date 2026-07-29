@@ -7,6 +7,7 @@ import { DateField } from "../cargo/cargo";
 import { useOut } from "../context/outContext";
 import { useNavigate } from "react-router-dom";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { CircleLoader } from "react-spinners";
 
 function Invoice({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -101,6 +102,11 @@ function Invoice({ setActiveTab, isViewMode }) {
     gstTotal,
     setGstTotal,
 
+    exporterCode,
+    exporterCruei,
+    exporterName,
+    exporterName1,
+
     // ==============EXISITING STATES FOR SAVE AS DRAFT============
     decType,
     prevPermitNo,
@@ -145,7 +151,8 @@ function Invoice({ setActiveTab, isViewMode }) {
     grossUOM,
     blanketStartDate,
   } = useOut();
-
+  const [isInvoiceSaving, setIsInvoiceSaving] = useState(false);
+  const [isInvoiceDeleting, setIsInvoiceDeleting] = useState(false);
   const [editingSNo, setEditingSNo] = useState(null);
   const [serialNumber, setSerialNumber] = useState(1);
   const [invoiceNumberError, setInvoiceNumberError] = useState(false);
@@ -344,167 +351,248 @@ function Invoice({ setActiveTab, isViewMode }) {
   };
 
   // ======================== IMPORTER ========================
-  const importerCodeRef = useRef(null);
-  const [importer, setImporter] = useState(null);
-  const [importerCodeError, setImporterCodeError] = useState(false);
-  const [importerSuggestions, setImporterSuggestions] = useState([]);
-  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
-  const [showImporterDropdown, setShowImporterDropdown] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [importerError, setImporterError] = useState(false);
+  const exporterCodeRef = useRef(null);
+  const [exporter, setExporter] = useState(null);
+  const [exporterCodeError, setExporterCodeError] = useState(false);
+  const [exporterSuggestions, setExporterSuggestions] = useState([]);
+  const [commonExporterCodes, setCommonExporterCodes] = useState(new Set());
+  const [filteredExporterSuggestions, setFilteredExporterSuggestions] =
+    useState([]);
+  const [showExporterDropdown, setShowExporterDropdown] = useState(false);
+  const [exporterHighlightedIndex, setExporterHighlightedIndex] = useState(0);
+  const [exporterError, setExporterError] = useState(false);
 
   // Copy Importer from Party page
-  const copyImporter = () => {
-    const partyImporter = window.currentPartyImporter;
-    if (!partyImporter?.Code) {
-      alert("Importer not filled in Party page");
+  const copyExporter = () => {
+    if (!exporterCode) {
+      alert("Exporter not filled in Party page");
       return;
     }
-    setInvoiceExporterCode(partyImporter.Code);
-    setInvoiceExporterCruei(partyImporter.CRUEI);
-    setInvoiceExporterName(partyImporter.Name);
-    setInvoiceExporterName1(partyImporter.Name1);
+    setInvoiceExporterCode(exporterCode);
+    setInvoiceExporterCruei(exporterCruei);
+    setInvoiceExporterName(exporterName);
+    setInvoiceExporterName1(exporterName1);
 
-    setImporter({
-      Code: partyImporter.Code,
-      CRUEI: partyImporter.CRUEI,
-      Name: partyImporter.Name,
-      Name1: partyImporter.Name1,
+    setExporter({
+      Code: exporterCode,
+      CRUEI: exporterCruei,
+      Name: exporterName,
+      Name1: exporterName1,
     });
 
-    setImporterError(false);
-    setImporterCodeError(false);
+    setExporterError(false);
+    setExporterCodeError(false);
   };
-
   // ======================== FETCH IMPORTERS ========================
   useEffect(() => {
-    const fetchImporters = async () => {
+    const fetchExporter = async () => {
       try {
-        const response = await API.get("/getCommonImporterTableInfo/");
-        const list = response.data.map(
-          (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+        const [commonResult, outtResult] = await Promise.allSettled([
+          API.get("/getCommonExporterTableInfo/"),
+          API.get("out/getOutExporterTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const outData =
+          outtResult.status === "fulfilled" ? outtResult.value.data || [] : [];
+
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common Exporters",
+            commonResult.reason,
+          );
+        }
+        if (outtResult.status === "rejected") {
+          console.error("Failed to fetch Out Exporters", outtResult.reason);
+        }
+
+        // Normalize both schemas to one common shape BEFORE merging.
+        // /getCommonExporterTableInfo/ uses plain Code/CRUEI/Name/Name1/Address...
+        // out/getOutExporterTableInfo/ uses OutUserCode/OutUserCRUEI/OutUserName...
+        const normalize = (i) => ({
+          Code: i.Code ?? i.OutUserCode ?? "",
+          CRUEI: i.CRUEI ?? i.OutUserCRUEI ?? "",
+          Name: i.Name ?? i.OutUserName ?? "",
+          Name1: i.Name1 ?? i.OutUserName1 ?? "",
+          Address: i.Address ?? i.OutUserAddress ?? "",
+          Address1: i.Address1 ?? i.OutUserAddress1 ?? "",
+          City: i.City ?? i.OutUserCity ?? "",
+          SubCode: i.SubCode ?? i.OutUserSubCode ?? "",
+          Sub: i.Sub ?? i.OutUserSub ?? "",
+          Postal: i.Postal ?? i.OutUserPostal ?? "",
+          Country: i.Country ?? i.OutUserCountry ?? "",
+        });
+
+        const normCommon = commonData.map(normalize);
+        const normOut = outData.map(normalize);
+
+        const merged = [...normCommon];
+        const seenCodes = new Set(normCommon.map((i) => i.Code.toLowerCase()));
+        for (const item of normOut) {
+          const code = item.Code.toLowerCase();
+          if (!seenCodes.has(code)) {
+            merged.push(item);
+            seenCodes.add(code);
+          }
+        }
+
+        const list = merged.map(
+          (i) =>
+            `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.Address}:${i.Address1}:${i.City}:${i.SubCode}:${i.Sub}:${i.Postal}:${i.Country}`,
         );
-        setImporterSuggestions(list);
-        setFilteredSuggestions(list);
+
+        setExporterSuggestions(list);
+        setFilteredExporterSuggestions(list);
       } catch (err) {
-        console.error("Failed to fetch importers", err);
+        console.error("Failed to fetch exporters", err);
       }
     };
-    fetchImporters();
+    fetchExporter();
   }, []);
 
-  const handleImporterChange = (e) => {
+  const handleExporterChange = (e) => {
     const val = e.target.value;
-    setInvoiceExporterCode(val);
-    setImporterError(false);
-    setHighlightedIndex(0);
+    setExporterCode(val);
+    setExporterError(false);
+    setExporterHighlightedIndex(0);
+
     if (!val) {
-      setShowImporterDropdown(false);
+      setShowExporterDropdown(false);
       return;
     }
-    const filtered = importerSuggestions.filter((i) =>
-      i.toLowerCase().startsWith(val.toLowerCase()),
-    );
-    setFilteredSuggestions(filtered.slice(0, 100));
-    setShowImporterDropdown(filtered.length > 0);
+
+    const filtered = exporterSuggestions.filter((i) => {
+      const [Code, Cruei, Name, Name1] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        Code.toLowerCase().startsWith(search) ||
+        Name.toLowerCase().startsWith(search)
+      );
+    });
+    setFilteredExporterSuggestions(filtered.slice(0, 100));
+    setShowExporterDropdown(filtered.length > 0);
   };
 
-  const handleImporterKeyDown = (e) => {
-    if (!showImporterDropdown || filteredSuggestions.length === 0) return;
+  const handleExporterKeyDown = (e) => {
+    if (!showExporterDropdown || filteredExporterSuggestions.length === 0)
+      return;
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev + 1 >= filteredSuggestions.length ? 0 : prev + 1,
+      setExporterHighlightedIndex((prev) =>
+        prev + 1 >= filteredExporterSuggestions.length ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev - 1 < 0 ? filteredSuggestions.length - 1 : prev - 1,
+      setExporterHighlightedIndex((prev) =>
+        prev - 1 < 0 ? filteredExporterSuggestions.length - 1 : prev - 1,
       );
     } else if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
-      handleImporterSelect(filteredSuggestions[highlightedIndex]);
+      handleExporterSelect(
+        filteredExporterSuggestions[exporterHighlightedIndex],
+      );
     }
   };
 
-  const handleImporterSelect = (item) => {
+  const handleExporterSelect = (item) => {
     const [code, cruei, name, name1] = item.split(":");
-    setImporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
+    setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
     setInvoiceExporterCode(code);
     setInvoiceExporterCruei(cruei);
     setInvoiceExporterName(name);
     setInvoiceExporterName1(name1);
-    setShowImporterDropdown(false);
-    setImporterError(false);
+    setShowExporterDropdown(false);
+    setExporterError(false);
   };
 
   const handleFocusOut = () => {
     setTimeout(() => {
       if (!invoiceExporterCode) {
-        setImporter(null);
+        setExporter(null);
         setInvoiceExporterCruei("");
         setInvoiceExporterName("");
         setInvoiceExporterName1("");
-        setImporterError(true);
-        setShowImporterDropdown(false);
+        setExporterError(true);
+        setShowExporterDropdown(false);
         return;
       }
-      const selected = importerSuggestions
+      const selected = exporterSuggestions
         .map((i) => i.split(":"))
         .find(
           ([code]) => code.toLowerCase() === invoiceExporterCode.toLowerCase(),
         );
       if (selected) {
         const [code, cruei, name, name1] = selected;
-        setImporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
+        setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
         setInvoiceExporterCode(code);
         setInvoiceExporterCruei(cruei);
         setInvoiceExporterName(name);
         setInvoiceExporterName1(name1);
-        setImporterError(false);
+        setExporterError(false);
       } else {
-        setImporter(null);
-        setImporterError(true);
+        setExporter(null);
+        setExporterError(true);
       }
-      setShowImporterDropdown(false);
+      setShowExporterDropdown(false);
     }, 150);
   };
 
-  const saveImporter = async () => {
-    if (!invoiceExporterCode) {
-      setImporterError(true);
+  const saveExporter = async () => {
+    if (!exporterCode) {
+      setExporterError(true);
       alert("Code is required!");
       return;
     }
-    const duplicate = importerSuggestions.some(
-      (i) =>
-        i.split(":")[0].toLowerCase() === invoiceExporterCode.toLowerCase(),
-    );
+
+    const duplicate = commonExporterCodes.has(exporterCode.toLowerCase());
     if (duplicate) {
-      alert("Duplicate code found! Importer not saved.");
+      alert("Duplicate code found! Exporter not saved.");
       return;
     }
+
     const payload = {
-      Id: importer?.Id || 0,
-      Code: invoiceExporterCode || "",
-      CRUEI: invoiceExporterCruei || "",
-      Name: invoiceExporterName || "",
-      Name1: invoiceExporterName1 || "",
+      Id: exporter?.Id || 0,
+      Code: exporterCode || "",
+      CRUEI: exporterCruei || "",
+      Name: exporterName || "",
+      Name1: exporterName1 || "",
+      Address: exporter?.Address || "",
+      Address1: exporter?.Address1 || "",
+      City: exporter?.City || "",
+      SubCode: exporter?.SubCode || "",
+      Sub: exporter?.Sub || "",
+      Postal: exporter?.Postal || "",
+      Country: exporter?.Country || "",
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
       Status: "Active",
-      MES: "",
-      APS: "",
     };
+
+    console.log("Exporter payload to save:", payload);
+
     try {
-      const response = await API.post("/postImporterTable/", payload);
-      alert(response.data?.message || "Importer saved successfully!");
+      const response = await API.post("/postExporterTable/", payload);
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Exporter saved successfully!",
+      );
+      console.log("Saved data:", response.data);
+
+      setCommonExporterCodes((prev) =>
+        new Set(prev).add(exporterCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(err.response.data?.error || "Failed to save importer");
-      } else {
-        alert("Failed to save importer, check console for details");
-      }
+      console.error("Failed to save Exporter:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save Exporter, check console for details",
+      );
     }
   };
 
@@ -519,11 +607,11 @@ function Invoice({ setActiveTab, isViewMode }) {
     setSupplierManuFacturerCruei,
     setSupplierManuFacturerName,
     setSupplierManuFacturerName1,
-    setImporter,
-    setImporterCode: setInvoiceExporterCode,
-    setImporterCruei: setInvoiceExporterCruei,
-    setImporterName: setInvoiceExporterName,
-    setImporterName1: setInvoiceExporterName1,
+    setExporter,
+    setExporterCode: setInvoiceExporterCode,
+    setExporterCruei: setInvoiceExporterCruei,
+    setExporterName: setInvoiceExporterName,
+    setExporterName1: setInvoiceExporterName1,
   });
 
   const handleIconClick = async (type) => {
@@ -563,6 +651,14 @@ function Invoice({ setActiveTab, isViewMode }) {
     };
     fetchCurrency();
   }, []);
+
+    const handleInvoiceNumberChange = (e) => {
+    const value = e.target.value;
+    const isValid = /^[a-zA-Z0-9]*$/.test(value);
+    if (isValid) {
+      setInvoiceNumber(value);
+    }
+  };
 
   // ======================== TERM TYPE CHANGE ========================
   // const handleTermChange = (val) => {
@@ -753,9 +849,9 @@ function Invoice({ setActiveTab, isViewMode }) {
     const safeTrim = (v) => (v ? String(v).trim() : "");
 
     if (safeTrim(invoiceExporterCode) === "") {
-      setImporterCodeError(true);
+      setExporterCodeError(true);
       check = false;
-    } else setImporterCodeError(false);
+    } else setExporterCodeError(false);
 
     if (safeTrim(invoiceNumber) === "") {
       setInvoiceNumberError(true);
@@ -790,20 +886,82 @@ function Invoice({ setActiveTab, isViewMode }) {
   };
 
   // ======================== SAVE INVOICE ========================
+  // const saveInvoice = async () => {
+  //   console.log("hello");
+  //   if (!validateInvoiceFields()) return;
+  //   const payload = {
+  //     PermitId: permitDetails?.PermitId,
+  //     SNo: editingSNo || serialNumber,
+  //     InvoiceNo: invoiceNumber,
+  //     InvoiceDate: formatDate(invoiceDate),
+  //     TermType: termTypeSelected.toUpperCase(),
+  //     AdValoremIndicator: adValoremIndicator || "False",
+  //     PreDutyRateIndicator: preDutyRateIndicator || "False",
+  //     SupplierImporterRelationship: supplierRelationship || "--Select--",
+  //     SupplierCode: supplierManuFacturerCode || "-",
+  //     ImportPartyCode: invoiceExporterCode || "",
+  //     TICurrency: invoiceCurrency,
+  //     TIExRate: Number(invoiceExRate) || 0,
+  //     TIAmount: Number(invoiceAmount) || 0,
+  //     TISAmount: Number(invoiceDollar) || 0,
+  //     OTCCharge: Number(otherValueCharges) || 0,
+  //     OTCCurrency: otherValueCurrency || "--Select--",
+  //     OTCExRate: Number(otherValueExRate) || 0,
+  //     OTCAmount: Number(otherValueAmount) || 0,
+  //     OTCSAmount: Number(otherValueDollar) || 0,
+  //     FCCharge: Number(freightValueCharges) || 0,
+  //     FCCurrency: freightValueCurrency || "--Select--",
+  //     FCExRate: Number(freightValueExRate) || 0,
+  //     FCAmount: Number(freightValueAmount) || 0,
+  //     FCSAmount: Number(freightValueDollar) || 0,
+  //     ICCharge: Number(insuranceCharges) || 0,
+  //     ICCurrency: insuranceValueCurrency,
+  //     ICExRate: Number(insuranceValueExRate) || 0,
+  //     ICAmount: Number(insuranceValueAmount) || 0,
+  //     ICSAmount: Number(insuranceValueDollar) || 0,
+  //     CIFSUMAmount: Number(cifTotal) || 0,
+  //     GSTPercentage: Number(gstCharge) || 0,
+  //     GSTSUMAmount: Number(gstTotal) || 0,
+  //     MessageType: "OUTDEC",
+  //     TouchUser: user.username,
+  //     TouchTime: new Date().toISOString(),
+  //     ChkOtherInv: invoiceInsurance || "No",
+  //   };
+  //   try {
+  //     const res = await API.post("/postInvoiceTable/", payload);
+  //     if (res.data?.Records) {
+  //       setInvoiceTable(res.data.Records);
+  //     } else {
+  //       setInvoiceTable((prev) => {
+  //         if (editingSNo) {
+  //           return prev.map((inv) => (inv.SNo === editingSNo ? payload : inv));
+  //         }
+  //         return [...prev, payload];
+  //       });
+  //     }
+  //     setEditingSNo(null);
+  //     setSerialNumber((prev) => Number(prev) + 1);
+  //     resetInvoiceForm();
+  //   } catch (error) {
+  //     console.error("Save failed", error);
+  //   }
+  // };
+
   const saveInvoice = async () => {
     console.log("hello");
     if (!validateInvoiceFields()) return;
     const payload = {
       PermitId: permitDetails?.PermitId,
       SNo: editingSNo || serialNumber,
-      InvoiceNo: invoiceNumber,
+      InvoiceNo: invoiceNumber.toUpperCase(),
       InvoiceDate: formatDate(invoiceDate),
       TermType: termTypeSelected.toUpperCase(),
-      AdValoremIndicator: adValoremIndicator || "False",
+      AdValoremIndicator: "False",
       PreDutyRateIndicator: preDutyRateIndicator || "False",
       SupplierImporterRelationship: supplierRelationship || "--Select--",
       SupplierCode: supplierManuFacturerCode || "-",
       ImportPartyCode: invoiceExporterCode || "",
+      ExportPartyCode: invoiceExporterCode || "",
       TICurrency: invoiceCurrency,
       TIExRate: Number(invoiceExRate) || 0,
       TIAmount: Number(invoiceAmount) || 0,
@@ -831,10 +989,20 @@ function Invoice({ setActiveTab, isViewMode }) {
       TouchTime: new Date().toISOString(),
       ChkOtherInv: invoiceInsurance || "No",
     };
+    let commonSaved = false;
+    setIsInvoiceSaving(true);
     try {
-      const res = await API.post("/postInvoiceTable/", payload);
-      if (res.data?.Records) {
-        setInvoiceTable(res.data.Records);
+      // Step 1: Save to CommonInvoiceDtl
+      const commonResponse = await API.post("/postInvoiceTable/", payload);
+      commonSaved = true;
+      console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+
+      // Step 2: Save to InvoiceDtl (inpayment)
+      const outResponse = await API.post("out/postOutInvoiceTable/", payload);
+      console.log("Saved to InvoiceDtl:", outResponse.data);
+
+      if (commonResponse.data?.Records) {
+        setInvoiceTable(commonResponse.data.Records);
       } else {
         setInvoiceTable((prev) => {
           if (editingSNo) {
@@ -843,11 +1011,29 @@ function Invoice({ setActiveTab, isViewMode }) {
           return [...prev, payload];
         });
       }
+
       setEditingSNo(null);
       setSerialNumber((prev) => Number(prev) + 1);
       resetInvoiceForm();
     } catch (error) {
-      console.error("Save failed", error);
+      console.error("Failed to save invoice:", error);
+      if (commonSaved) {
+        alert(
+          `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else if (error.response?.status === 400) {
+        alert(
+          error.response.data?.error ||
+            error.response.data?.Result ||
+            "Failed to save invoice",
+        );
+      } else {
+        alert("Failed to save invoice, check console for details");
+      }
+    } finally {
+      setIsInvoiceSaving(false);
     }
   };
 
@@ -868,12 +1054,38 @@ function Invoice({ setActiveTab, isViewMode }) {
   //   }
   // };
 
+  // const deleteInvoice = async (sno) => {
+  //   try {
+  //     const res = await API.post("/deleteInvoiceNo/", {
+  //       SNo: sno,
+  //       PermitId: permitDetails?.PermitId,
+  //     });
+  //     let updatedTable =
+  //       res.data?.Records || invoiceTable.filter((inv) => inv.SNo !== sno);
+  //     const reIndexedTable = updatedTable.map((inv, index) => ({
+  //       ...inv,
+  //       SNo: index + 1,
+  //     }));
+  //     setInvoiceTable(reIndexedTable);
+  //     setSerialNumber(reIndexedTable.length + 1);
+  //   } catch (error) {
+  //     console.error("Delete failed", error);
+  //   }
+  // };
+
   const deleteInvoice = async (sno) => {
+    const permitId = permitDetails?.PermitId;
+    let commonDeleted = false;
+    setIsInvoiceDeleting(true);
+
     try {
+      // Step 1: Delete from CommonInvoiceDtl
       const res = await API.post("/deleteInvoiceNo/", {
         SNo: sno,
-        PermitId: permitDetails?.PermitId,
+        PermitId: permitId,
       });
+      commonDeleted = true;
+
       let updatedTable =
         res.data?.Records || invoiceTable.filter((inv) => inv.SNo !== sno);
       const reIndexedTable = updatedTable.map((inv, index) => ({
@@ -882,8 +1094,30 @@ function Invoice({ setActiveTab, isViewMode }) {
       }));
       setInvoiceTable(reIndexedTable);
       setSerialNumber(reIndexedTable.length + 1);
+
+      // Step 2: Mirror delete to InvoiceDtl (inpayment)
+      await API.post("out/deleteOutInvoiceNo/", {
+        SNo: sno,
+        PermitId: permitId,
+      });
+      console.log("Deleted from InvoiceDtl as well");
     } catch (error) {
       console.error("Delete failed", error);
+
+      if (commonDeleted) {
+        alert(
+          `Warning: Invoice SNo ${sno} was deleted from CommonInvoiceDtl but FAILED to delete from InvoiceDtl. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else {
+        alert(
+          error.response?.data?.error ||
+            "Failed to delete invoice, check console for details",
+        );
+      }
+    } finally {
+      setIsInvoiceDeleting(false);
     }
   };
 
@@ -901,11 +1135,11 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInvoiceNumber(invoice.InvoiceNo);
 
     if (invoice.InvoiceDate) {
-      const date = new Date(invoice.InvoiceDate);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      setInvoiceDate(`${day}/${month}/${year}`);
+      const datePart = String(invoice.InvoiceDate).split("T")[0];
+      const [year, month, day] = datePart.split("-");
+      if (year && month && day) {
+        setInvoiceDate(`${day}/${month}/${year}`);
+      }
     }
 
     setTermTypeSelected(invoice.TermType);
@@ -934,12 +1168,12 @@ function Invoice({ setActiveTab, isViewMode }) {
 
     // Importer — use invoice-specific states
     setInvoiceExporterCode(invoice.ImportPartyCode);
-    const importerData = importerSuggestions
+    const importerData = exporterSuggestions
       .map((i) => i.split(":"))
       .find(([code]) => code === invoice.ImportPartyCode);
     if (importerData) {
       const [code, cruei, name, name1] = importerData;
-      setImporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
+      setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
       setInvoiceExporterCruei(cruei);
       setInvoiceExporterName(name);
       setInvoiceExporterName1(name1);
@@ -1001,7 +1235,7 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInvoiceExporterCruei("");
     setInvoiceExporterName("");
     setInvoiceExporterName1("");
-    setImporter(null);
+    setExporter(null);
     setInvoiceCurrency("");
     setInvoiceExRate(0.0);
     setInvoiceAmount(0.0);
@@ -1262,6 +1496,33 @@ function Invoice({ setActiveTab, isViewMode }) {
   //   enabled: !isViewMode,
   //   delay: 2000,
   // });
+  
+// if this permit id's data already exists
+
+  // ======================== LOAD EXISTING INVOICES ON PAGE (RE)ENTRY ========================
+const invoiceFetchedRef = useRef(false);
+
+useEffect(() => {
+  const fetchExistingInvoices = async () => {
+    if (!permitDetails?.PermitId) return;
+    if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
+    invoiceFetchedRef.current = true;
+
+    try {
+      const response = await API.get(
+        `/getInvoiceByPermitId/${permitDetails.PermitId}/`
+      );
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        setInvoiceTable(response.data);
+        setSerialNumber(response.data.length + 1);
+      }
+    } catch (err) {
+      console.error("Failed to load existing invoices for this permit", err);
+    }
+  };
+
+  fetchExistingInvoices();
+}, [permitDetails?.PermitId]);
 
   // ======================== UI ========================
   return (
@@ -1276,27 +1537,27 @@ function Invoice({ setActiveTab, isViewMode }) {
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("exporter")}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
+            <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} />
           </div>
           <div className="col-sm-1 position-relative">
             <input
-              ref={importerCodeRef}
-              id="importerCode"
+              ref={exporterCodeRef}
+              id="exporterCode"
               className="form-control"
               placeholder="CODE"
               tabIndex={5}
               value={invoiceExporterCode}
-              onChange={handleImporterChange}
-              onKeyDown={handleImporterKeyDown}
+              onChange={handleExporterChange}
+              onKeyDown={handleExporterKeyDown}
               onBlur={handleFocusOut}
-              onFocus={() => setImporterError(false)}
+              onFocus={() => setExporterError(false)}
             />
-            {invoiceExporterCode.trim() === "" && importerCodeError && (
-              <span className="ErrColor">FILL Importer</span>
+            {invoiceExporterCode.trim() === "" && exporterCodeError && (
+              <span className="ErrColor">FILL Exporter</span>
             )}
-            {showImporterDropdown && filteredSuggestions.length > 0 && (
+            {showExporterDropdown && filteredExporterSuggestions.length > 0 && (
               <div className="dropdown-suggestions">
-                {filteredSuggestions.map((item, index) => {
+                {filteredExporterSuggestions.map((item, index) => {
                   const [code, , name] = item.split(":");
                   return (
                     <div
@@ -1304,12 +1565,17 @@ function Invoice({ setActiveTab, isViewMode }) {
                       className="dropdown-item"
                       style={{
                         backgroundColor:
-                          index === highlightedIndex ? "#234263" : "white",
-                        color: index === highlightedIndex ? "white" : "black",
+                          index === exporterHighlightedIndex
+                            ? "#234263"
+                            : "white",
+                        color:
+                          index === exporterHighlightedIndex
+                            ? "white"
+                            : "black",
                         cursor: "pointer",
                       }}
-                      onMouseDown={() => handleImporterSelect(item)}
-                      onMouseEnter={() => setHighlightedIndex(index)}
+                      onMouseDown={() => handleExporterSelect(item)}
+                      onMouseEnter={() => setExporterHighlightedIndex(index)}
                     >
                       {code} - {name}
                     </div>
@@ -1320,31 +1586,31 @@ function Invoice({ setActiveTab, isViewMode }) {
           </div>
           <div className="col-sm-2">
             <input
-              id="importerCruei"
+              id="exporterCruei"
               className="form-control mandatory"
               placeholder="CRUEI"
               tabIndex={6}
-              value={importer?.CRUEI || invoiceExporterCruei || ""}
+              value={exporter?.CRUEI || invoiceExporterCruei || ""}
               onChange={(e) => setInvoiceExporterCruei(e.target.value)}
             />
           </div>
           <div className="col-sm-3">
             <input
-              id="importerName"
+              id="exporterName"
               className="form-control mandatory"
               placeholder="NAME"
               tabIndex={7}
-              value={importer?.Name || invoiceExporterName || ""}
+              value={exporter?.Name || invoiceExporterName || ""}
               onChange={(e) => setInvoiceExporterName(e.target.value)}
             />
           </div>
           <div className="col-sm-2">
             <input
-              id="importerName1"
+              id="exporterName1"
               className="form-control"
               placeholder="NAME1"
               tabIndex={8}
-              value={importer?.Name1 || invoiceExporterName1 || ""}
+              value={exporter?.Name1 || invoiceExporterName1 || ""}
               onChange={(e) => setInvoiceExporterName1(e.target.value)}
             />
           </div>
@@ -1353,7 +1619,7 @@ function Invoice({ setActiveTab, isViewMode }) {
               tabIndex={9}
               type="button"
               className="ButtonClick SaveContainer"
-              onClick={copyImporter}
+              onClick={copyExporter}
             >
               CopyExporter
             </button>
@@ -1369,8 +1635,8 @@ function Invoice({ setActiveTab, isViewMode }) {
           </div>
         </div>
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">SERIAL NUMBER</div>
-          <div className="col-sm-1">
+          <div className="col-sm-1 col-form-label">SERIAL NUMBER</div>
+          <div className="col-sm-2">
             <input
               disabled
               type="text"
@@ -1380,7 +1646,7 @@ function Invoice({ setActiveTab, isViewMode }) {
             />
           </div>
           <div className="col-sm-1">INVOICE DATE</div>
-          <div className="col-sm-2">
+          <div className="col-sm-3">
             <DateField
               tabIndex={10}
               value={invoiceDate}
@@ -1390,7 +1656,7 @@ function Invoice({ setActiveTab, isViewMode }) {
               <span className="ErrColor">FILL Invoice Date</span>
             )}
           </div>
-          <div className="col-sm-1 form-check">
+          {/* <div className="col-sm-1 form-check">
             <input
               type="checkbox"
               tabIndex={11}
@@ -1401,8 +1667,8 @@ function Invoice({ setActiveTab, isViewMode }) {
               }
             />
           </div>
-          <div className="col-sm-1">AD VALOREM INDICATOR</div>
-          <div className="col-sm-1 form-check">
+          <div className="col-sm-1">AD VALOREM INDICATOR</div> */}
+          <div className="col-sm-3 form-check">
             <input
               type="checkbox"
               tabIndex={12}
@@ -1412,22 +1678,22 @@ function Invoice({ setActiveTab, isViewMode }) {
                 setPreDutyRateIndicator(e.target.checked ? "True" : "False")
               }
             />
+            <div>PREFERENTIAL DUTY RATE INDICATOR</div>
           </div>
-          <div className="col-sm-3">PREFERENTIAL DUTY RATE INDICATOR</div>
         </div>
 
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">INVOICE NUMBER</div>
-          <div className="col-sm-1">
+          <div className="col-sm-1 col-form-label">INVOICE NUMBER</div>
+          <div className="col-sm-2">
             <input
               type="text"
               tabIndex={13}
               className="form-control"
               value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
+              onChange={handleInvoiceNumberChange}
             />
             {invoiceNumber.trim() === "" && invoiceNumberError && (
-              <span className="ErrColor">FILL Invoice Number</span>
+              <span className="ErrColor">FILL Real Invoice Number</span>
             )}
           </div>
           <div className="col-sm-1">TERM TYPE</div>
@@ -1827,8 +2093,12 @@ function Invoice({ setActiveTab, isViewMode }) {
           >
             PREVIOUS
           </button>
-          <button className="NextpageBtns" onClick={saveInvoice}>
-            ADD INVOICE
+          <button
+            className="NextpageBtns"
+            onClick={saveInvoice}
+            disabled={isInvoiceSaving}
+          >
+            {isInvoiceSaving ? "SAVING..." : "ADD INVOICE"}
           </button>
           {showResetButton && (
             <button className="NextpageBtns" onClick={resetInvoiceForm}>
@@ -1842,6 +2112,65 @@ function Invoice({ setActiveTab, isViewMode }) {
             NEXT
           </button>
         </div>
+     
+        {isInvoiceSaving && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(255,255,255,0.7)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+          >
+            <CircleLoader size={60} color="#1bf807" loading={isInvoiceSaving} />
+            <div
+              style={{
+                marginTop: "16px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#1a6db5",
+              }}
+            >
+              SAVING INVOICE...
+            </div>
+          </div>
+        )}
+        {isInvoiceDeleting && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(255,255,255,0.7)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+          >
+            <CircleLoader size={60} color="#c0392b" loading={isInvoiceDeleting} />
+            <div
+              style={{
+                marginTop: "16px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#c0392b",
+              }}
+            >
+              DELETING INVOICE...
+            </div>
+          </div>
+        )}
         {showDraftModal && (
           <>
             {/* Backdrop */}
@@ -1872,7 +2201,6 @@ function Invoice({ setActiveTab, isViewMode }) {
                 overflow: "hidden",
               }}
             >
-              {/* Header */}
               <div
                 style={{
                   backgroundColor: "#1a6db5",
@@ -2057,8 +2385,14 @@ function Invoice({ setActiveTab, isViewMode }) {
                   <tr key={inv.SNo}>
                     <td>
                       <FaTrash
-                        style={{ width: "15px", cursor: "pointer" }}
-                        onClick={() => deleteInvoice(inv.SNo)}
+                        style={{
+                          width: "15px",
+                          cursor: isInvoiceDeleting ? "not-allowed" : "pointer",
+                          opacity: isInvoiceDeleting ? 0.5 : 1,
+                        }}
+                        onClick={() => {
+                          if (!isInvoiceDeleting) deleteInvoice(inv.SNo);
+                        }}
                       />
                     </td>
                     <td>

@@ -235,6 +235,7 @@ function Party({ setActiveTab, isViewMode }) {
   const importerCodeRef = useRef(null);
   const [importer, setImporter] = useState(null);
   const [importerSuggestions, setImporterSuggestions] = useState([]);
+  const [commonImporterCodes, setCommonImporterCodes] = useState(new Set());
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [showImporterDropdown, setShowImporterDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -250,11 +251,64 @@ function Party({ setActiveTab, isViewMode }) {
     };
   }, [importerCode, importerCruei, importerName, importerName1]);
   // ======================== FETCH IMPORTERS ========================
+  // useEffect(() => {
+  //   const fetchImporters = async () => {
+  //     try {
+  //       const response = await API.get("/getCommonImporterTableInfo/");
+  //       const list = response.data.map(
+  //         (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+  //       );
+  //       setImporterSuggestions(list);
+  //       setFilteredSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch importers", err);
+  //     }
+  //   };
+  //   fetchImporters();
+  // }, []);
   useEffect(() => {
     const fetchImporters = async () => {
       try {
-        const response = await API.get("/getCommonImporterTableInfo/");
-        const list = response.data.map(
+        const [commonResult, inpaymentResult] = await Promise.allSettled([
+          API.get("/getCommonImporterTableInfo/"),
+          API.get("out/getOutImporterTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const inpaymentData =
+          inpaymentResult.status === "fulfilled"
+            ? inpaymentResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common importers",
+            commonResult.reason,
+          );
+        }
+        if (inpaymentResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Inpayment importers",
+            inpaymentResult.reason,
+          );
+        }
+
+        const merged = [...commonData];
+        const seenCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
+        );
+        for (const item of inpaymentData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!seenCodes.has(code)) {
+            merged.push(item);
+            seenCodes.add(code);
+          }
+        }
+
+        const list = merged.map(
           (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
         );
         setImporterSuggestions(list);
@@ -367,9 +421,11 @@ function Party({ setActiveTab, isViewMode }) {
       alert("Code is required!");
       return;
     }
-    const duplicate = importerSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === importerCode.toLowerCase(),
-    );
+    const duplicate = commonImporterCodes.has(importerCode.toLowerCase());
+    if (duplicate) {
+      alert("Duplicate code found! Importer not saved.");
+      return;
+    }
     if (duplicate) {
       alert("Duplicate code found! Importer not saved.");
       return;
@@ -377,10 +433,10 @@ function Party({ setActiveTab, isViewMode }) {
 
     const payload = {
       Id: importer?.Id || 0,
-      Code: importerCode || "",
-      CRUEI: importerCruei || "",
-      Name: importerName || "",
-      Name1: importerName1 || "",
+      Code: (importerCode || "").toUpperCase(),
+      CRUEI: (importerCruei || "").toUpperCase(),
+      Name: (importerName || "").toUpperCase(),
+      Name1: (importerName1 || "").toUpperCase(),
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
       Status: "Active",
@@ -392,17 +448,123 @@ function Party({ setActiveTab, isViewMode }) {
 
     try {
       const response = await API.post("/postImporterTable/", payload);
-      alert(response.data?.message || "Importer saved successfully!");
+
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Importer saved successfully!",
+      );
       console.log("Saved data:", response.data);
+
+      setCommonImporterCodes((prev) =>
+        new Set(prev).add(importerCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(err.response.data?.error || "Failed to save importer");
-      } else {
-        console.error("Failed to save importer:", err);
-        alert("Failed to save importer, check console for details");
-      }
+      console.error("Failed to save importer:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save importer, check console for details",
+      );
     }
   };
+
+  //  const saveImporter = async () => {
+  //    if (!importerCode) {
+  //      setImporterError(true);
+  //      alert("Code is required!");
+  //      return;
+  //    }
+  //    const duplicate = commonImporterCodes.has(importerCode.toLowerCase());
+  //    if (duplicate) {
+  //      alert("Duplicate code found! Importer not saved.");
+  //      return;
+  //    }
+  //    if (duplicate) {
+  //      alert("Duplicate code found! Importer not saved.");
+  //      return;
+  //    }
+
+  //    const payload = {
+  //      Id: importer?.Id || 0,
+  //      Code: (importerCode || "").toUpperCase(),
+  //      CRUEI: (importerCruei || "").toUpperCase(),
+  //      Name: (importerName || "").toUpperCase(),
+  //      Name1: (importerName1 || "").toUpperCase(),
+  //      TouchUser: (user?.username).toUpperCase(),
+  //      TouchTime: new Date().toISOString(),
+  //      Status: "Active",
+  //      MES: "",
+  //      APS: "",
+  //    };
+
+  //    console.log("Payload to save:", payload);
+
+  //    try {
+  //      const response = await API.post("/postImporterTable/", payload);
+
+  //      alert(
+  //        response.data?.message ||
+  //          response.data?.Result ||
+  //          "Importer saved successfully!",
+  //      );
+  //      console.log("Saved data:", response.data);
+
+  //      setCommonImporterCodes((prev) =>
+  //        new Set(prev).add(importerCode.toLowerCase()),
+  //      );
+  //    } catch (err) {
+  //      console.error("Failed to save importer:", err.response?.data || err);
+  //      alert(
+  //        err.response?.data?.error ||
+  //          err.response?.data?.Result ||
+  //          "Failed to save importer, check console for details",
+  //      );
+  //    }
+  //  };
+
+  // const saveImporter = async () => {
+  //   if (!importerCode) {
+  //     setImporterError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+  //   const duplicate = importerSuggestions.some(
+  //     (i) => i.split(":")[0].toLowerCase() === importerCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Importer not saved.");
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     Id: importer?.Id || 0,
+  //     Code: importerCode || "",
+  //     CRUEI: importerCruei || "",
+  //     Name: importerName || "",
+  //     Name1: importerName1 || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //     MES: "",
+  //     APS: "",
+  //   };
+
+  //   console.log("Payload to save:", payload);
+
+  //   try {
+  //     const response = await API.post("/postImporterTable/", payload);
+  //     alert(response.data?.message || "Importer saved successfully!");
+  //     console.log("Saved data:", response.data);
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(err.response.data?.error || "Failed to save importer");
+  //     } else {
+  //       console.error("Failed to save importer:", err);
+  //       alert("Failed to save importer, check console for details");
+  //     }
+  //   }
+  // };
 
   // iNVOICE PAGE
   useEffect(() => {
@@ -423,17 +585,69 @@ function Party({ setActiveTab, isViewMode }) {
   const [filteredInwardSuggestions, setFilteredInwardSuggestions] = useState(
     [],
   );
+  const [commonInwardCodes, setCommonInwardCodes] = useState(new Set());
   const [showInwardDropdown, setShowInwardDropdown] = useState(false);
   const [inwardHighlightedIndex, setInwardHighlightedIndex] = useState(0);
   const [inwardError, setInwardError] = useState(false);
   // ======================== FETCH INWARD ========================
+  // useEffect(() => {
+  //   const fetchInward = async () => {
+  //     try {
+  //       const response = await API.get(
+  //         "/getCommonInwardCarrierAgentTableInfo/",
+  //       );
+  //       const list = response.data.map(
+  //         (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+  //       );
+  //       setInwardSuggestions(list);
+  //       setFilteredInwardSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch importers", err);
+  //     }
+  //   };
+  //   fetchInward();
+  // }, []);
+
   useEffect(() => {
     const fetchInward = async () => {
       try {
-        const response = await API.get(
-          "/getCommonInwardCarrierAgentTableInfo/",
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonInwardCarrierAgentTableInfo/"),
+          API.get("out/getOutInwardCarrierAgentTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common inward agents",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Innon inward agents",
+            innonResult.reason,
+          );
+
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
         );
-        const list = response.data.map(
+        setCommonInwardCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
           (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
         );
         setInwardSuggestions(list);
@@ -539,11 +753,7 @@ function Party({ setActiveTab, isViewMode }) {
       alert("Code is required!");
       return;
     }
-
-    // Check for duplicate
-    const duplicate = inwardSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === inwardCode.toLowerCase(),
-    );
+    const duplicate = commonInwardCodes.has(inwardCode.toLowerCase());
     if (duplicate) {
       alert("Duplicate code found! Inward Carrier Agent not saved.");
       return;
@@ -558,20 +768,66 @@ function Party({ setActiveTab, isViewMode }) {
       TouchTime: new Date().toISOString(),
       Status: "Active",
     };
-    console.log("Payload to save:", payload);
+
     try {
       const response = await API.post("/postInwardCarrierAgentTable/", payload);
-      alert(response.data?.message || "Inward saved successfully!");
-      console.log("Saved data:", response.data);
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Inward saved successfully!",
+      );
+      setCommonInwardCodes((prev) =>
+        new Set(prev).add(inwardCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(err.response.data?.error || "Failed to save Inward");
-      } else {
-        console.error("Failed to save Inward:", err);
-        alert("Failed to save Inward, check console for details");
-      }
+      console.error("Failed to save Inward:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save Inward, check console for details",
+      );
     }
   };
+
+  // const saveInward = async () => {
+  //   if (!inwardCode) {
+  //     setInwardError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+
+  //   // Check for duplicate
+  //   const duplicate = inwardSuggestions.some(
+  //     (i) => i.split(":")[0].toLowerCase() === inwardCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Inward Carrier Agent not saved.");
+  //     return;
+  //   }
+  //   const payload = {
+  //     Id: inwardAgent?.Id || 0,
+  //     Code: inwardCode || "",
+  //     CRUEI: inwardCruei || "",
+  //     Name: inwardName || "",
+  //     Name1: inwardName1 || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //   };
+  //   console.log("Payload to save:", payload);
+  //   try {
+  //     const response = await API.post("/postInwardCarrierAgentTable/", payload);
+  //     alert(response.data?.message || "Inward saved successfully!");
+  //     console.log("Saved data:", response.data);
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(err.response.data?.error || "Failed to save Inward");
+  //     } else {
+  //       console.error("Failed to save Inward:", err);
+  //       alert("Failed to save Inward, check console for details");
+  //     }
+  //   }
+  // };
 
   // ======================== FETCH FREIGHTFORWARDER  ========================
   const freightForwarderCodeRef = useRef(null);
@@ -583,6 +839,8 @@ function Party({ setActiveTab, isViewMode }) {
     filteredFreightForwarderSuggestions,
     setFilteredFreightForwarderSuggestions,
   ] = useState([]);
+  const [commonFreightForwarderCodes, setCommonFreightForwarderCodes] =
+    useState(new Set());
   const [showFreightForwarderDropdown, setShowFreightForwarderDropdown] =
     useState(false);
   const [freightForwarderError, setFreightForwarderError] = useState(false);
@@ -592,11 +850,62 @@ function Party({ setActiveTab, isViewMode }) {
   ] = useState(0);
   // const [loading, setLoading] = useState(false);
   // ======================== FETCH FREIGHTFORWARDER ========================
+  // useEffect(() => {
+  //   const fetchFreightForwarder = async () => {
+  //     try {
+  //       const response = await API.get("/getCommonFreightForwarderTable/");
+  //       const list = response.data.map(
+  //         (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+  //       );
+  //       setFreightForwarSuggestions(list);
+  //       setFilteredFreightForwarderSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch importers", err);
+  //     }
+  //   };
+  //   fetchFreightForwarder();
+  // }, []);
+
   useEffect(() => {
     const fetchFreightForwarder = async () => {
       try {
-        const response = await API.get("/getCommonFreightForwarderTable/");
-        const list = response.data.map(
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonFreightForwarderTable/"),
+          API.get("out/getOutFreightForwarderTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common freight forwarders",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Innon freight forwarders",
+            innonResult.reason,
+          );
+
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
+        );
+        setCommonFreightForwarderCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
           (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
         );
         setFreightForwarSuggestions(list);
@@ -725,10 +1034,8 @@ function Party({ setActiveTab, isViewMode }) {
       alert("Code is required!");
       return;
     }
-    // Check for duplicate
-    const duplicate = freightForwarderSuggestions.some(
-      (i) =>
-        i.split(":")[0].toLowerCase() === freightForwarderCode.toLowerCase(),
+    const duplicate = commonFreightForwarderCodes.has(
+      freightForwarderCode.toLowerCase(),
     );
     if (duplicate) {
       alert("Duplicate code found! Freight Forwarder not saved.");
@@ -744,20 +1051,68 @@ function Party({ setActiveTab, isViewMode }) {
       TouchTime: new Date().toISOString(),
       Status: "Active",
     };
-    console.log("Payload to save:", payload);
+
     try {
       const response = await API.post("/postFreightForwarderTable/", payload);
-      alert(response.data?.message || "FreightForwarder saved successfully!");
-      console.log("Saved data:", response.data);
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "FreightForwarder saved successfully!",
+      );
+      setCommonFreightForwarderCodes((prev) =>
+        new Set(prev).add(freightForwarderCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(err.response.data?.error || "Failed to save FreightForwarder");
-      } else {
-        console.error("Failed to save FreightForwarder:", err);
-        alert("Failed to save FreightForwarder, check console for details");
-      }
+      console.error(
+        "Failed to save FreightForwarder:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save FreightForwarder, check console for details",
+      );
     }
   };
+  // const saveFreightForwarder = async () => {
+  //   if (!freightForwarderCode) {
+  //     setFreightForwarderError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+  //   // Check for duplicate
+  //   const duplicate = freightForwarderSuggestions.some(
+  //     (i) =>
+  //       i.split(":")[0].toLowerCase() === freightForwarderCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Freight Forwarder not saved.");
+  //     return;
+  //   }
+  //   const payload = {
+  //     Id: freightForwarder?.Id || 0,
+  //     Code: freightForwarderCode || "",
+  //     CRUEI: freightForwarderCruei || "",
+  //     Name: freightForwardName || "",
+  //     Name1: freightForwardName1 || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //   };
+  //   console.log("Payload to save:", payload);
+  //   try {
+  //     const response = await API.post("/postFreightForwarderTable/", payload);
+  //     alert(response.data?.message || "FreightForwarder saved successfully!");
+  //     console.log("Saved data:", response.data);
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(err.response.data?.error || "Failed to save FreightForwarder");
+  //     } else {
+  //       console.error("Failed to save FreightForwarder:", err);
+  //       alert("Failed to save FreightForwarder, check console for details");
+  //     }
+  //   }
+  // };
 
   // ======================== CLAIMANT PARTY========================
   const claimantCodeRef = useRef(null);
@@ -944,6 +1299,7 @@ function Party({ setActiveTab, isViewMode }) {
   const congineeCodeRef = useRef(null);
   const [consignee, setConsignee] = useState(null);
   const [congineeSuggestions, setCongineeSuggestions] = useState([]);
+  const [commonCongineeCodes, setCommonCongineeCodes] = useState(new Set());
   const [filteredCongineeSuggestions, setFilteredCongineeSuggestions] =
     useState([]);
   const [showCongineeDropdown, setShowCongineeDropdown] = useState(false);
@@ -951,18 +1307,70 @@ function Party({ setActiveTab, isViewMode }) {
   const [congineeHighlightedIndex, setCongineeHighlightedIndex] = useState(0);
 
   // ======================== FETCH CONSIGNEE ========================
+  // useEffect(() => {
+  //   const fetchConsignee = async () => {
+  //     try {
+  //       const response = await API.get("/getCommonConsigneeTableInfo/");
+  //       const list = response.data.map(
+  //         (i) =>
+  //           `${i.ConsigneeCode}:${i.ConsigneeCRUEI}:${i.ConsigneeName}:${i.ConsigneeName1}:${i.ConsigneeAddress}:${i.ConsigneeAddress1}:${i.ConsigneeCity}:${i.ConsigneeSub}:${i.ConsigneeSubDivi}:${i.ConsigneePostal}:${i.ConsigneeCountry}`,
+  //       );
+  //       setCongineeSuggestions(list);
+  //       setFilteredCongineeSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch consignee", err);
+  //     }
+  //   };
+  //   fetchConsignee();
+  // }, []);
+
   useEffect(() => {
     const fetchConsignee = async () => {
       try {
-        const response = await API.get("/getCommonConsigneeTableInfo/");
-        const list = response.data.map(
-          (i) =>
-            `${i.ConsigneeCode}:${i.ConsigneeCRUEI}:${i.ConsigneeName}:${i.ConsigneeName1}:${i.ConsigneeAddress}:${i.ConsigneeAddress1}:${i.ConsigneeCity}:${i.ConsigneeSub}:${i.ConsigneeSubDivi}:${i.ConsigneePostal}:${i.ConsigneeCountry}`,
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonConsigneeTableInfo/"),
+          API.get("out/getOutConsigneeTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common consignees",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error("Failed to fetch Innon consignees", innonResult.reason);
+
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.ConsigneeCode || "").toLowerCase()),
         );
+        setCommonCongineeCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.ConsigneeCode || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
+          (i) =>
+            `${i.ConsigneeCode}:${i.ConsigneeCRUEI}:${i.ConsigneeName}:${i.ConsigneeName1}:${i.ConsigneeAddress || ""}:${i.ConsigneeAddress1 || ""}:${i.ConsigneeCity || ""}:${i.ConsigneeSub || ""}:${i.ConsigneeSubDivi || ""}:${i.ConsigneePostal || ""}:${i.ConsigneeCountry || ""}`,
+        );
+
+        console.log("Fetched consignees:", list);
+
         setCongineeSuggestions(list);
         setFilteredCongineeSuggestions(list);
       } catch (err) {
-        console.error("Failed to fetch consignee", err);
+        console.error("Failed to fetch consignees", err);
       }
     };
     fetchConsignee();
@@ -1126,15 +1534,56 @@ function Party({ setActiveTab, isViewMode }) {
   };
 
   // ======================== CONSIGNEE SAVE ========================
+  // const saveConsignee = async () => {
+  //   if (!congineeCode) {
+  //     setCongineeError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+  //   const duplicate = congineeSuggestions.some(
+  //     (i) => i.split(":")[0].toLowerCase() === congineeCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Consignee not saved.");
+  //     return;
+  //   }
+  //   const payload = {
+  //     Id: consignee?.Id || 0,
+  //     ConsigneeCode: congineeCode || "",
+  //     ConsigneeCRUEI: congineeCruei || "",
+  //     ConsigneeName: congineeName || "",
+  //     ConsigneeName1: congineeName1 || "",
+  //     ConsigneeAddress: congineeAddress || "",
+  //     ConsigneeAddress1: congineeAddress1 || "",
+  //     ConsigneeCity: congineeCity || "",
+  //     ConsigneeSub: congineeSubCode || "",
+  //     ConsigneeSubDivi: congineeSubDivision || "",
+  //     ConsigneePostal: congineePostal || "",
+  //     ConsigneeCountry: congineeCountryCode || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //   };
+  //   try {
+  //     const response = await API.post("/postCongineeTable/", payload);
+  //     alert(response.data?.message || "Consignee saved successfully!");
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(err.response.data?.error || "Failed to save Consignee");
+  //     } else {
+  //       console.error("Failed to save Consignee:", err);
+  //       alert("Failed to save Consignee, check console for details");
+  //     }
+  //   }
+  // };
+
   const saveConsignee = async () => {
     if (!congineeCode) {
       setCongineeError(true);
       alert("Code is required!");
       return;
     }
-    const duplicate = congineeSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === congineeCode.toLowerCase(),
-    );
+    const duplicate = commonCongineeCodes.has(congineeCode.toLowerCase());
     if (duplicate) {
       alert("Duplicate code found! Consignee not saved.");
       return;
@@ -1173,6 +1622,7 @@ function Party({ setActiveTab, isViewMode }) {
   const exporterCodeRef = useRef(null);
   const [exporter, setExporter] = useState(null);
   const [exporterSuggestions, setExporterSuggestions] = useState([]);
+  const [commonExporterCodes, setCommonExporterCodes] = useState(new Set());
   const [filteredExporterSuggestions, setFilteredExporterSuggestions] =
     useState([]);
   const [showExporterDropdown, setShowExporterDropdown] = useState(false);
@@ -1180,14 +1630,83 @@ function Party({ setActiveTab, isViewMode }) {
   const [exporterError, setExporterError] = useState(false);
 
   // ======================== FETCH EXPORTER ========================
+  // useEffect(() => {
+  //   const fetchExporter = async () => {
+  //     try {
+  //       const response = await API.get("/getCommonExporterTableInfo/");
+  //       const list = response.data.map(
+  //         (i) =>
+  //           `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.Address}:${i.Address1}:${i.City}:${i.SubCode}:${i.Sub}:${i.Postal}:${i.Country}`,
+  //       );
+  //       setExporterSuggestions(list);
+  //       setFilteredExporterSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch exporters", err);
+  //     }
+  //   };
+  //   fetchExporter();
+  // }, []);
+
   useEffect(() => {
     const fetchExporter = async () => {
       try {
-        const response = await API.get("/getCommonExporterTableInfo/");
-        const list = response.data.map(
+        const [commonResult, outtResult] = await Promise.allSettled([
+          API.get("/getCommonExporterTableInfo/"),
+          API.get("out/getOutExporterTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const outData =
+          outtResult.status === "fulfilled" ? outtResult.value.data || [] : [];
+
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common Exporters",
+            commonResult.reason,
+          );
+        }
+        if (outtResult.status === "rejected") {
+          console.error("Failed to fetch Out Exporters", outtResult.reason);
+        }
+
+        // Normalize both schemas to one common shape BEFORE merging.
+        // /getCommonExporterTableInfo/ uses plain Code/CRUEI/Name/Name1/Address...
+        // out/getOutExporterTableInfo/ uses OutUserCode/OutUserCRUEI/OutUserName...
+        const normalize = (i) => ({
+          Code: i.Code ?? i.OutUserCode ?? "",
+          CRUEI: i.CRUEI ?? i.OutUserCRUEI ?? "",
+          Name: i.Name ?? i.OutUserName ?? "",
+          Name1: i.Name1 ?? i.OutUserName1 ?? "",
+          Address: i.Address ?? i.OutUserAddress ?? "",
+          Address1: i.Address1 ?? i.OutUserAddress1 ?? "",
+          City: i.City ?? i.OutUserCity ?? "",
+          SubCode: i.SubCode ?? i.OutUserSubCode ?? "",
+          Sub: i.Sub ?? i.OutUserSub ?? "",
+          Postal: i.Postal ?? i.OutUserPostal ?? "",
+          Country: i.Country ?? i.OutUserCountry ?? "",
+        });
+
+        const normCommon = commonData.map(normalize);
+        const normOut = outData.map(normalize);
+
+        const merged = [...normCommon];
+        const seenCodes = new Set(normCommon.map((i) => i.Code.toLowerCase()));
+        for (const item of normOut) {
+          const code = item.Code.toLowerCase();
+          if (!seenCodes.has(code)) {
+            merged.push(item);
+            seenCodes.add(code);
+          }
+        }
+
+        const list = merged.map(
           (i) =>
             `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.Address}:${i.Address1}:${i.City}:${i.SubCode}:${i.Sub}:${i.Postal}:${i.Country}`,
         );
+
         setExporterSuggestions(list);
         setFilteredExporterSuggestions(list);
       } catch (err) {
@@ -1366,9 +1885,7 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const duplicate = exporterSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === exporterCode.toLowerCase(),
-    );
+    const duplicate = commonExporterCodes.has(exporterCode.toLowerCase());
     if (duplicate) {
       alert("Duplicate code found! Exporter not saved.");
       return;
@@ -1380,25 +1897,39 @@ function Party({ setActiveTab, isViewMode }) {
       CRUEI: exporterCruei || "",
       Name: exporterName || "",
       Name1: exporterName1 || "",
-      // Address:
+      Address: exporter?.Address || "",
+      Address1: exporter?.Address1 || "",
+      City: exporter?.City || "",
+      SubCode: exporter?.SubCode || "",
+      Sub: exporter?.Sub || "",
+      Postal: exporter?.Postal || "",
+      Country: exporter?.Country || "",
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
       Status: "Active",
     };
 
-    console.log("Payload to save:", payload);
+    console.log("Exporter payload to save:", payload);
 
     try {
       const response = await API.post("/postExporterTable/", payload);
-      alert(response.data?.message || "Exporter saved successfully!");
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Exporter saved successfully!",
+      );
       console.log("Saved data:", response.data);
+
+      setCommonExporterCodes((prev) =>
+        new Set(prev).add(exporterCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(err.response.data?.error || "Failed to save Exporter");
-      } else {
-        console.error("Failed to save Exporter:", err);
-        alert("Failed to save Exporter, check console for details");
-      }
+      console.error("Failed to save Exporter:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save Exporter, check console for details",
+      );
     }
   };
 
@@ -1406,6 +1937,7 @@ function Party({ setActiveTab, isViewMode }) {
   const outwardCodeRef = useRef(null);
   const [outwardAgent, setOutwardAgent] = useState(null);
   const [outwardSuggestions, setOutwardSuggestions] = useState([]);
+  const [commonOutwardCodes, setCommonOutwardCodes] = useState(new Set());
   const [filteredOutwardSuggestions, setFilteredOutwardSuggestions] = useState(
     [],
   );
@@ -1414,13 +1946,64 @@ function Party({ setActiveTab, isViewMode }) {
   const [outwardError, setOutwardError] = useState(false);
 
   // ======================== FETCH OUTWARD ========================
+  // useEffect(() => {
+  //   const fetchOutward = async () => {
+  //     try {
+  //       const response = await API.get(
+  //         "/getCommonOutwardCarrierAgentTableInfo/",
+  //       );
+  //       const list = response.data.map(
+  //         (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+  //       );
+  //       setOutwardSuggestions(list);
+  //       setFilteredOutwardSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch outward carrier agent", err);
+  //     }
+  //   };
+  //   fetchOutward();
+  // }, []);
+
   useEffect(() => {
     const fetchOutward = async () => {
       try {
-        const response = await API.get(
-          "/getCommonOutwardCarrierAgentTableInfo/",
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonOutwardCarrierAgentTableInfo/"),
+          API.get("out/getOutOutwardCarrierAgentTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common outward carrier agents",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Innon outward carrier agents",
+            innonResult.reason,
+          );
+
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
         );
-        const list = response.data.map(
+        setCommonOutwardCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
           (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
         );
         setOutwardSuggestions(list);
@@ -1524,6 +2107,57 @@ function Party({ setActiveTab, isViewMode }) {
   };
 
   // ======================== OUTWARD SAVE ========================
+  // const saveOutward = async () => {
+  //   if (!outwardCode) {
+  //     setOutwardError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+
+  //   const duplicate = outwardSuggestions.some(
+  //     (i) => i.split(":")[0].toLowerCase() === outwardCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Outward Carrier Agent not saved.");
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     Id: outwardAgent?.Id || 0,
+  //     Code: outwardCode || "",
+  //     CRUEI: outwardCruei || "",
+  //     Name: outwardName || "",
+  //     Name1: outwardName1 || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //   };
+
+  //   console.log("Payload to save:", payload);
+
+  //   try {
+  //     const response = await API.post(
+  //       "/postOutwardCarrierAgentTable/",
+  //       payload,
+  //     );
+  //     alert(
+  //       response.data?.message || "Outward Carrier Agent saved successfully!",
+  //     );
+  //     console.log("Saved data:", response.data);
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(
+  //         err.response.data?.error || "Failed to save Outward Carrier Agent",
+  //       );
+  //     } else {
+  //       console.error("Failed to save Outward Carrier Agent:", err);
+  //       alert(
+  //         "Failed to save Outward Carrier Agent, check console for details",
+  //       );
+  //     }
+  //   }
+  // };
+
   const saveOutward = async () => {
     if (!outwardCode) {
       setOutwardError(true);
@@ -1531,9 +2165,7 @@ function Party({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const duplicate = outwardSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === outwardCode.toLowerCase(),
-    );
+    const duplicate = commonOutwardCodes.has(outwardCode.toLowerCase());
     if (duplicate) {
       alert("Duplicate code found! Outward Carrier Agent not saved.");
       return;
@@ -1550,28 +2182,29 @@ function Party({ setActiveTab, isViewMode }) {
       Status: "Active",
     };
 
-    console.log("Payload to save:", payload);
-
     try {
       const response = await API.post(
         "/postOutwardCarrierAgentTable/",
         payload,
       );
       alert(
-        response.data?.message || "Outward Carrier Agent saved successfully!",
+        response.data?.message ||
+          response.data?.Result ||
+          "Outward Carrier Agent saved successfully!",
       );
-      console.log("Saved data:", response.data);
+      setCommonOutwardCodes((prev) =>
+        new Set(prev).add(outwardCode.toLowerCase()),
+      );
     } catch (err) {
-      if (err.response?.status === 400) {
-        alert(
-          err.response.data?.error || "Failed to save Outward Carrier Agent",
-        );
-      } else {
-        console.error("Failed to save Outward Carrier Agent:", err);
-        alert(
+      console.error(
+        "Failed to save Outward Carrier Agent:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
           "Failed to save Outward Carrier Agent, check console for details",
-        );
-      }
+      );
     }
   };
 
@@ -1835,6 +2468,9 @@ function Party({ setActiveTab, isViewMode }) {
   const manufacturerCodeRef = useRef(null);
   const [manufacturer, setManufacturer] = useState(null);
   const [manufacturerSuggestions, setManufacturerSuggestions] = useState([]);
+  const [commonManufacturerCodes, setCommonManufacturerCodes] = useState(
+    new Set(),
+  );
   const [filteredManufacturerSuggestions, setFilteredManufacturerSuggestions] =
     useState([]);
   const [showManufacturerDropdown, setShowManufacturerDropdown] =
@@ -1844,18 +2480,73 @@ function Party({ setActiveTab, isViewMode }) {
     useState(0);
 
   // ======================== FETCH MANUFACTURER ========================
+  // useEffect(() => {
+  //   const fetchManufacturer = async () => {
+  //     try {
+  //       const response = await API.get("/getCommonManufacturerTableInfo/");
+  //       const list = response.data.map(
+  //         (i) =>
+  //           `${i.ManufacturerCode}:${i.ManufacturerCRUEI}:${i.ManufacturerName}:${i.ManufacturerName1}:${i.ManufacturerAddress}:${i.ManufacturerAddress1}:${i.ManufacturerCity}:${i.ManufacturerSub}:${i.ManufacturerSubDivi}:${i.ManufacturerPostal}:${i.ManufacturerCountry}`,
+  //       );
+  //       setManufacturerSuggestions(list);
+  //       setFilteredManufacturerSuggestions(list);
+  //     } catch (err) {
+  //       console.error("Failed to fetch manufacturer", err);
+  //     }
+  //   };
+  //   fetchManufacturer();
+  // }, []);
+
   useEffect(() => {
     const fetchManufacturer = async () => {
       try {
-        const response = await API.get("/getCommonManufacturerTableInfo/");
-        const list = response.data.map(
-          (i) =>
-            `${i.ManufacturerCode}:${i.ManufacturerCRUEI}:${i.ManufacturerName}:${i.ManufacturerName1}:${i.ManufacturerAddress}:${i.ManufacturerAddress1}:${i.ManufacturerCity}:${i.ManufacturerSub}:${i.ManufacturerSubDivi}:${i.ManufacturerPostal}:${i.ManufacturerCountry}`,
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonManufacturerTableInfo/"),
+          API.get("out/getOutManufacturerTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
+
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common manufacturers",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Innon manufacturers",
+            innonResult.reason,
+          );
+
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.ManufacturerCode || "").toLowerCase()),
         );
+        setCommonManufacturerCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.ManufacturerCode || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
+          (i) =>
+            `${i.ManufacturerCode}:${i.ManufacturerCRUEI}:${i.ManufacturerName}:${i.ManufacturerName1}:${i.ManufacturerAddress || ""}:${i.ManufacturerAddress1 || ""}:${i.ManufacturerCity || ""}:${i.ManufacturerSub || ""}:${i.ManufacturerSubDivi || ""}:${i.ManufacturerPostal || ""}:${i.ManufacturerCountry || ""}`,
+        );
+
+        console.log("Fetched manufacturers:", list);
+
         setManufacturerSuggestions(list);
         setFilteredManufacturerSuggestions(list);
       } catch (err) {
-        console.error("Failed to fetch manufacturer", err);
+        console.error("Failed to fetch manufacturers", err);
       }
     };
     fetchManufacturer();
@@ -2023,14 +2714,60 @@ function Party({ setActiveTab, isViewMode }) {
   };
 
   // ======================== MANUFACTURER SAVE ========================
+  // const saveManufacturer = async () => {
+  //   if (!manufacturerCode) {
+  //     setManufacturerError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+  //   const duplicate = manufacturerSuggestions.some(
+  //     (i) => i.split(":")[0].toLowerCase() === manufacturerCode.toLowerCase(),
+  //   );
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Manufacturer not saved.");
+  //     return;
+  //   }
+  //   const payload = {
+  //     ManufacturerCode: manufacturerCode || "",
+  //     ManufacturerCRUEI: manufacturerCruei || "",
+  //     ManufacturerName: manufacturerName || "",
+  //     ManufacturerName1: manufacturerName1 || "",
+  //     ManufacturerAddress: manufacturerAddress || "",
+  //     ManufacturerAddress1: manufacturerAddress1 || "",
+  //     ManufacturerCity: manufacturerCity || "",
+  //     ManufacturerSub: manufacturerSub || "",
+  //     ManufacturerSubDivi: manufacturerSubDivi || "",
+  //     ManufacturerPostal: manufacturerPostal || "",
+  //     ManufacturerCountry: manufacturerCountry || "",
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //   };
+  //   try {
+  //     const response = await API.post("/postManufacturerTable/", payload);
+  //     alert(response.data?.Result || "Manufacturer saved successfully!");
+  //   } catch (err) {
+  //     if (err.response?.status === 400) {
+  //       alert(
+  //         err.response.data?.Result ||
+  //           err.response.data?.error ||
+  //           "Failed to save Manufacturer",
+  //       );
+  //     } else {
+  //       console.error("Failed to save Manufacturer:", err);
+  //       alert("Failed to save Manufacturer, check console for details");
+  //     }
+  //   }
+  // };
+
   const saveManufacturer = async () => {
     if (!manufacturerCode) {
       setManufacturerError(true);
       alert("Code is required!");
       return;
     }
-    const duplicate = manufacturerSuggestions.some(
-      (i) => i.split(":")[0].toLowerCase() === manufacturerCode.toLowerCase(),
+    const duplicate = commonManufacturerCodes.has(
+      manufacturerCode.toLowerCase(),
     );
     if (duplicate) {
       alert("Duplicate code found! Manufacturer not saved.");
@@ -2054,14 +2791,10 @@ function Party({ setActiveTab, isViewMode }) {
     };
     try {
       const response = await API.post("/postManufacturerTable/", payload);
-      alert(response.data?.Result || "Manufacturer saved successfully!");
+      alert(response.data?.message || "Manufacturer saved successfully!");
     } catch (err) {
       if (err.response?.status === 400) {
-        alert(
-          err.response.data?.Result ||
-            err.response.data?.error ||
-            "Failed to save Manufacturer",
-        );
+        alert(err.response.data?.error || "Failed to save Manufacturer");
       } else {
         console.error("Failed to save Manufacturer:", err);
         alert("Failed to save Manufacturer, check console for details");
@@ -3130,8 +3863,10 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineePostal"
                   className="form-control"
                   placeholder="COUNTRY"
-                  value={consignee?.ConsigneePostal || congineePostal || ""}
-                  onChange={(e) => setCongineePostel(e.target.value)}
+                  value={
+                    consignee?.ConsigneeCountry || congineeCountryCode || ""
+                  }
+                  onChange={(e) => setCongineeCountryCode(e.target.value)}
                 />
               </div>
             </div>
@@ -3146,10 +3881,8 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeCountryCode"
                   className="form-control"
                   placeholder="POSTAL"
-                  value={
-                    consignee?.ConsigneeCountry || congineeCountryCode || ""
-                  }
-                  onChange={(e) => setCongineeCountryCode(e.target.value)}
+                  value={consignee?.ConsigneePostal || congineePostal || ""}
+                  onChange={(e) => setCongineePostel(e.target.value)}
                 />
               </div>
               <div className="col-sm-3"></div>

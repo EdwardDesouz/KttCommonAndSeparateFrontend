@@ -7,7 +7,7 @@ import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import { getFieldConfig } from "../../config/accountFieldConfig";
 
-function Header({ setActiveTab, isViewMode }) {
+function Header({ setActiveTab, isViewMode,isEditMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   // Saved Options States
@@ -318,6 +318,7 @@ function Header({ setActiveTab, isViewMode }) {
   } = useOut();
 
   useEffect(() => {
+     if (isEditMode) return; 
     if (!permitDetails?.PermitId) {
       const stored = sessionStorage.getItem("currentPermit");
       if (stored) {
@@ -783,7 +784,45 @@ function Header({ setActiveTab, isViewMode }) {
     setDocumentType(e.target.value);
   };
 
-  const handleAttach = async () => {
+  // const handleAttach = async () => {
+  //   if (!selectedFile || !documentType) {
+  //     alert("Please select file and document type");
+  //     return;
+  //   }
+  //   try {
+  //     const MSGID = "OUTDEC";
+  //     const PermitId = permitDetails?.PermitId;
+  //     const UserName = (user?.username || "").toUpperCase();
+  //     const file = selectedFile;
+  //     let fileName = file.name.split(".")[0];
+  //     fileName = fileName.replaceAll(" ", "_").replaceAll("-", "_");
+  //     fileName = fileName + MSGID + UserName;
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+  //     formData.append("Sno", uploadedFiles.length + 1);
+  //     formData.append("Name", fileName);
+  //     formData.append("ContentType", file.type);
+  //     formData.append("DocumentType", documentType);
+  //     formData.append("PaymentId", MSGID);
+  //     formData.append("Size", `${Math.round(file.size / 1024)} KB`);
+  //     formData.append("PermitId", PermitId);
+  //     formData.append("Type", "NEW");
+  //     formData.append("TouchUser", UserName);
+  //     formData.append("TouchTime", new Date().toISOString());
+  //     const response = await API.post("/postFileTable/", formData, {
+  //       headers: { "Content-Type": "multipart/form-data" },
+  //     });
+  //     const files = response?.data?.Records || [];
+  //     setUploadedFiles(files);
+  //     setSelectedFile();
+  //     setDocumentType("");
+  //     console.log("UPLOAD SUCCESS:", files);
+  //   } catch (err) {
+  //     console.error("UPLOAD ERROR:", err);
+  //   }
+  // };
+
+    const handleAttach = async () => {
     if (!selectedFile || !documentType) {
       alert("Please select file and document type");
       return;
@@ -808,9 +847,19 @@ function Header({ setActiveTab, isViewMode }) {
       formData.append("Type", "NEW");
       formData.append("TouchUser", UserName);
       formData.append("TouchTime", new Date().toISOString());
+    
+     // Save to CommonFileTable
       const response = await API.post("/postFileTable/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Mirror save to InnonFileTable (innonpayment) — needs a fresh FormData
+      const inFormData = new FormData();
+      formData.forEach((value, key) => inFormData.append(key, value));
+      await API.post("out/postOutFileTable/", inFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       const files = response?.data?.Records || [];
       setUploadedFiles(files);
       setSelectedFile();
@@ -818,19 +867,57 @@ function Header({ setActiveTab, isViewMode }) {
       console.log("UPLOAD SUCCESS:", files);
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
+      alert(
+        err.response?.data?.error ||
+          "Error uploading file! Check console for details.",
+      );
     }
   };
 
-  const handleDelete = async (sno) => {
-    try {
+
+
+
+  // const handleDelete = async (sno) => {
+  //   try {
+  //     const PermitId = permitDetails?.PermitId;
+  //     const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+  //     setUploadedFiles(res.data.Records);
+  //     alert("File Deleted Successfully");
+  //   } catch (err) {
+  //     console.error("DELETE ERROR:", err);
+  //   }
+  // };
+
+    const handleDelete = async (sno) => {
       const PermitId = permitDetails?.PermitId;
-      const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
-      setUploadedFiles(res.data.Records);
-      alert("File Deleted Successfully");
-    } catch (err) {
-      console.error("DELETE ERROR:", err);
-    }
-  };
+      let commonDeleted = false;
+  
+      try {
+        const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+        commonDeleted = true;
+        setUploadedFiles(res.data.Records);
+  
+        await API.delete(`out/deleteOutFile/${PermitId}/${sno}/`);
+        console.log("Deleted from OutFile as well");
+  
+        alert("File Deleted Successfully");
+      } catch (err) {
+        console.error("DELETE ERROR:", err);
+  
+        if (commonDeleted) {
+          alert(
+            `Warning: File SNo ${sno} was deleted from the Common table but FAILED to delete from OutFile. ` +
+              `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+              `Error: ${err.response?.data?.error || err.message}`,
+          );
+        } else {
+          alert(
+            err.response?.data?.error ||
+              "Failed to delete file, check console for details",
+          );
+        }
+      }
+    };
 
   // =====================SAVE AS DRAFT MODEL================
   // ===================== STATES =====================

@@ -6,7 +6,7 @@ import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import { getFieldConfig } from "../../config/accountFieldConfig";
-
+import { CircleLoader } from "react-spinners";
 function Summary({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -203,7 +203,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
   const [showPartyNotSavedModal, setShowPartyNotSavedModal] = useState(false);
   const [missingPartyCodes, setMissingPartyCodes] = useState([]);
-
+  const [isSavingPermit, setIsSavingPermit] = useState(false);
   // summary declraing for
   const [declaringFor, setDeclaringFor] = useState([]);
   // DeclaringFor
@@ -1010,6 +1010,141 @@ function Summary({ setActiveTab, isViewMode }) {
     await doSavePermit();
   };
 
+  // const doSavePermit = async () => {
+  //   const touchUser = (user?.username || "").toUpperCase();
+  //   const touchTime = new Date().toISOString();
+
+  //   let PermitStatus = "NEW";
+  //   let PermitNumber = permitDetails?.PermitNumber || "";
+  //   if (PermitNumber === "None" || PermitNumber === "NONE") PermitNumber = "";
+
+  //   //   // Wire when Refund/Cancel/Amend tabs ready:
+  //   //   // if (refundUpdateIndicator === "RFD") { PermitStatus = "RFD"; PermitNumber = refundPermitNumber; }
+  //   //   // if (cancelUpdateIndicator === "CNL") { PermitStatus = "CNL"; PermitNumber = cancelPermitNumber; }
+  //   //   // if (amendUpdateIndicator === "AME") { PermitStatus = "AME"; PermitNumber = amendPermitNumber; }
+
+  //   const headerPayload = {
+  //     Refid: toBigInt(permitDetails?.RefId),
+  //     JobId: permitDetails?.JobId || "",
+  //     MSGId: permitDetails?.MsgId || "",
+  //     PermitId: (permitDetails?.PermitId || "").toUpperCase(),
+  //     TradeNetMailboxID: permitDetails?.MailBoxId || "",
+  //     MessageType: "COODEC",
+  //     DeclarationType: decType || "",
+  //     PreviousPermit: prevPermitNo || "",
+  //     CargoPackType: cargo || "",
+  //     InwardTransportMode: transportMode || "",
+  //     OutwardTransportMode: outTransportMode || "",
+  //     COType: coType || "",
+  //     BGIndicator: bgInd || "",
+  //     SupplyIndicator: supplyInd ? "Y" : "N",
+  //     ReferenceDocuments: refDocs ? "Y" : "N",
+  //     License: Licence || "",
+  //     Recipient: Recipients || "",
+  //     CerDetailtype1: certificateType1 || "",
+  //     CerDetailCopies1: certificateCopy1 || "",
+  //     CerDetailtype2: certificateType2 || "",
+  //     CerDetailCopies2: certificateCopy2 || "",
+  //     CurrencyCode: currencyCode || "",
+  //     TransDtl: transportDetailsHeader || "",
+  //     AddCerDtl: additionalCertificateDetails || "",
+  //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+  //     ImporterCompanyCode: importerCode || "",
+  //     ExporterCompanyCode: exporterCode || "",
+  //     InwardCarrierAgentCode: inwardCode || "",
+  //     OutwardCarrierAgentCode: outwardCode || "",
+  //     CONSIGNEECode: congineeCode || "",
+  //     FreightForwarderCode: freightForwarderCode || "",
+  //     ClaimantPartyCode: claimantCode || "",
+  //     EndUserCode: endUserCode || "",
+  //     Manufacturer: manufacturerCode || "",
+  //     HandlingAgentCode: handlingAgentCode || "",
+  //     ArrivalDate: formatDate(arrivalDate) || null,
+  //     LoadingPortCode: loadingPortCode || "",
+  //     VoyageNumber: voyageNumber || "",
+  //     VesselName: vesselName || "",
+  //     OceanBillofLadingNo: obl || "",
+  //     ConveyanceRefNo: conveyanceNumber || "",
+  //     TransportId: showTransportDetails ? transportDetails || "" : "",
+  //     FlightNO: flightNumber || "",
+  //     AircraftRegNo: airCraftRegNumber || "",
+  //     MasterAirwayBill: mawbNumber || "",
+  //     ReleaseLocation: releaseCode || "",
+  //     ResLoaName: releaseLocationDescription || "",
+  //     RecepitLocation: receiptCode || "",
+  //     RecepitLocName: receiptLocationDescription || "",
+  //     StorageLocation: storageCode || "",
+  //     BlanketStartDate: formatDate(blanketStartDate) || null,
+  //     ExhibitionSDate: formatDate(exhibitionStartDate) || null,
+  //     ExhibitionEDate: formatDate(exhibitionEndDate) || null,
+  //     DepartureDate: formatDate(departureDate) || null,
+  //     DischargePort: dischargePortCode || "",
+  //     FinalDestinationCountry: finalDestinationCountry || "",
+  //     OutVoyageNumber: outVoyageNumber || "",
+  //     OutVesselName: outVesselName || "",
+  //     OutOceanBillofLadingNo: outObl || "",
+  //     VesselType: vesselType || "",
+  //     VesselNetRegTon: vesselNetRegisterTonnage || "",
+  //     VesselNationality: vesselNationality || "",
+  //     TowingVesselID: towingVesselId || "",
+  //     TowingVesselName: towingVesselName || "",
+  //     NextPort: nextPortCode || "",
+  //     LastPort: lastPortCode || "",
+  //     OutConveyanceRefNo: outConveyanceNumber || "",
+  //     OutTransportId: outTransportDetails || "",
+  //     OutFlightNO: outFlightNumber || "",
+  //     OutAircraftRegNo: outAirCraftRegNumber || "",
+  //     OutMasterAirwayBill: outMawbNumber || "",
+  //     TotalOuterPack: totalOuterPackValue || "",
+  //     TotalOuterPackUOM: totalOuterPackName || "",
+  //     TotalGrossWeight: totalGrossWeight || "",
+  //     TotalGrossWeightUOM: grossUOM || "",
+  //     ReleaseLocaName: "",
+  //     INHAWB: cargoHawb || "",
+  //     outHAWB: outCargoHawb || "",
+  //     seastore: outSeaStore ? "Y" : "N",
+  //     GrossReference: summaryCrossReference || "",
+  //     TradeRemarks: summaryRemarks || "",
+  //     InternalRemarks: summaryInternalReamarks || "",
+  //     CustomerRemarks: "",
+  //     DeclareIndicator: declarationChecked ? "Y" : "N",
+  //     NumberOfItems: toDecimal(itemTable.length),
+  //     TotalCIFFOBValue: toDecimal(totalItemCifValue),
+  //     TotalGSTTaxAmt: toDecimal(totalItemGstAmount),
+  //     TotalExDutyAmt: toDecimal(sumOfExciseDutyAmount),
+  //     TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
+  //     TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
+  //     TotalAmtPay: toDecimal(totalAmountPayable),
+  //     Status: "NEW",
+  //     TouchUser: touchUser,
+  //     TouchTime: touchTime,
+  //     PermitNumber: PermitNumber,
+  //     prmtStatus: PermitStatus,
+  //     Cnb: cnBChecked ? "Y" : "N",
+  //     DeclarningFor: declFor || "--Select--",
+  //     MRDate: formatDate(summaryDate) || null,
+  //     MRTime: summaryTime || "",
+  //   };
+
+  //   try {
+  //     console.log("SENDING HEADER:", headerPayload);
+  //     await saveAllContainers(touchUser, touchTime);
+  //     await API.post("/postCommonHeaderTable/", headerPayload);
+  //     alert("Permit Saved Successfully!");
+  //     navigate("/coo");
+  //   } catch (err) {
+  //     if (err.response) {
+  //       console.error("Save Error:", err.response.data);
+  //       alert(
+  //         `Database Error: ${err.response.data.error || "Check console for details"}`,
+  //       );
+  //     } else {
+  //       console.error("Network Error:", err.message);
+  //       alert("Network Error: Could not reach the server.");
+  //     }
+  //   }
+  // };
+
   const doSavePermit = async () => {
     const touchUser = (user?.username || "").toUpperCase();
     const touchTime = new Date().toISOString();
@@ -1048,7 +1183,7 @@ function Summary({ setActiveTab, isViewMode }) {
       CurrencyCode: currencyCode || "",
       TransDtl: transportDetailsHeader || "",
       AddCerDtl: additionalCertificateDetails || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode || "",
       ExporterCompanyCode: exporterCode || "",
       InwardCarrierAgentCode: inwardCode || "",
@@ -1097,7 +1232,11 @@ function Summary({ setActiveTab, isViewMode }) {
       OutMasterAirwayBill: outMawbNumber || "",
       TotalOuterPack: totalOuterPackValue || "",
       TotalOuterPackUOM: totalOuterPackName || "",
-      TotalGrossWeight: totalGrossWeight || "",
+      // TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
       TotalGrossWeightUOM: grossUOM || "",
       ReleaseLocaName: "",
       INHAWB: cargoHawb || "",
@@ -1126,11 +1265,32 @@ function Summary({ setActiveTab, isViewMode }) {
       MRTime: summaryTime || "",
     };
 
+    let commonSaved = false;
+    setIsSavingPermit(true);
     try {
       console.log("SENDING HEADER:", headerPayload);
       await saveAllContainers(touchUser, touchTime);
+
+      // if (cpcData.length > 0) {
+      //   await API.post("/postCpcTable/", cpcData);
+      // }
       await API.post("/postCommonHeaderTable/", headerPayload);
-      alert("Permit Saved Successfully!");
+      commonSaved = true;
+
+      // ── Mirror to Innon (InNonHeaderTbl / InNonCPCDtl) ────────────────────
+      try {
+        await API.post("coo/postCooHeaderTable/", headerPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        alert(
+          "Warning: Permit was saved to CommonHeaderTbl but FAILED to mirror to CoHeadertable. " +
+            "Please contact support or retry.\n\n" +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        return;
+      }
+
+      // alert("Permit Saved Successfully!");
       navigate("/coo");
     } catch (err) {
       if (err.response) {
@@ -1142,6 +1302,8 @@ function Summary({ setActiveTab, isViewMode }) {
         console.error("Network Error:", err.message);
         alert("Network Error: Could not reach the server.");
       }
+    } finally {
+      setIsSavingPermit(false);
     }
   };
 
@@ -1224,7 +1386,7 @@ function Summary({ setActiveTab, isViewMode }) {
         TransDtl: transportDetailsHeader || "",
         AddCerDtl: additionalCertificateDetails || "",
         // Party
-        DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+        DeclarantCompanyCode: permitDetails?.Code || "",
         ExporterCompanyCode: exporterCode || "",
         ImporterCompanyCode: importerCode || "",
         InwardCarrierAgentCode: inwardCode || "",
@@ -1274,7 +1436,11 @@ function Summary({ setActiveTab, isViewMode }) {
 
         TotalOuterPack: totalOuterPackValue || "",
         TotalOuterPackUOM: totalOuterPackName || "",
-        TotalGrossWeight: totalGrossWeight || "",
+        // TotalGrossWeight: permitGrossWeight || "",
+        TotalGrossWeight:
+          permitGrossWeight !== "" && permitGrossWeight !== undefined
+            ? permitGrossWeight
+            : totalGrossWeight || "",
         TotalGrossWeightUOM: grossUOM || "",
 
         //  Summary
@@ -1470,6 +1636,12 @@ function Summary({ setActiveTab, isViewMode }) {
   //   delay: 2000,
   // });
 
+  // Safe number formatter — handles string, undefined, null, NaN
+  const money = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? "0.00" : num.toFixed(2);
+  };
+
   // ====================UI============================
   return (
     <div className="row g-2">
@@ -1593,7 +1765,7 @@ function Summary({ setActiveTab, isViewMode }) {
               <input
                 type="text"
                 className="form-control"
-                value={totalItemCifValue.toFixed(2)}
+                value={money(totalItemCifValue)}
                 readOnly
               />
             </div>
@@ -1627,7 +1799,7 @@ function Summary({ setActiveTab, isViewMode }) {
                       <input
                         type="text"
                         className="form-control"
-                        value={item.TotalLineAmount || ""}
+                        value={money(item.TotalLineAmount) || ""}
                         readOnly
                       />
                     </div>
@@ -1755,7 +1927,7 @@ function Summary({ setActiveTab, isViewMode }) {
                 tabIndex="5"
               >
                 <option value="">--Select--</option>
-                   {summaryDeclaringFor &&
+                {summaryDeclaringFor &&
                   !declaringFor.find((d) => d.Name === summaryDeclaringFor) && (
                     <option value={summaryDeclaringFor}>
                       {summaryDeclaringFor}
@@ -2354,6 +2526,35 @@ function Summary({ setActiveTab, isViewMode }) {
             </div>
           </div>
         </>
+      )}
+      {isSavingPermit && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={isSavingPermit} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
       )}
     </div>
   );

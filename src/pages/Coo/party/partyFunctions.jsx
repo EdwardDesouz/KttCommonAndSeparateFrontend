@@ -140,45 +140,212 @@ export function SearchPopup({ title, data = [], onClose, onSelect, columns }) {
 /* ===========================
    Fetch Popup Data
 =========================== */
+// export const fetchPopupData = async (type, setPopupData, setLoading) => {
+//   setLoading(true);
+//   try {
+//     let response;
+//     switch (type) {
+//       case "importer":
+//         response = await API.get("/getCommonImporterTableInfo/");
+//         break;
+//       case "handlingAgent":
+//         response = await API.get("/getCommonHandlingAgentTableInfo/");
+//         break;
+//       case "inward":
+//         response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+//         break;
+//       case "freightForwarder":
+//         response = await API.get("/getCommonFreightForwarderTable/");
+//         break;
+//       case "claimantparty":
+//         response = await API.get("/getCommonClaimantPartyTable/");
+//         break;
+//       case "consignee":
+//         response = await API.get("/getCommonConsigneeTableInfo/");
+//         break;
+//       case "exporter":
+//         response = await API.get("/getCommonExporterTableInfo/");
+//         break;
+//       case "outward":
+//         response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
+//         break;
+//       case "endUser":
+//         response = await API.get("/getCommonEndUserTableInfo/");
+//         break;
+//       case "manufacturer":
+//         response = await API.get("/getCommonManufacturerTableInfo/");
+//         break;
+//       default:
+//         response = { data: [] };
+//     }
+//     setPopupData(response.data);
+//   } catch (err) {
+//     console.error("Failed to fetch popup data", err);
+//     setPopupData([]);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
 export const fetchPopupData = async (type, setPopupData, setLoading) => {
   setLoading(true);
   try {
-    let response;
+    // Types with no Coo-specific table — Common only.
+    const COMMON_ONLY_URLS = {
+      claimantparty: "/getCommonClaimantPartyTable/",
+      endUser: "/getCommonEndUserTableInfo/",
+      handlingAgent: "/getCommonHandlingAgentTableInfo/",
+      inward: "/getCommonInwardCarrierAgentTableInfo/",
+      importer: "/getCommonImporterTableInfo/",
+    };
+
+    if (COMMON_ONLY_URLS[type]) {
+      try {
+        const res = await API.get(COMMON_ONLY_URLS[type]);
+        setPopupData(res.data || []);
+      } catch (err) {
+        console.error(`Failed to fetch Common ${type} data`, err);
+        setPopupData([]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Exporter's Coo endpoint uses a different field naming scheme
+    // (OutUserCode / OutUserName / OutUserCRUEI / OutUserAddress / ...)
+    // — normalize both sides to the Common shape before merging.
+    // NOTE: this mirrors the normalize logic already in Party.jsx's
+    // fetchExporter useEffect. Worth double-checking that
+    // coo/getCooExporterTableInfo/ actually returns OutUser*-named
+    // fields rather than Coo-prefixed ones — if it doesn't, the merge
+    // will silently drop the Coo-side data.
+    if (type === "exporter") {
+      try {
+        const [commonResult, cooResult] = await Promise.allSettled([
+          API.get("/getCommonExporterTableInfo/"),
+          API.get("coo/getCooExporterTableInfo/"),
+        ]);
+
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const cooData =
+          cooResult.status === "fulfilled" ? cooResult.value.data || [] : [];
+
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common exporter data",
+            commonResult.reason,
+          );
+        }
+        if (cooResult.status === "rejected") {
+          console.error("Failed to fetch Coo exporter data", cooResult.reason);
+        }
+
+        const normalize = (i) => ({
+          Id: i.Id ?? i.id ?? 0,
+          Code: i.Code ?? i.OutUserCode ?? "",
+          CRUEI: i.CRUEI ?? i.OutUserCRUEI ?? "",
+          Name: i.Name ?? i.OutUserName ?? "",
+          Name1: i.Name1 ?? i.OutUserName1 ?? "",
+          Address: i.Address ?? i.OutUserAddress ?? "",
+          Address1: i.Address1 ?? i.OutUserAddress1 ?? "",
+          City: i.City ?? i.OutUserCity ?? "",
+          SubCode: i.SubCode ?? i.OutUserSubCode ?? "",
+          Sub: i.Sub ?? i.OutUserSub ?? "",
+          Postal: i.Postal ?? i.OutUserPostal ?? "",
+          Country: i.Country ?? i.OutUserCountry ?? "",
+        });
+
+        const normCommon = commonData.map(normalize);
+        const normCoo = cooData.map(normalize);
+
+        const merged = [...normCommon];
+        const seenCodes = new Set(
+          normCommon.map((i) => i.Code.toLowerCase()),
+        );
+        for (const item of normCoo) {
+          const code = item.Code.toLowerCase();
+          if (code && !seenCodes.has(code)) {
+            merged.push(item);
+            seenCodes.add(code);
+          }
+        }
+
+        setPopupData(merged);
+      } catch (err) {
+        console.error("Failed to fetch exporter popup data", err);
+        setPopupData([]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    let commonUrl, cooUrl, keyField;
+
     switch (type) {
-      case "importer":
-        response = await API.get("/getCommonImporterTableInfo/");
-        break;
-      case "handlingAgent":
-        response = await API.get("/getCommonHandlingAgentTableInfo/");
-        break;
-      case "inward":
-        response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
-        break;
       case "freightForwarder":
-        response = await API.get("/getCommonFreightForwarderTable/");
-        break;
-      case "claimantparty":
-        response = await API.get("/getCommonClaimantPartyTable/");
+        commonUrl = "/getCommonFreightForwarderTable/";
+        cooUrl = "coo/getCooFreightForwarderTableInfo/";
+        keyField = "Code";
         break;
       case "consignee":
-        response = await API.get("/getCommonConsigneeTableInfo/");
-        break;
-      case "exporter":
-        response = await API.get("/getCommonExporterTableInfo/");
+        commonUrl = "/getCommonConsigneeTableInfo/";
+        cooUrl = "coo/getCooConsigneeTableInfo/";
+        keyField = "ConsigneeCode";
         break;
       case "outward":
-        response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
-        break;
-      case "endUser":
-        response = await API.get("/getCommonEndUserTableInfo/");
+        commonUrl = "/getCommonOutwardCarrierAgentTableInfo/";
+        cooUrl = "coo/getCooOutwardCarrierAgentTableInfo/";
+        keyField = "Code";
         break;
       case "manufacturer":
-        response = await API.get("/getCommonManufacturerTableInfo/");
+        commonUrl = "/getCommonManufacturerTableInfo/";
+        cooUrl = "coo/getCooManufacturerTableInfo/";
+        keyField = "ManufacturerCode";
         break;
       default:
-        response = { data: [] };
+        setPopupData([]);
+        setLoading(false);
+        return;
     }
-    setPopupData(response.data);
+
+    // Fetch both tables in parallel; don't let one failing kill the other
+    const [commonResult, cooResult] = await Promise.allSettled([
+      API.get(commonUrl),
+      API.get(cooUrl),
+    ]);
+
+    const commonData =
+      commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
+    const cooData =
+      cooResult.status === "fulfilled" ? cooResult.value.data || [] : [];
+
+    if (commonResult.status === "rejected") {
+      console.error(`Failed to fetch Common ${type} data`, commonResult.reason);
+    }
+    if (cooResult.status === "rejected") {
+      console.error(`Failed to fetch Coo ${type} data`, cooResult.reason);
+    }
+
+    // Merge, de-duping by code (case-insensitive), Common takes priority on conflicts
+    const merged = [...commonData];
+    const seenCodes = new Set(
+      commonData.map((item) => String(item[keyField] || "").toLowerCase()),
+    );
+
+    for (const item of cooData) {
+      const code = String(item[keyField] || "").toLowerCase();
+      if (!seenCodes.has(code)) {
+        merged.push(item);
+        seenCodes.add(code);
+      }
+    }
+
+    setPopupData(merged);
   } catch (err) {
     console.error("Failed to fetch popup data", err);
     setPopupData([]);

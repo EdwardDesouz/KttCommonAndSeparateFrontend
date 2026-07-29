@@ -140,43 +140,134 @@ export function SearchPopup({ title, data = [], onClose, onSelect, columns }) {
 /* ===========================
    Fetch Popup Data
 =========================== */
+// export const fetchPopupData = async (type, setPopupData, setLoading) => {
+//   setLoading(true);
+//   try {
+//     let response;
+//     switch (type) {
+//       case "importer":
+//         response = await API.get("/getCommonImporterTableInfo/");
+//         break;
+//       case "inward":
+//         response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+//         break;
+//       case "freightForwarder":
+//         response = await API.get("/getCommonFreightForwarderTable/");
+//         break;
+//       case "claimantparty":
+//         response = await API.get("/getCommonClaimantPartyTable/");
+//         break;
+//       case "consignee":
+//         response = await API.get("/getCommonConsigneeTableInfo/");
+//         break;
+//       case "exporter":
+//         response = await API.get("/getCommonExporterTableInfo/");
+//         break;
+//       case "outward":
+//         response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
+//         break;
+//       default:
+//         response = { data: [] };
+//     }
+//     setPopupData(response.data);
+//   } catch (err) {
+//     console.error("Failed to fetch popup data", err);
+//     setPopupData([]);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+/* ===========================
+   Fetch Popup Data (Common + Innon merged)
+=========================== */
 export const fetchPopupData = async (type, setPopupData, setLoading) => {
   setLoading(true);
   try {
-    let response;
+    let commonUrl, innonUrl, keyField;
+
     switch (type) {
       case "importer":
-        response = await API.get("/getCommonImporterTableInfo/");
+        commonUrl = "/getCommonImporterTableInfo/";
+        innonUrl = "innonpayment/getInnonImporterTableInfo/";
+        keyField = "Code";
         break;
       case "inward":
-        response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+        commonUrl = "/getCommonInwardCarrierAgentTableInfo/";
+        innonUrl = "innonpayment/getInnonInwardCarrierAgentTableInfo/";
+        keyField = "Code";
         break;
       case "freightForwarder":
-        response = await API.get("/getCommonFreightForwarderTable/");
+        commonUrl = "/getCommonFreightForwarderTable/";
+        innonUrl = "innonpayment/getInnonFreightForwarderTable/";
+        keyField = "Code";
         break;
       case "claimantparty":
-        response = await API.get("/getCommonClaimantPartyTable/");
+        commonUrl = "/getCommonClaimantPartyTable/";
+        innonUrl = "innonpayment/getInnonClaimantPartyTable/";
+        keyField = "ClaimantCode";
         break;
       case "consignee":
-        response = await API.get("/getCommonConsigneeTableInfo/");
+        commonUrl = "/getCommonConsigneeTableInfo/";
+        innonUrl = "innonpayment/getInnonConsigneeTableInfo/";
+        keyField = "ConsigneeCode";
         break;
       case "exporter":
-        response = await API.get("/getCommonExporterTableInfo/");
+        commonUrl = "/getCommonExporterTableInfo/";
+        innonUrl = "innonpayment/getInnonExporterTableInfo/";
+        keyField = "Code";
         break;
       case "outward":
-        response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
+        commonUrl = "/getCommonOutwardCarrierAgentTableInfo/";
+        innonUrl = "innonpayment/getInnonOutwardCarrierAgentTableInfo/";
+        keyField = "Code";
         break;
       default:
-        response = { data: [] };
+        setPopupData([]);
+        setLoading(false);
+        return;
     }
-    setPopupData(response.data);
+
+    // Fetch both tables in parallel; don't let one failing kill the other
+    const [commonResult, innonResult] = await Promise.allSettled([
+      API.get(commonUrl),
+      API.get(innonUrl),
+    ]);
+
+    const commonData =
+      commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
+    const innonData =
+      innonResult.status === "fulfilled" ? innonResult.value.data || [] : [];
+
+    if (commonResult.status === "rejected") {
+      console.error(`Failed to fetch Common ${type} data`, commonResult.reason);
+    }
+    if (innonResult.status === "rejected") {
+      console.error(`Failed to fetch Innon ${type} data`, innonResult.reason);
+    }
+
+    // Merge, de-duping by code (case-insensitive), Common takes priority on conflicts
+    const merged = [...commonData];
+    const seenCodes = new Set(
+      commonData.map((item) => String(item[keyField] || "").toLowerCase()),
+    );
+
+    for (const item of innonData) {
+      const code = String(item[keyField] || "").toLowerCase();
+      if (!seenCodes.has(code)) {
+        merged.push(item);
+        seenCodes.add(code);
+      }
+    }
+
+    setPopupData(merged);
   } catch (err) {
     console.error("Failed to fetch popup data", err);
     setPopupData([]);
   } finally {
     setLoading(false);
   }
-};
+}; 
 /* ===========================End Fetch Popup Data=========================== */
 
 /* ===========================
@@ -283,7 +374,7 @@ export const currentPopup = (popupType, setters) => {
         setClaimantCode(item.ClaimantCode);
         setClaimantCruei(item.CRUEI);
         setClaimantName(item.Name);
-        setClaimantName1(item.Name);
+        setClaimantName1(item.Name1);
         setclaimantcmantName(item.ClaimantName);
         setclaimantcmantName1(item.ClaimantName1);
       },

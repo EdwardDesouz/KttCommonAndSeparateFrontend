@@ -4,30 +4,77 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { FaTrash } from "react-icons/fa";
+import { CircleLoader } from "react-spinners";
 
-function Cancel({ setActiveTab,isViewMode }) {
+function Cancel({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const {
     permitDetails,
+    // Header
     decType,
     prevPermitNo,
+    setPrevPermitNo,
+    showPermit,
+    setShowPermit,
     cargo,
     transportMode,
+    outTransportMode, // ⬅ missing
+    coType, // ⬅ missing
     declFor,
     bgInd,
     supplyInd,
     refDocs,
     Licence,
     Recipients,
+    certificateType1, // ⬅ missing
+    certificateCopy1, // ⬅ missing
+    certificateType2, // ⬅ missing
+    certificateCopy2, // ⬅ missing
+    currencyCode, // ⬅ missing
+    additionalCertificateDetails, // ⬅ missing
+    transportDetailsHeader, // ⬅ missing
+    showDeclarationTypeError,
+    setShowDeclarationTypeError,
+    showCargoPackTypeError,
+    setShowCargoPackTypeError,
+    showDeclaringForError,
+    setShowDeclaringForError,
+    setShowInwardTransportError,
+    showInwardTransportError,
+    showOutwardTransportError,
+    setShowOutwardTransportError, // ⬅ missing
+
+    // Party
     importerCode,
+    showImporterCrueiError,
+    setShowImporterCrueiError,
+    showImporterNameError,
+    setShowImporterNameError,
     inwardCode,
+    showInwardCrueiError,
+    setShowInwardCrueiError,
+    showInwardNameError,
+    setShowInwardNameError,
     freightForwarderCode,
     claimantCode,
+    endUserCode, // ⬅ missing
+    manufacturerCode, // ⬅ missing
+    exporterCode, // ⬅ missing
+    exporterCruei, // ⬅ missing (used in render, not payload)
+    exporterName, // ⬅ missing
+    outwardCode, // ⬅ missing
+    congineeCode, // ⬅ missing
+
+    // Cargo
     cargoHawb,
     arrivalDate,
+    showArriavalDateError,
+    setShowArrivalDateError,
     loadingPortCode,
+    showLoadingPortCodeError,
+    setShowLoadingPortCodeError,
     voyageNumber,
     vesselName,
     obl,
@@ -37,30 +84,93 @@ function Cancel({ setActiveTab,isViewMode }) {
     airCraftRegNumber,
     mawbNumber,
     releaseCode,
+    showReleaseCodeError,
+    setShowReleaseCodeError,
     releaseLocationDescription,
     receiptCode,
+    showreceiptCodeError,
+    setShowReceiptCodeError,
     receiptLocationDescription,
     totalOuterPackValue,
     totalOuterPackName,
+    showTotalOuterPackValueError,
+    setShowTotalOuterPackValueError,
+    showTotalOuterPackUomError,
+    setShowTotalOuterPackUomError,
     permitGrossWeight,
     totalGrossWeight,
     grossUOM,
+    showTotalGrossWeightError,
+    setShowTotalGrossWeightError,
+    showGrossUOMError,
+    setShowGrossUOMError,
     blanketStartDate,
+    exhibitionStartDate,
+    exhibitionEndDate, // ⬅ missing
     containers,
+
+    storageCode, // ⬅ missing
+    dischargePortCode, // ⬅ missing
+    finalDestinationCountry, // ⬅ missing
+    departureDate, // ⬅ missing
+    outVoyageNumber,
+    outVesselName,
+    outObl, // ⬅ missing
+    vesselType,
+    vesselNetRegisterTonnage,
+    vesselNationality, // ⬅ missing
+    towingVesselId,
+    towingVesselName, // ⬅ missing
+    nextPortCode,
+    lastPortCode, // ⬅ missing
+    outConveyanceNumber,
+    outTransportDetails, // ⬅ missing
+    outFlightNumber,
+    outAirCraftRegNumber,
+    outMawbNumber, // ⬅ missing
+    outCargoHawb, // ⬅ missing (used in header + display)
+    outSeaStore, // ⬅ missing
+
+    // visibility flags for optional transport fields
+    showTransportDetails, // ⬅ missing (used to gate TransportId)
+
+    // Invoice & Item tables
     invoiceTable,
     itemTable,
+
+    // Summary states
+    summaryImporterCruei,
+    setSummaryImporterCruei,
+    summaryImporterName,
+    setSummaryImporterName,
+    totalAmountPayable,
+    setTotalAmountPayable,
+    showCifMatchingError,
+    setShowCifMatchingError,
     summaryRemarks,
+    setSummaryRemarks,
+    formatRemark,
+    setFormatRemark,
     summaryCrossReference,
+    setSummaryCrossReference,
     summaryInternalReamarks,
+    setSummaryInternalRemarks,
     summaryDate,
+    setSummaryDate,
     summaryTime,
-    cnBChecked,
+    setSummaryTime,
+    summaryDeclaringFor,
+    setSummaryDeclaringFor,
+
+    // CPC
     showAeo,
     showCwc,
     showScheme,
+    cnBChecked,
     aeoRows,
     cwcRows,
     schemeRows,
+
     uploadedFiles,
     setUploadedFiles,
   } = useOut();
@@ -203,26 +313,59 @@ function Cancel({ setActiveTab,isViewMode }) {
       formData.append("Type", "CNL");
       formData.append("TouchUser", UserName);
       formData.append("TouchTime", new Date().toISOString());
+
+      // Save to CommonFileTable
       const response = await API.post("/postFileTable/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Mirror save to OutFile (out) — needs a fresh FormData
+      const outFormData = new FormData();
+      formData.forEach((value, key) => outFormData.append(key, value));
+      await API.post("out/postOutFileTable/", outFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       const files = response?.data?.Records || [];
       setUploadedFiles(files);
       setSelectedFile(null);
       setDocType("");
     } catch (err) {
-      console.error("UPLOAD ERROR:", err);
+      console.error("UPLOAD ERROR:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error uploading file! Check console for details.",
+      );
     }
   };
 
   const handleDelete = async (sno) => {
+    const PermitId = permitDetails?.PermitId;
+    let commonDeleted = false;
+
     try {
-      const PermitId = permitDetails?.PermitId;
       const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+      commonDeleted = true;
       setUploadedFiles(res.data.Records);
+
+      await API.delete(`out/deleteOutFile/${PermitId}/${sno}/`);
+
       alert("File Deleted Successfully");
     } catch (err) {
-      console.error("DELETE ERROR:", err);
+      console.error("DELETE ERROR:", err.response?.data || err);
+
+      if (commonDeleted) {
+        alert(
+          `Warning: File SNo ${sno} was deleted from the Common table but FAILED to delete from OutFile. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${err.response?.data?.error || err.message}`,
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            "Failed to delete file, check console for details",
+        );
+      }
     }
   };
 
@@ -269,7 +412,7 @@ function Cancel({ setActiveTab,isViewMode }) {
     const touchTime = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const cancelPayload = {
-      Permitno: permitId,
+      Permitno: permitDetails?.PermitNumber,
       UpdateIndicator: updateIndicator,
       ReplacementPermitno: replacementPermitNumber,
       ReasonForCancel: reasonForCancel,
@@ -289,28 +432,41 @@ function Cancel({ setActiveTab,isViewMode }) {
       TradeNetMailboxID:
         permitDetails?.MailBoxId || permitDetails?.TradeNetMailboxID || "",
       MessageType: "OUTDEC",
-      DeclarationType: cleanSelect(decType),
+      DeclarationType: decType || "",
       PreviousPermit: prevPermitNo || "",
-      CargoPackType: cleanSelect(cargo),
-      InwardTransportMode: cleanSelect(transportMode),
-      BGIndicator: cleanSelect(bgInd),
+      CargoPackType: cargo || "",
+      InwardTransportMode: transportMode || "",
+      OutwardTransportMode: outTransportMode || "",
+      COType: coType || "",
+      BGIndicator: bgInd || "",
       SupplyIndicator: supplyInd ? "Y" : "N",
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      CerDetailtype1: certificateType1 || "",
+      CerDetailCopies1: certificateCopy1 || "",
+      CerDetailtype2: certificateType2 || "",
+      CerDetailCopies2: certificateCopy2 || "",
+      CurrencyCode: currencyCode || "",
+      TransDtl: transportDetailsHeader || "",
+      AddCerDtl: additionalCertificateDetails || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode || "",
+      ExporterCompanyCode: exporterCode || "",
       InwardCarrierAgentCode: inwardCode || "",
+      OutwardCarrierAgentCode: outwardCode || "",
+      CONSIGNEECode: congineeCode || "",
       FreightForwarderCode: freightForwarderCode || "",
       ClaimantPartyCode: claimantCode || "",
-      HBL: cargoHawb || "",
-      ArrivalDate: formatDate(arrivalDate),
+      EndUserCode: endUserCode || "",
+      Manufacturer: manufacturerCode || "",
+      ArrivalDate: formatDate(arrivalDate) || null,
       LoadingPortCode: loadingPortCode || "",
       VoyageNumber: voyageNumber || "",
       VesselName: vesselName || "",
       OceanBillofLadingNo: obl || "",
       ConveyanceRefNo: conveyanceNumber || "",
-      TransportId: transportDetails || "",
+      TransportId: showTransportDetails ? transportDetails || "" : "",
       FlightNO: flightNumber || "",
       AircraftRegNo: airCraftRegNumber || "",
       MasterAirwayBill: mawbNumber || "",
@@ -318,14 +474,44 @@ function Cancel({ setActiveTab,isViewMode }) {
       ResLoaName: releaseLocationDescription || "",
       RecepitLocation: receiptCode || "",
       RecepitLocName: receiptLocationDescription || "",
+      StorageLocation: storageCode || "",
+      BlanketStartDate: formatDate(blanketStartDate) || null,
+      ExhibitionSDate: formatDate(exhibitionStartDate) || null,
+      ExhibitionEDate: formatDate(exhibitionEndDate) || null,
+      DepartureDate: formatDate(departureDate) || null,
+      DischargePort: dischargePortCode || "",
+      FinalDestinationCountry: finalDestinationCountry || "",
+      OutVoyageNumber: outVoyageNumber || "",
+      OutVesselName: outVesselName || "",
+      OutOceanBillofLadingNo: outObl || "",
+      VesselType: vesselType || "",
+      VesselNetRegTon: vesselNetRegisterTonnage || "",
+      VesselNationality: vesselNationality || "",
+      TowingVesselID: towingVesselId || "",
+      TowingVesselName: towingVesselName || "",
+      NextPort: nextPortCode || "",
+      LastPort: lastPortCode || "",
+      OutConveyanceRefNo: outConveyanceNumber || "",
+      OutTransportId: outTransportDetails || "",
+      OutFlightNO: outFlightNumber || "",
+      OutAircraftRegNo: outAirCraftRegNumber || "",
+      OutMasterAirwayBill: outMawbNumber || "",
       TotalOuterPack: totalOuterPackValue || "",
-      TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
-      TotalGrossWeightUOM: cleanSelect(grossUOM),
-      BlanketStartDate: formatDate(blanketStartDate),
+      TotalOuterPackUOM: totalOuterPackName || "",
+      // TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
+      TotalGrossWeightUOM: grossUOM || "",
+      ReleaseLocaName: "",
+      INHAWB: cargoHawb || "",
+      outHAWB: outCargoHawb || "",
+      seastore: outSeaStore ? "Y" : "N",
       GrossReference: summaryCrossReference || "",
       TradeRemarks: summaryRemarks || "",
       InternalRemarks: summaryInternalReamarks || "",
+      CustomerRemarks: "",
       DeclareIndicator: declarationChecked ? "Y" : "N",
       NumberOfItems: toDecimal(itemTable.length),
       TotalCIFFOBValue: toDecimal(totalItemCifValue),
@@ -333,33 +519,48 @@ function Cancel({ setActiveTab,isViewMode }) {
       TotalExDutyAmt: toDecimal(sumOfExciseDutyAmount),
       TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
       TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
-      TotalAmtPay: toDecimal(totalItemGstAmount),
+      TotalAmtPay: toDecimal(totalAmountPayable),
       Status: "NEW",
       TouchUser: touchUser,
       TouchTime: touchTime,
       PermitNumber: permitDetails?.PermitNumber || "",
       prmtStatus: "CNL",
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
-      MRDate: formatDate(summaryDate),
+      DeclarningFor: declFor || "--Select--",
+      MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
 
     try {
-      await API.post("/postCancelPermit/", cancelPayload);
+      // Save cancel record first — writes CommonCancel + OutCancel,
+      // and flips prmtStatus='CNL' on CommonHeaderTbl + OutHeaderTbl.
+      await API.post("/postOutCancelTable/", cancelPayload);
+      // Then save/update the main header
       await API.post("/postCommonHeaderTable/", headerPayload);
+
+      // Mirror header into OutHeaderTbl (same pattern as Summary's doSavePermit)
+      try {
+        await API.post("out/postOutHeaderTable/", headerPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        setSaveMessage(
+          "Warning: Cancel was saved but failed to mirror to OutHeaderTbl. " +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        setSaving(false);
+        return;
+      }
+
       setSaveMessage("Permit cancelled successfully.");
-      navigate("/innonpayment");
+      setTimeout(() => navigate("/out"), 1000);
     } catch (err) {
       console.error("Cancel save error:", err);
       setSaveMessage(
         err?.response?.data?.error || "Failed to save. Please try again.",
       );
-    } finally {
       setSaving(false);
     }
   };
-
   return (
     <div className="col-12">
       {/* UPDATE INFORMATION */}
@@ -629,6 +830,35 @@ function Cancel({ setActiveTab,isViewMode }) {
         )}
       </div>
       <br />
+      {saving && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={saving} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

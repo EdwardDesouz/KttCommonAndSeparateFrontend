@@ -7,6 +7,7 @@ import { DateField } from "../cargo/cargo";
 import { useInnonpayment } from "../context/innonpaymentContext";
 import { useNavigate } from "react-router-dom";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
+import { CircleLoader } from "react-spinners";
 
 function Invoice({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -144,7 +145,8 @@ function Invoice({ setActiveTab, isViewMode }) {
     grossUOM,
     blanketStartDate,
   } = useInnonpayment();
-
+  const [isInvoiceSaving, setIsInvoiceSaving] = useState(false);
+  const [isInvoiceDeleting, setIsInvoiceDeleting] = useState(false);
   const [editingSNo, setEditingSNo] = useState(null);
   const [serialNumber, setSerialNumber] = useState(1);
   const [invoiceNumberError, setInvoiceNumberError] = useState(false);
@@ -563,6 +565,15 @@ function Invoice({ setActiveTab, isViewMode }) {
     fetchCurrency();
   }, []);
 
+  // ========================Invoice Number Value=================
+
+  const handleInvoiceNumberChange = (e) => {
+    const value = e.target.value;
+    const isValid = /^[a-zA-Z0-9]*$/.test(value);
+    if (isValid) {
+      setInvoiceNumber(value);
+    }
+  };
   // ======================== TERM TYPE CHANGE ========================
   const handleTermChange = (val) => {
     setTermTypeSelected(val);
@@ -790,15 +801,75 @@ function Invoice({ setActiveTab, isViewMode }) {
   };
 
   // ======================== SAVE INVOICE ========================
+  // const saveInvoice = async () => {
+  //   if (!validateInvoiceFields()) return;
+  //   const payload = {
+  //     PermitId: permitDetails?.PermitId,
+  //     SNo: editingSNo || serialNumber,
+  //     InvoiceNo: invoiceNumber,
+  //     InvoiceDate: formatDate(invoiceDate),
+  //     TermType: termTypeSelected.toUpperCase(),
+  //     AdValoremIndicator: adValoremIndicator || "False",
+  //     PreDutyRateIndicator: preDutyRateIndicator || "False",
+  //     SupplierImporterRelationship: supplierRelationship || "--Select--",
+  //     SupplierCode: supplierManuFacturerCode || "-",
+  //     ImportPartyCode: invoiceImporterCode || "",
+  //     TICurrency: invoiceCurrency,
+  //     TIExRate: Number(invoiceExRate) || 0,
+  //     TIAmount: Number(invoiceAmount) || 0,
+  //     TISAmount: Number(invoiceDollar) || 0,
+  //     OTCCharge: Number(otherValueCharges) || 0,
+  //     OTCCurrency: otherValueCurrency || "--Select--",
+  //     OTCExRate: Number(otherValueExRate) || 0,
+  //     OTCAmount: Number(otherValueAmount) || 0,
+  //     OTCSAmount: Number(otherValueDollar) || 0,
+  //     FCCharge: Number(freightValueCharges) || 0,
+  //     FCCurrency: freightValueCurrency || "--Select--",
+  //     FCExRate: Number(freightValueExRate) || 0,
+  //     FCAmount: Number(freightValueAmount) || 0,
+  //     FCSAmount: Number(freightValueDollar) || 0,
+  //     ICCharge: Number(insuranceCharges) || 0,
+  //     ICCurrency: insuranceValueCurrency,
+  //     ICExRate: Number(insuranceValueExRate) || 0,
+  //     ICAmount: Number(insuranceValueAmount) || 0,
+  //     ICSAmount: Number(insuranceValueDollar) || 0,
+  //     CIFSUMAmount: Number(cifTotal) || 0,
+  //     GSTPercentage: Number(gstCharge) || 0,
+  //     GSTSUMAmount: Number(gstTotal) || 0,
+  //     MessageType: "INPDEC",
+  //     TouchUser: user.username,
+  //     TouchTime: new Date().toISOString(),
+  //     ChkOtherInv: invoiceInsurance || "No",
+  //   };
+  //   try {
+  //     const res = await API.post("/postInvoiceTable/", payload);
+  //     if (res.data?.Records) {
+  //       setInvoiceTable(res.data.Records);
+  //     } else {
+  //       setInvoiceTable((prev) => {
+  //         if (editingSNo) {
+  //           return prev.map((inv) => (inv.SNo === editingSNo ? payload : inv));
+  //         }
+  //         return [...prev, payload];
+  //       });
+  //     }
+  //     setEditingSNo(null);
+  //     setSerialNumber((prev) => Number(prev) + 1);
+  //     resetInvoiceForm();
+  //   } catch (error) {
+  //     console.error("Save failed", error);
+  //   }
+  // };
+
   const saveInvoice = async () => {
     if (!validateInvoiceFields()) return;
     const payload = {
       PermitId: permitDetails?.PermitId,
       SNo: editingSNo || serialNumber,
-      InvoiceNo: invoiceNumber,
+       InvoiceNo: invoiceNumber.toUpperCase(),
       InvoiceDate: formatDate(invoiceDate),
       TermType: termTypeSelected.toUpperCase(),
-      AdValoremIndicator: adValoremIndicator || "False",
+      AdValoremIndicator: "False",
       PreDutyRateIndicator: preDutyRateIndicator || "False",
       SupplierImporterRelationship: supplierRelationship || "--Select--",
       SupplierCode: supplierManuFacturerCode || "-",
@@ -830,10 +901,23 @@ function Invoice({ setActiveTab, isViewMode }) {
       TouchTime: new Date().toISOString(),
       ChkOtherInv: invoiceInsurance || "No",
     };
+    let commonSaved = false;
+    setIsInvoiceSaving(true);
     try {
-      const res = await API.post("/postInvoiceTable/", payload);
-      if (res.data?.Records) {
-        setInvoiceTable(res.data.Records);
+      // Step 1: Save to CommonInvoiceDtl
+      const commonResponse = await API.post("/postInvoiceTable/", payload);
+      commonSaved = true;
+      console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+
+      // Step 2: Save to InvoiceDtl (inpayment)
+      const innonpaymentResponse = await API.post(
+        "innonpayment/postInnonInvoiceTable/",
+        payload,
+      );
+      console.log("Saved to InvoiceDtl:", innonpaymentResponse.data);
+
+      if (commonResponse.data?.Records) {
+        setInvoiceTable(commonResponse.data.Records);
       } else {
         setInvoiceTable((prev) => {
           if (editingSNo) {
@@ -842,11 +926,29 @@ function Invoice({ setActiveTab, isViewMode }) {
           return [...prev, payload];
         });
       }
+
       setEditingSNo(null);
       setSerialNumber((prev) => Number(prev) + 1);
       resetInvoiceForm();
     } catch (error) {
-      console.error("Save failed", error);
+      console.error("Failed to save invoice:", err);
+      if (commonSaved) {
+        alert(
+          `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${err.response?.data?.error || err.message}`,
+        );
+      } else if (err.response?.status === 400) {
+        alert(
+          err.response.data?.error ||
+            err.response.data?.Result ||
+            "Failed to save invoice",
+        );
+      } else {
+        alert("Failed to save invoice, check console for details");
+      }
+    } finally {
+      setIsInvoiceSaving(false);
     }
   };
 
@@ -867,12 +969,37 @@ function Invoice({ setActiveTab, isViewMode }) {
   //   }
   // };
 
+  // const deleteInvoice = async (sno) => {
+  //   try {
+  //     const res = await API.post("/deleteInvoiceNo/", {
+  //       SNo: sno,
+  //       PermitId: permitDetails?.PermitId,
+  //     });
+  //     let updatedTable =
+  //       res.data?.Records || invoiceTable.filter((inv) => inv.SNo !== sno);
+  //     const reIndexedTable = updatedTable.map((inv, index) => ({
+  //       ...inv,
+  //       SNo: index + 1,
+  //     }));
+  //     setInvoiceTable(reIndexedTable);
+  //     setSerialNumber(reIndexedTable.length + 1);
+  //   } catch (error) {
+  //     console.error("Delete failed", error);
+  //   }
+  // };
+
   const deleteInvoice = async (sno) => {
+    const permitId = permitDetails?.PermitId;
+    let commonDeleted = false;
+    setIsInvoiceDeleting(true);
     try {
+      // Step 1: Delete from CommonInvoiceDtl
       const res = await API.post("/deleteInvoiceNo/", {
         SNo: sno,
-        PermitId: permitDetails?.PermitId,
+        PermitId: permitId,
       });
+      commonDeleted = true;
+
       let updatedTable =
         res.data?.Records || invoiceTable.filter((inv) => inv.SNo !== sno);
       const reIndexedTable = updatedTable.map((inv, index) => ({
@@ -881,8 +1008,30 @@ function Invoice({ setActiveTab, isViewMode }) {
       }));
       setInvoiceTable(reIndexedTable);
       setSerialNumber(reIndexedTable.length + 1);
+
+      // Step 2: Mirror delete to InvoiceDtl (inpayment)
+      await API.post("innonpayment/deleteInnonInvoiceNo/", {
+        SNo: sno,
+        PermitId: permitId,
+      });
+      console.log("Deleted from InvoiceDtl as well");
     } catch (error) {
       console.error("Delete failed", error);
+
+      if (commonDeleted) {
+        alert(
+          `Warning: Invoice SNo ${sno} was deleted from CommonInvoiceDtl but FAILED to delete from InvoiceDtl. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else {
+        alert(
+          error.response?.data?.error ||
+            "Failed to delete invoice, check console for details",
+        );
+      }
+    } finally {
+      setIsInvoiceDeleting(false);
     }
   };
 
@@ -900,11 +1049,11 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInvoiceNumber(invoice.InvoiceNo);
 
     if (invoice.InvoiceDate) {
-      const date = new Date(invoice.InvoiceDate);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      setInvoiceDate(`${day}/${month}/${year}`);
+      const datePart = String(invoice.InvoiceDate).split("T")[0];
+      const [year, month, day] = datePart.split("-");
+      if (year && month && day) {
+        setInvoiceDate(`${day}/${month}/${year}`);
+      }
     }
 
     setTermTypeSelected(invoice.TermType);
@@ -945,39 +1094,37 @@ function Invoice({ setActiveTab, isViewMode }) {
     }
 
     const findInvoiceFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.TIExRate;
-};
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.TIExRate;
+    };
 
-const findOtheresFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.OTCExRate;
-};
+    const findOtheresFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.OTCExRate;
+    };
 
-const findFreightFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.FCExRate;
-};
+    const findFreightFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.FCExRate;
+    };
 
-const findInsuranceFormattedRate = (currencyName) => {
-  const found = currency.find((c) => c.Currency === currencyName);
-  return found ? found.CurrencyRate : invoice.ICExRate;
-};
+    const findInsuranceFormattedRate = (currencyName) => {
+      const found = currency.find((c) => c.Currency === currencyName);
+      return found ? found.CurrencyRate : invoice.ICExRate;
+    };
 
     setInvoiceCurrency(invoice.TICurrency);
     // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency)); 
+    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 
-
-  setOtherValueCharges(invoice.OTCCharge);
+    setOtherValueCharges(invoice.OTCCharge);
     setOtherValueCurrency(invoice.OTCCurrency);
     // setOtherValueExRate(invoice.OTCExRate);
     setOtherValueExRate(findOtheresFormattedRate(invoice.OTCCurrency));
     setOtherValueAmount(invoice.OTCAmount);
     setOtherValueDollar(invoice.OTCSAmount);
-
 
     setFreightValueCharges(invoice.FCCharge);
     setFreightValueCurrency(invoice.FCCurrency);
@@ -986,14 +1133,12 @@ const findInsuranceFormattedRate = (currencyName) => {
     setFreightValueAmount(invoice.FCAmount);
     setFreightValueDollar(invoice.FCSAmount);
 
-
     setInsuranceCharges(invoice.ICCharge);
     setInsuranceValueCurrency(invoice.ICCurrency);
     // setInsuranceValueExRate(invoice.ICExRate);
-    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency)); 
+    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency));
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
-
 
     setCifTotal(invoice.CIFSUMAmount);
     setGstCharge(invoice.GSTPercentage);
@@ -1285,6 +1430,33 @@ const findInsuranceFormattedRate = (currencyName) => {
   //   delay: 2000,
   // });
 
+  // if this permitid invoice already exists 
+
+  // ======================== LOAD EXISTING INVOICES ON PAGE (RE)ENTRY ========================
+const invoiceFetchedRef = useRef(false);
+
+useEffect(() => {
+  const fetchExistingInvoices = async () => {
+    if (!permitDetails?.PermitId) return;
+    if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
+    invoiceFetchedRef.current = true;
+
+    try {
+      const response = await API.get(
+        `/getInvoiceByPermitId/${permitDetails.PermitId}/`
+      );
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        setInvoiceTable(response.data);
+        setSerialNumber(response.data.length + 1);
+      }
+    } catch (err) {
+      console.error("Failed to load existing invoices for this permit", err);
+    }
+  };
+
+  fetchExistingInvoices();
+}, [permitDetails?.PermitId]);
+
   // ======================== UI ========================
   return (
     <div className="row g-2">
@@ -1502,8 +1674,8 @@ const findInsuranceFormattedRate = (currencyName) => {
           </div>
         </div>
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">SERIAL NUMBER</div>
-          <div className="col-sm-1">
+          <div className="col-sm-1 col-form-label">SERIAL NUMBER</div>
+          <div className="col-sm-2">
             <input
               disabled
               type="text"
@@ -1513,7 +1685,7 @@ const findInsuranceFormattedRate = (currencyName) => {
             />
           </div>
           <div className="col-sm-1">INVOICE DATE</div>
-          <div className="col-sm-2">
+          <div className="col-sm-3">
             <DateField
               tabIndex={10}
               value={invoiceDate}
@@ -1523,7 +1695,7 @@ const findInsuranceFormattedRate = (currencyName) => {
               <span className="ErrColor">FILL Invoice Date</span>
             )}
           </div>
-          <div className="col-sm-1 form-check">
+          {/* <div className="col-sm-1 form-check">
             <input
               type="checkbox"
               tabIndex={11}
@@ -1534,8 +1706,8 @@ const findInsuranceFormattedRate = (currencyName) => {
               }
             />
           </div>
-          <div className="col-sm-1">AD VALOREM INDICATOR</div>
-          <div className="col-sm-1 form-check">
+          <div className="col-sm-1">AD VALOREM INDICATOR</div> */}
+          <div className="col-sm-3 form-check">
             <input
               type="checkbox"
               tabIndex={12}
@@ -1545,22 +1717,22 @@ const findInsuranceFormattedRate = (currencyName) => {
                 setPreDutyRateIndicator(e.target.checked ? "True" : "False")
               }
             />
+            <div>PREFERENTIAL DUTY RATE INDICATOR</div>
           </div>
-          <div className="col-sm-3">PREFERENTIAL DUTY RATE INDICATOR</div>
         </div>
 
         <div className="row align-items-center compact-row">
-          <div className="col-sm-2 col-form-label">INVOICE NUMBER</div>
-          <div className="col-sm-1">
+          <div className="col-sm-1 col-form-label">INVOICE NUMBER</div>
+          <div className="col-sm-2">
             <input
               type="text"
               tabIndex={13}
               className="form-control"
               value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
+              onChange={handleInvoiceNumberChange}
             />
             {invoiceNumber.trim() === "" && invoiceNumberError && (
-              <span className="ErrColor">FILL Invoice Number</span>
+              <span className="ErrColor">FILL Real Invoice Number</span>
             )}
           </div>
           <div className="col-sm-1">TERM TYPE</div>
@@ -1712,7 +1884,7 @@ const findInsuranceFormattedRate = (currencyName) => {
                     }
                   >
                     <option value="">--Select--</option>
-                          {otherValueCurrency &&
+                    {otherValueCurrency &&
                       !currency.find(
                         (c) => c.Currency === otherValueCurrency,
                       ) && (
@@ -1880,7 +2052,7 @@ const findInsuranceFormattedRate = (currencyName) => {
                       }
                     >
                       <option value="">--Select--</option>
-                 {insuranceValueCurrency &&
+                      {insuranceValueCurrency &&
                         !currency.find(
                           (c) => c.Currency === insuranceValueCurrency,
                         ) && (
@@ -1899,7 +2071,7 @@ const findInsuranceFormattedRate = (currencyName) => {
                     <input
                       type="text"
                       value={insuranceValueExRate}
-                      onChange={(e)=>setInsuranceValueExRate(e.target.value)}
+                      onChange={(e) => setInsuranceValueExRate(e.target.value)}
                       className="inputStyle"
                       // disabled
                       placeholder="0.00"
@@ -1985,8 +2157,12 @@ const findInsuranceFormattedRate = (currencyName) => {
           >
             PREVIOUS
           </button>
-          <button className="NextpageBtns" onClick={saveInvoice}>
-            ADD INVOICE
+          <button
+            className="NextpageBtns"
+            onClick={saveInvoice}
+            disabled={isInvoiceSaving}
+          >
+            {isInvoiceSaving ? "SAVING..." : "ADD INVOICE"}
           </button>
           {showResetButton && (
             <button className="NextpageBtns" onClick={resetInvoiceForm}>
@@ -2000,6 +2176,68 @@ const findInsuranceFormattedRate = (currencyName) => {
             NEXT
           </button>
         </div>
+        {isInvoiceSaving && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(255,255,255,0.7)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+          >
+            <CircleLoader size={60} color="#1bf807" loading={isInvoiceSaving} />
+            <div
+              style={{
+                marginTop: "16px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#1a6db5",
+              }}
+            >
+              SAVING INVOICE...
+            </div>
+          </div>
+        )}
+        {isInvoiceDeleting && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(255,255,255,0.7)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2000,
+            }}
+          >
+            <CircleLoader
+              size={60}
+              color="#c0392b"
+              loading={isInvoiceDeleting}
+            />
+            <div
+              style={{
+                marginTop: "16px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#c0392b",
+              }}
+            >
+              DELETING INVOICE...
+            </div>
+          </div>
+        )}
         {showDraftModal && (
           <>
             {/* Backdrop */}

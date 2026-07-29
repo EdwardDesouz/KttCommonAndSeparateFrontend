@@ -150,6 +150,8 @@ export const InpaymentProvider = ({ children }) => {
   const [flightNumber, setFlightNumber] = useState("");
   const [airCraftRegNumber, setAirCraftRegNumber] = useState("");
   const [mawbNumber, setMawbNumber] = useState("");
+  const [showHawbDuplicateError, setShowHawbDuplicateError] = useState(false);
+  const [hawbDuplicateMessage, setHawbDuplicateMessage] = useState("Duplicate HBL/HAWB Found");
   // Container
   const [containers, setContainers] = useState([
     {
@@ -179,12 +181,12 @@ export const InpaymentProvider = ({ children }) => {
   const [showFreightRow, setShowFreightRow] = useState(true);
   const [showInsuranceRow, setShowInsuranceRow] = useState(true);
   const [supplierManuFacturer, setSupplierManuFacturer] = useState(null);
-  const [supplierManuFacturerCode, setSupplierManuFacturerCode] = useState("");
+  const [supplierManuFacturerCode, setSupplierManuFacturerCode] = useState("-");
   const [supplierManuFacturerCruei, setSupplierManuFacturerCruei] =
-    useState("");
-  const [supplierManuFacturerName, setSupplierManuFacturerName] = useState("");
+    useState("-");
+  const [supplierManuFacturerName, setSupplierManuFacturerName] = useState("-");
   const [supplierManuFacturerName1, setSupplierManuFacturerName1] =
-    useState("");
+    useState("-");
   const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceExRate, setInvoiceExRate] = useState("");
   const [invoiceAmount, setInvoiceAmount] = useState("");
@@ -210,7 +212,7 @@ export const InpaymentProvider = ({ children }) => {
   // Item page
   const [hawbList, setHawbList] = useState([]);
   const [itemTable, setItemTable] = useState([]);
-  const[makingLot,setMakingLot]=useState([]);
+  const [makingLot, setMakingLot] = useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [hsCode, setHsCode] = useState("");
@@ -527,6 +529,11 @@ export const InpaymentProvider = ({ children }) => {
         setMawbNumber,
         containers,
         setContainers,
+        showHawbDuplicateError,
+        setShowHawbDuplicateError,
+        hawbDuplicateMessage,
+        setHawbDuplicateMessage,
+        // Invoice
         invoiceTable,
         setInvoiceTable,
         invoiceImporterCode,

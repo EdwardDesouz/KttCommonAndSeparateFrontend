@@ -140,27 +140,110 @@ export function SearchPopup({ title, data = [], onClose, onSelect, columns }) {
 /* ===========================
    Fetch Popup Data
 =========================== */
+// export const fetchPopupData = async (type, setPopupData, setLoading) => {
+//   setLoading(true);
+//   try {
+//     let response;
+//     switch (type) {
+//       case "importer":
+//         // response = await API.get("/getCommonImporterTableInfo/");
+//         response = await API.get("inpayment/getInImporterTableInfo/");
+
+//         break;
+//       case "inward":
+//         response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+//         break;
+//       case "freightForwarder":
+//         response = await API.get("/getCommonFreightForwarderTable/");
+//         break;
+//       case "claimantparty":
+//         response = await API.get("/getCommonClaimantPartyTable/");
+//         break;
+//       default:
+//         response = { data: [] };
+//     }
+//     setPopupData(response.data);
+//   } catch (err) {
+//     console.error("Failed to fetch popup data", err);
+//     setPopupData([]);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+/* ===========================
+   Fetch Popup Data (Common + Inpayment merged)
+=========================== */
 export const fetchPopupData = async (type, setPopupData, setLoading) => {
   setLoading(true);
   try {
-    let response;
+    let commonUrl, inpaymentUrl, keyField;
+
     switch (type) {
       case "importer":
-        response = await API.get("/getCommonImporterTableInfo/");
+        commonUrl = "/getCommonImporterTableInfo/";
+        inpaymentUrl = "inpayment/getInImporterTableInfo/";
+        keyField = "Code";
         break;
       case "inward":
-        response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+        commonUrl = "/getCommonInwardCarrierAgentTableInfo/";
+        inpaymentUrl = "inpayment/getInInwardCarrierAgentTableInfo/";
+        keyField = "Code";
         break;
       case "freightForwarder":
-        response = await API.get("/getCommonFreightForwarderTable/");
+        commonUrl = "/getCommonFreightForwarderTable/";
+        inpaymentUrl = "inpayment/getInFreightForwarderTable/";
+        keyField = "Code";
         break;
       case "claimantparty":
-        response = await API.get("/getCommonClaimantPartyTable/");
+        commonUrl = "/getCommonClaimantPartyTable/";
+        inpaymentUrl = "inpayment/getInClaimantPartyTable/";
+        keyField = "ClaimantCode";
         break;
       default:
-        response = { data: [] };
+        setPopupData([]);
+        setLoading(false);
+        return;
     }
-    setPopupData(response.data);
+
+    // Fetch both tables in parallel; don't let one failing kill the other
+    const [commonResult, inpaymentResult] = await Promise.allSettled([
+      API.get(commonUrl),
+      API.get(inpaymentUrl),
+    ]);
+
+    const commonData =
+      commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
+    const inpaymentData =
+      inpaymentResult.status === "fulfilled"
+        ? inpaymentResult.value.data || []
+        : [];
+
+    if (commonResult.status === "rejected") {
+      console.error(`Failed to fetch Common ${type} data`, commonResult.reason);
+    }
+    if (inpaymentResult.status === "rejected") {
+      console.error(
+        `Failed to fetch Inpayment ${type} data`,
+        inpaymentResult.reason,
+      );
+    }
+
+    // Merge, de-duping by code (case-insensitive), Common takes priority on conflicts
+    const merged = [...commonData];
+    const seenCodes = new Set(
+      commonData.map((item) => String(item[keyField] || "").toLowerCase()),
+    );
+
+    for (const item of inpaymentData) {
+      const code = String(item[keyField] || "").toLowerCase();
+      if (!seenCodes.has(code)) {
+        merged.push(item);
+        seenCodes.add(code);
+      }
+    }
+
+    setPopupData(merged);
   } catch (err) {
     console.error("Failed to fetch popup data", err);
     setPopupData([]);

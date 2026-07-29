@@ -287,12 +287,12 @@ export const InnonpaymentProvider = ({ children }) => {
   const [showFreightRow, setShowFreightRow] = useState(true);
   const [showInsuranceRow, setShowInsuranceRow] = useState(true);
   const [supplierManuFacturer, setSupplierManuFacturer] = useState(null);
-  const [supplierManuFacturerCode, setSupplierManuFacturerCode] = useState("");
+  const [supplierManuFacturerCode, setSupplierManuFacturerCode] = useState("-");
   const [supplierManuFacturerCruei, setSupplierManuFacturerCruei] =
-    useState("");
-  const [supplierManuFacturerName, setSupplierManuFacturerName] = useState("");
+    useState("-");
+  const [supplierManuFacturerName, setSupplierManuFacturerName] = useState("-");
   const [supplierManuFacturerName1, setSupplierManuFacturerName1] =
-    useState("");
+    useState("-");
   const [invoiceCurrency, setInvoiceCurrency] = useState("");
   const [invoiceExRate, setInvoiceExRate] = useState("");
   const [invoiceAmount, setInvoiceAmount] = useState("");

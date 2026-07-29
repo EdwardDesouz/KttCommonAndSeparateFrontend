@@ -330,7 +330,7 @@ function Coo() {
     { header: "", accessor: "checkbox" },
     { header: "DELETE", accessor: "delete" },
     { header: "EDIT", accessor: "edit" },
-    { header: "VIEW", accessor: "view" },
+    // { header: "VIEW", accessor: "view" },
     { header: "JOB ID", accessor: "JobId" },
     { header: "MSG ID", accessor: "MSGId" },
     { header: "DECDATE", accessor: "DECDATE" },
@@ -362,8 +362,8 @@ function Coo() {
     "TransmitId",
   ];
 
-  const actionColumns = ["checkbox", "delete", "edit", "view"];
-
+  // const actionColumns = ["checkbox", "delete", "edit", "view"];
+  const actionColumns = ["checkbox", "delete", "edit"];
   const showColumnsOptions = columns
     .filter((col) => !actionColumns.includes(col.accessor))
     .map((col) => ({ accessor: col.accessor, header: col.header }));
@@ -465,6 +465,9 @@ function Coo() {
   const handleDelete = async (permitId) => {
     try {
       await API.get("/deletePermit/", {
+        params: { PermitId: permitId },
+      });
+      await API.get("/coo/deleteCooPermit/", {
         params: { PermitId: permitId },
       });
       fetchTableData(showAll);
@@ -623,6 +626,7 @@ function Coo() {
                     window.location.assign(
                       `${API.defaults.baseURL}downloadData/?data=${data}`,
                     );
+                    clearSelection();
                   }}
                 >
                   DOWNLOAD DATA
@@ -722,6 +726,7 @@ function Coo() {
                     window.location.assign(
                       `${API.defaults.baseURL}printStatus/${permitId}/`,
                     );
+                    clearSelection();
                   }}
                 >
                   PRINT STATUS
@@ -777,6 +782,7 @@ function Coo() {
                       `${API.defaults.baseURL}draftCoo/${permitId}/`,
                       "_blank",
                     );
+                    clearSelection();
                   }}
                 >
                   COO DRAFT
@@ -795,6 +801,7 @@ function Coo() {
                       `${API.defaults.baseURL}printCoo/${permitId}/`,
                       "_blank",
                     );
+                    clearSelection();
                   }}
                 >
                   PRINT COO
@@ -1096,11 +1103,43 @@ function Coo() {
                                       />
                                     </td>
                                   );
-                                case "view":
+                                // case "view":
+                                //   return (
+                                //     <td key={col.accessor}>
+                                //       <FaEye
+                                //         style={{ cursor: "pointer" }}
+                                //         onClick={async () => {
+                                //           try {
+                                //             await API.get(
+                                //               "/getCommonHeaderByPermitId/",
+                                //               {
+                                //                 params: {
+                                //                   PermitId: row.PermitId,
+                                //                 },
+                                //               },
+                                //             );
+                                //             window.open(
+                                //               `/coo/view/${row.PermitId}`,
+                                //               "_blank",
+                                //             );
+                                //           } catch (error) {
+                                //             console.error(
+                                //               "Error fetching permit data:",
+                                //               error,
+                                //             );
+                                //           }
+                                //         }}
+                                //       />
+                                //     </td>
+                                //   );
+                                case "MSGId":
                                   return (
                                     <td key={col.accessor}>
-                                      <FaEye
-                                        style={{ cursor: "pointer" }}
+                                      <span
+                                        style={{
+                                          cursor: "pointer",
+                                          color: "#0720ff",
+                                        }}
                                         onClick={async () => {
                                           try {
                                             await API.get(
@@ -1122,7 +1161,9 @@ function Coo() {
                                             );
                                           }
                                         }}
-                                      />
+                                      >
+                                        {row.MSGId}
+                                      </span>
                                     </td>
                                   );
                                 default:

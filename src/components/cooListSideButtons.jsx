@@ -164,12 +164,16 @@ function ListButtons({
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
+                      if (clearSelection) clearSelection();
+            if (refreshTable) refreshTable();
           } else {
             // Multiple permits → backend returns JSON
             const text = await response.data.text();
             const json = JSON.parse(text);
             if (json.SUCCESS) {
               alert(`${json.message}`);
+                      if (clearSelection) clearSelection();
+              if (refreshTable) refreshTable();
             } else {
               alert(json.error || "Submission failed");
             }
@@ -332,10 +336,17 @@ function ListButtons({
         {buttons.map((label) => (
           <li key={label}>
             <button
-              className="navbar-btn"
+              className={`navbar-btn ${label === "SUBMIT" ? "navbar-btn-submit" : ""}`}
               onClick={() => handleClick(label)}
               disabled={label !== "NEW" && btnState && !btnState[label]} // ✅ ADD
               style={{
+                backgroundColor:
+                  label === "SUBMIT"
+                    ? label !== "NEW" && btnState && !btnState[label]
+                      ? "#8fbf8f" // muted green when disabled
+                      : "#2f01fd" // solid green when enabled
+                    : undefined,
+                color: label === "SUBMIT" ? "#fff" : undefined,
                 opacity:
                   label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1, // ✅ ADD
                 cursor:

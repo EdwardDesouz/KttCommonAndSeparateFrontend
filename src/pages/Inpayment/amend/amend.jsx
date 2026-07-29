@@ -3,8 +3,9 @@ import { useInpayment } from "../context/inpaymentContext";
 import API from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../userContex/userContex";
+import { CircleLoader } from "react-spinners";
 
-function Amend({ setActiveTab,isViewMode }) {
+function Amend({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const {
@@ -183,7 +184,7 @@ function Amend({ setActiveTab,isViewMode }) {
   );
 
   const [amendCount, setAmendCount] = useState("");
-  const [updateIndicator, setUpdateIndicator] = useState("");
+  const [updateIndicator, setUpdateIndicator] = useState("AME");
   const [permitNumber, setPermitNumber] = useState("");
   const [replacementPermitNumber, setReplacementPermitNumber] = useState("");
   const [amendType, setAmendType] = useState("");
@@ -195,6 +196,7 @@ function Amend({ setActiveTab,isViewMode }) {
   const [saveMessage, setSaveMessage] = useState("");
   const [showAmendTypeError, setShowAmendTypeError] = useState(false);
   const [showDescError, setShowDescError] = useState(false);
+  const [showDeclarationError, setShowDeclarationError] = useState(false);
 
   // Load existing amend data
   useEffect(() => {
@@ -207,7 +209,6 @@ function Amend({ setActiveTab,isViewMode }) {
         if (Array.isArray(rows) && rows.length > 0) {
           const d = rows[0];
           setAmendCount(d.AmendmentCount || "");
-          setUpdateIndicator(d.UpdateIndicator || "");
           setPermitNumber(d.Permitno || "");
           setReplacementPermitNumber(d.ReplacementPermitno || "");
           setAmendType(d.AmendType || "");
@@ -223,18 +224,21 @@ function Amend({ setActiveTab,isViewMode }) {
         } else {
           // New amend - pre-fill from header
           setPermitNumber(permitDetails?.PermitNumber || "");
-          setUpdateIndicator(permitDetails?.prmtStatus || "");
         }
       })
       .catch((err) => {
         console.error("Failed to load amend data:", err);
         setPermitNumber(permitDetails?.PermitNumber || "");
-        setUpdateIndicator(permitDetails?.prmtStatus || "");
       });
   }, [permitDetails?.MsgId, permitDetails?.MSGId]);
+
   // ── Validation ───────────────────────────────────────────────────────────
   const validate = () => {
     let valid = true;
+    setShowAmendTypeError(false);
+    setShowDescError(false);
+    setShowDeclarationError(false);
+
     if (!amendType || amendType === "--Select--") {
       setShowAmendTypeError(true);
       valid = false;
@@ -244,7 +248,7 @@ function Amend({ setActiveTab,isViewMode }) {
       valid = false;
     }
     if (!declarationChecked) {
-      alert("Please tick the Declaration Indicator before saving.");
+      setShowDeclarationError(true);
       valid = false;
     }
     return valid;
@@ -269,9 +273,9 @@ function Amend({ setActiveTab,isViewMode }) {
 
     // ── Amend payload ────────────────────────────────────────────────────
     const amendPayload = {
-      Permitno: permitId,
+      Permitno: permitNumber,
       AmendmentCount: amendCount,
-      UpdateIndicator: updateIndicator,
+      UpdateIndicator: "AME",
       ReplacementPermitno: replacementPermitNumber,
       DescriptionOfReason: amendDescription,
       PermitExtension: permitValidity ? "True" : "False",
@@ -279,7 +283,7 @@ function Amend({ setActiveTab,isViewMode }) {
       DeclarationIndigator: declarationChecked ? "True" : "False",
       AmendType: amendType,
       TouchUser: touchUser,
-      TouchTme: touchTime,
+      TouchTime: touchTime,
       MSGId: msgId,
     };
 
@@ -301,7 +305,7 @@ function Amend({ setActiveTab,isViewMode }) {
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode || "",
       InwardCarrierAgentCode: inwardCode || "",
       FreightForwarderCode: freightForwarderCode || "",
@@ -323,7 +327,11 @@ function Amend({ setActiveTab,isViewMode }) {
       RecepitLocName: receiptLocationDescription || "",
       TotalOuterPack: totalOuterPackValue || "",
       TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
+      // TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
       TotalGrossWeightUOM: cleanSelect(grossUOM),
       BlanketStartDate: formatDate(blanketStartDate),
       GrossReference: summaryCrossReference || "",
@@ -354,6 +362,25 @@ function Amend({ setActiveTab,isViewMode }) {
       // Then save/update header
       await API.post("/postCommonHeaderTable/", headerPayload);
 
+      // Mirror header into InHeaderTbl (same pattern as Summary's doSavePermit)
+      const inHeaderPayload = {
+        ...headerPayload,
+        ReleaseLocName: releaseLocationDescription || "",
+      };
+      delete inHeaderPayload.ResLoaName;
+
+      try {
+        await API.post("inpayment/postInHeaderTable/", inHeaderPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        setSaveMessage(
+          "Warning: Amend was saved but failed to mirror to InHeaderTbl. " +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        setSaving(false);
+        return;
+      }
+
       setSaveMessage("Permit saved successfully.");
       setTimeout(() => navigate("/inpayment"), 1000);
     } catch (err) {
@@ -361,7 +388,6 @@ function Amend({ setActiveTab,isViewMode }) {
       setSaveMessage(
         err?.response?.data?.error || "Failed to save. Please try again.",
       );
-    } finally {
       setSaving(false);
     }
   };
@@ -388,11 +414,7 @@ function Amend({ setActiveTab,isViewMode }) {
           />
         </div>
         <div className="col-3">
-          <input
-            className="inputStyle"
-            value={updateIndicator}
-            onChange={(e) => setUpdateIndicator(e.target.value)}
-          />
+          <input className="inputStyle" value="AME" disabled />
         </div>
         <div className="col-3">
           <input
@@ -503,49 +525,91 @@ function Amend({ setActiveTab,isViewMode }) {
             id="AmendDeclarationCheck"
             style={{ width: "16px", height: "16px", cursor: "pointer" }}
             checked={declarationChecked}
-            onChange={(e) => setDeclarationChecked(e.target.checked)}
+            onChange={(e) => {
+              setDeclarationChecked(e.target.checked);
+              if (e.target.checked) setShowDeclarationError(false);
+            }}
           />
           <label htmlFor="AmendDeclarationCheck" style={{ marginLeft: "6px" }}>
             I/WE DECLARE THAT ALL PARTICULARS IN THIS APPLICATION ARE TRUE AND
             CORRECT
           </label>
+          {showDeclarationError && (
+            <span className="ErrColor" style={{ display: "block" }}>
+              PLEASE TICK THE DECLARATION INDICATOR BEFORE SAVING
+            </span>
+          )}
         </div>
       </div>
 
       {saveMessage && (
         <div
           className="row mt-3"
-          style={{ color: saveMessage.includes("success") ? "green" : "red" }}
+          style={{
+            color: saveMessage.toLowerCase().includes("success")
+              ? "green"
+              : "red",
+          }}
         >
           <div className="col">{saveMessage}</div>
         </div>
       )}
 
-<div className="mt-4 d-flex justify-content-center gap-3">
-  <button
-    className="NextpageBtns view-nav-btn"
-    onClick={() => setActiveTab("SummaryTab")}
-  >
-    PREVIOUS
-  </button>
-  {isViewMode ? (
-    <button
-      className="NextpageBtns view-nav-btn"
-      onClick={() => window.close()}
-    >
-      CLOSE
-    </button>
-  ) : (
-    <button
-      className="NextpageBtns"
-      onClick={handleSavePermit}
-      disabled={saving}
-    >
-      {saving ? "SAVING..." : "SAVE PERMIT"}
-    </button>
-  )}
-</div>
+      <div className="mt-4 d-flex justify-content-center gap-3">
+        <button
+          className="NextpageBtns view-nav-btn"
+          onClick={() => setActiveTab("SummaryTab")}
+        >
+          PREVIOUS
+        </button>
+        {isViewMode ? (
+          <button
+            className="NextpageBtns view-nav-btn"
+            onClick={() => window.close()}
+          >
+            CLOSE
+          </button>
+        ) : (
+          <button
+            className="NextpageBtns"
+            onClick={handleSavePermit}
+            disabled={saving}
+          >
+            {saving ? "SAVING..." : "SAVE PERMIT"}
+          </button>
+        )}
+      </div>
       <br />
+
+      {saving && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={saving} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

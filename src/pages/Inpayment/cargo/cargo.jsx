@@ -146,6 +146,10 @@ function Cargo({ setActiveTab, isViewMode }) {
     setMawbNumber,
     containers,
     setContainers,
+    showHawbDuplicateError,
+    setShowHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
     // EXISTING STATES FOR SAVE AS DRAFT
     decType,
     prevPermitNo,
@@ -680,29 +684,93 @@ function Cargo({ setActiveTab, isViewMode }) {
   };
 
   // ====================== Delete Single Container ======================
+  // const deleteContainer = async (container) => {
+  //   const rowNo = getRowNo(container);
+  //   const payload = { PermitId: permitDetails?.PermitId, RowNo: rowNo };
+
+  //   try {
+  //     setLoading(true);
+  //     await API.post("/deleteContainer/", payload);
+
+  //     setContainers((prev) => {
+  //       const remaining = prev.filter((c) => c.id !== container.id);
+  //       return remaining.length ? remaining : [resetEmptyContainer()];
+  //     });
+  //   } catch (err) {
+  //     console.error("Delete error:", err);
+  //     alert("Error deleting container");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const deleteContainer = async (container) => {
     const rowNo = getRowNo(container);
     const payload = { PermitId: permitDetails?.PermitId, RowNo: rowNo };
 
     try {
       setLoading(true);
+
+      // Delete from CommonContainerTable
       await API.post("/deleteContainer/", payload);
+
+      // Mirror delete to InContainerTable (inpayment)
+      await API.post("inpayment/deleteInContainer/", payload);
 
       setContainers((prev) => {
         const remaining = prev.filter((c) => c.id !== container.id);
         return remaining.length ? remaining : [resetEmptyContainer()];
       });
     } catch (err) {
-      console.error("Delete error:", err);
-      alert("Error deleting container");
+      console.error("Error deleting container:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error deleting container! Check console for details.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // ====================== Bulk Delete Selected Containers ======================
+  // const deleteSelectedContainers = async () => {
+  //   // get all selected containers
+  //   const selected = containers.filter((c) => c.isChecked);
+  //   if (!selected.length)
+  //     return alert("Select at least one container to delete");
+
+  //   try {
+  //     setLoading(true);
+
+  //     // sort by RowNo descending to avoid shifting issues
+  //     const sortedSelected = selected
+  //       .map((c) => ({ ...c, RowNo: getRowNo(c) }))
+  //       .sort((a, b) => b.RowNo - a.RowNo);
+
+  //     // delete each container
+  //     for (let container of sortedSelected) {
+  //       await API.post("/deleteContainer/", {
+  //         PermitId: permitDetails?.PermitId,
+  //         RowNo: container.RowNo,
+  //       });
+  //     }
+
+  //     // remove deleted containers from state
+  //     setContainers((prev) => {
+  //       const remaining = prev.filter((c) => !c.isChecked);
+  //       return remaining.length
+  //         ? remaining.map((c) => ({ ...c, isChecked: false }))
+  //         : [resetEmptyContainer()];
+  //     });
+  //   } catch (err) {
+  //     console.error("Error deleting selected containers:", err);
+  //     alert("Error deleting containers");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const deleteSelectedContainers = async () => {
-    // get all selected containers
     const selected = containers.filter((c) => c.isChecked);
     if (!selected.length)
       return alert("Select at least one container to delete");
@@ -715,15 +783,17 @@ function Cargo({ setActiveTab, isViewMode }) {
         .map((c) => ({ ...c, RowNo: getRowNo(c) }))
         .sort((a, b) => b.RowNo - a.RowNo);
 
-      // delete each container
       for (let container of sortedSelected) {
-        await API.post("/deleteContainer/", {
+        const payload = {
           PermitId: permitDetails?.PermitId,
           RowNo: container.RowNo,
-        });
+        };
+        // Delete from CommonContainerTable
+        await API.post("/deleteContainer/", payload);
+        // Mirror delete to InContainerTable (inpayment)
+        await API.post("inpayment/deleteInContainer/", payload);
       }
 
-      // remove deleted containers from state
       setContainers((prev) => {
         const remaining = prev.filter((c) => !c.isChecked);
         return remaining.length
@@ -731,14 +801,66 @@ function Cargo({ setActiveTab, isViewMode }) {
           : [resetEmptyContainer()];
       });
     } catch (err) {
-      console.error("Error deleting selected containers:", err);
-      alert("Error deleting containers");
+      console.error(
+        "Error deleting selected containers:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          "Error deleting containers! Check console for details.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // ====================== Save Single Container ======================
+  // const saveContainer = async (container) => {
+  //   const rowNo = getRowNo(container);
+  //   const regex = /^[A-Za-z]{4}\d{7}$/;
+  //   if (
+  //     !regex.test(container.number) ||
+  //     !container.sizeType ||
+  //     container.sizeType === "--Select--" ||
+  //     !container.weight ||
+  //     !container.seal
+  //   ) {
+  //     alert(`Please fill all details correctly for row ${rowNo}`);
+  //     return;
+  //   }
+  //   const payload = {
+  //     PermitId: permitDetails?.PermitId,
+  //     RowNo: rowNo,
+  //     ContainerNo: String(container.number).trim(),
+  //     Size:
+  //       typeof container.sizeType === "object"
+  //         ? String(container.sizeType.value).trim()
+  //         : String(container.sizeType).trim(),
+  //     Weight: Number(container.weight),
+  //     SealNo: String(container.seal).trim(),
+  //     MessageType: "IPTDEC",
+  //     TouchUser: user.username.toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //   };
+
+  //   try {
+  //     setLoading(true);
+  //     const res = await API.post("/postContainerTable/", payload);
+  //     alert(res.data.Result);
+
+  //     setContainers((prev) =>
+  //       prev.map((c) =>
+  //         c.id === container.id ? { ...c, isSaved: true, isChecked: false } : c,
+  //       ),
+  //     );
+  //   } catch (err) {
+  //     console.error("Error saving container:", err.response?.data || err);
+  //     alert("Error saving container! Check console for details.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const saveContainer = async (container) => {
     const rowNo = getRowNo(container);
     const regex = /^[A-Za-z]{4}\d{7}$/;
@@ -769,8 +891,14 @@ function Cargo({ setActiveTab, isViewMode }) {
 
     try {
       setLoading(true);
+
+      // Save to CommonContainerTable
       const res = await API.post("/postContainerTable/", payload);
-      alert(res.data.Result);
+
+      // Mirror save to InContainerTable (inpayment)
+      await API.post("inpayment/postInContainerTable/", payload);
+
+      alert(res.data?.Result || "Container saved successfully!");
 
       setContainers((prev) =>
         prev.map((c) =>
@@ -779,12 +907,15 @@ function Cargo({ setActiveTab, isViewMode }) {
       );
     } catch (err) {
       console.error("Error saving container:", err.response?.data || err);
-      alert("Error saving container! Check console for details.");
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Error saving container! Check console for details.",
+      );
     } finally {
       setLoading(false);
     }
   };
-
   // ====================== Select All Checkbox ======================
   const handleSelectAll = (checked) => {
     setContainers((prev) => prev.map((c) => ({ ...c, isChecked: checked })));
@@ -814,6 +945,39 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!transportMode) return "HAWB";
     return "HBL";
   };
+
+  const checkDuplicateHawb = async (value) => {
+    if (!value || !value.trim()) {
+      setShowHawbDuplicateError(false);
+      setHawbDuplicateMessage("");
+      return true;
+    }
+    try {
+      const response = await API.get(
+        `/checkDuplicateHawb/?HBL=${encodeURIComponent(value)}&INHAWB=${encodeURIComponent(value)}&outHAWB=${encodeURIComponent(value)}&PermitId=${permitDetails?.PermitId || ""}`,
+      );
+      if (response.data?.duplicate) {
+        setShowHawbDuplicateError(true);
+        setHawbDuplicateMessage(
+          response.data.message || "Duplicate HAWB found.",
+        );
+        return false;
+      } else {
+        setShowHawbDuplicateError(false);
+        setHawbDuplicateMessage("");
+        return true;
+      }
+    } catch (error) {
+      console.error("Error checking duplicate HAWB:", error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    if (permitDetails?.PermitId && cargoHawb) {
+      checkDuplicateHawb(cargoHawb);
+    }
+  }, [permitDetails?.PermitId]);
 
   // =======================SAVE AS DRAFT MODEL================
   // =======================STATES==================
@@ -900,7 +1064,11 @@ function Cargo({ setActiveTab, isViewMode }) {
         RecepitLocName: receiptLocationDescription || "",
         TotalOuterPack: totalOuterPackValue || "",
         TotalOuterPackUOM: totalOuterPackName || "",
-        TotalGrossWeight: totalGrossWeight || "",
+        // TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeight:
+          permitGrossWeight !== "" && permitGrossWeight !== undefined
+            ? permitGrossWeight
+            : totalGrossWeight || "",
         TotalGrossWeightUOM: grossUOM || "",
         BlanketStartDate: formatDate(blanketStartDate) || null,
 
@@ -1119,9 +1287,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                         {totalOuterPackName}
                       </option>
                     )}
-                  {totalOuterPack.map((tooupack) => (
-                    <option key={tooupack.Name} value={tooupack.Name}>
-                      {tooupack.Name}
+                  {totalOuterPack.map((t) => (
+                    <option key={t.Name} value={t.Name}>
+                      {t.Name}
                     </option>
                   ))}
                 </select>
@@ -1455,18 +1623,29 @@ function Cargo({ setActiveTab, isViewMode }) {
               </div>
             )}
             {/* HAWB */}
+            {/* HAWB */}
             {showNotRequired && (
               <div className="row align-items-center compact-row mb-3">
                 <label className="col-sm-4 col-form-label">
                   {getCargoLabel()}
                 </label>
                 <div className="col-sm-7">
+                  {showHawbDuplicateError && (
+                    <span className="ErrorColor">{hawbDuplicateMessage}</span>
+                  )}
                   <input
                     type="text"
                     id="CargoHbl"
-                    className="form-control"
+                    className={`form-control ${showHawbDuplicateError ? "is-invalid" : ""}`}
                     value={cargoHawb}
-                    onChange={(e) => updateCargoHawb(e.target.value)}
+                    onChange={(e) => {
+                      updateCargoHawb(e.target.value);
+                      if (showHawbDuplicateError) {
+                        setShowHawbDuplicateError(false);
+                        setHawbDuplicateMessage("");
+                      }
+                    }}
+                    onBlur={(e) => checkDuplicateHawb(e.target.value)}
                   />
                 </div>
               </div>
@@ -1773,7 +1952,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           style={{ width: "350px" }}
                         >
                           <option>--Select--</option>
-                              {container.sizeType &&
+                          {container.sizeType &&
                             !containerType.find(
                               (ct) => ct.Name === container.sizeType,
                             ) && (

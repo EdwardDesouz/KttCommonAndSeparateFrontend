@@ -12,10 +12,10 @@ import Amend from "./amend/amend";
 import Refund from "./reFund/reFund";
 import Cancel from "./cancel/cancel";
 import Summary from "./summary/summary";
-
 import { OutProvider } from "./context/outContext";
 import OutEditLoader from "./outEditLoader";
 import { useOut } from "./context/outContext";
+import API from "../../api/api";
 
 // ── Inner component has access to both location AND context ──────────────────
 function OutNewInner({ permitId, isEditMode, isViewMode }) {
@@ -52,9 +52,62 @@ function OutNewInner({ permitId, isEditMode, isViewMode }) {
 
   const buttons_std = [
     { id: "ExitForm", label: "EXITFORM" },
+      { id: "ExchangeRate", label: "EXCHANGE RATE" },
     { id: "AproveHsCodeFinder", label: "APRHSCODEFINDER" },
     { id: "HsCodeFinder", label: "HSCODEFINDER" },
   ];
+
+   // ===================== EXCHANGE RATE MODAL =====================
+  const [showExchangeRateModal, setShowExchangeRateModal] = useState(false);
+  const [exchangeRateDate, setExchangeRateDate] = useState("");
+  const [exchangeRates, setExchangeRates] = useState([]);
+  const [exchangeRateLoading, setExchangeRateLoading] = useState(false);
+  const [exchangeRateError, setExchangeRateError] = useState("");
+
+  const handleOpenExchangeRateModal = () => {
+    setExchangeRateDate("");
+    setExchangeRates([]);
+    setExchangeRateError("");
+    setShowExchangeRateModal(true);
+  };
+
+  const handleCloseExchangeRateModal = () => {
+    setShowExchangeRateModal(false);
+    setExchangeRateDate("");
+    setExchangeRates([]);
+    setExchangeRateError("");
+  };
+
+  const handleExchangeRateDateChange = async (e) => {
+    const value = e.target.value;
+    setExchangeRateDate(value);
+    setExchangeRates([]);
+    setExchangeRateError("");
+
+    if (!value) return;
+
+    setExchangeRateLoading(true);
+    try {
+      const response = await API.get(`/getExchangeRateByDate/?date=${value}`);
+      const records = response?.data?.Records || [];
+
+      if (!records.length) {
+        setExchangeRateError("No exchange rate data found for this date.");
+        return;
+      }
+
+      setExchangeRates(records);
+    } catch (err) {
+      console.error("Error fetching exchange rate:", err);
+      const backendMessage = err?.response?.data?.error;
+      setExchangeRateError(
+        backendMessage || "Failed to fetch exchange rate for this date.",
+      );
+    } finally {
+      setExchangeRateLoading(false);
+    }
+  };
+
 
   return (
     <>
@@ -103,6 +156,9 @@ function OutNewInner({ permitId, isEditMode, isViewMode }) {
                     onClick={() => {
                       if (tab.id === "ExitForm") {
                         navigate(-1);
+                      }
+                      else if (tab.id === "ExchangeRate") {
+                        handleOpenExchangeRateModal();
                       } else {
                         setActiveTab(tab.id);
                       }
@@ -118,7 +174,11 @@ function OutNewInner({ permitId, isEditMode, isViewMode }) {
 
         <div className={`tab-content ${isViewMode ? "view-mode" : ""}`}>
           {activeTab === "HeaderTab" && (
-            <Header setActiveTab={setActiveTab} isViewMode={isViewMode} />
+            <Header
+              setActiveTab={setActiveTab}
+              isViewMode={isViewMode}
+              isEditMode={isEditMode}
+            />
           )}
           {activeTab === "PartyTab" && (
             <Party setActiveTab={setActiveTab} isViewMode={isViewMode} />
@@ -148,6 +208,155 @@ function OutNewInner({ permitId, isEditMode, isViewMode }) {
             <Cancel setActiveTab={setActiveTab} isViewMode={isViewMode} />
           )}
         </div>
+                {/* ===================== EXCHANGE RATE MODAL ===================== */}
+        {showExchangeRateModal && (
+          <>
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1040,
+              }}
+              onClick={handleCloseExchangeRateModal}
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                zIndex: 1050,
+                width: "480px",
+                maxHeight: "80vh",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  backgroundColor: "#1a6db5",
+                  color: "#fff",
+                  padding: "14px 20px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  EXCHANGE RATE
+                </span>
+                <span
+                  style={{
+                    cursor: "pointer",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                  }}
+                  onClick={handleCloseExchangeRateModal}
+                >
+                  ✕
+                </span>
+              </div>
+
+              {/* Body */}
+              <div
+                style={{
+                  padding: "20px 24px",
+                  overflowY: "auto",
+                  flex: 1,
+                }}
+              >
+                <label
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    marginBottom: "6px",
+                    display: "block",
+                    color: "#333",
+                  }}
+                >
+                  SELECT DATE
+                </label>
+                <input
+                  type="date"
+                  className="form-control"
+                  value={exchangeRateDate}
+                  onChange={handleExchangeRateDateChange}
+                  style={{ marginBottom: "16px" }}
+                />
+
+                {exchangeRateLoading && (
+                  <div style={{ fontSize: "13px", color: "#555" }}>
+                    Loading exchange rates...
+                  </div>
+                )}
+
+                {!exchangeRateLoading && exchangeRateError && (
+                  <div style={{ fontSize: "13px", color: "red" }}>
+                    {exchangeRateError}
+                  </div>
+                )}
+
+                {!exchangeRateLoading && exchangeRates.length > 0 && (
+                  <table
+                    className="table table-bordered table-sm"
+                    style={{ fontSize: "0.8rem", marginTop: "10px" }}
+                  >
+                    <thead>
+                      <tr>
+                        <th>CURRENCY</th>
+                        <th>RATE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {exchangeRates.map((rate, idx) => (
+                        <tr key={idx}>
+                          <td>{rate.Currency}</td>
+                          <td>{rate.Rate}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "12px 24px 20px 24px",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  flexShrink: 0,
+                }}
+              >
+                <button
+                  className="NextpageBtns"
+                  onClick={handleCloseExchangeRateModal}
+                  style={{
+                    backgroundColor: "#6c757d",
+                    color: "#fff",
+                    border: "none",
+                    padding: "7px 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                  }}
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

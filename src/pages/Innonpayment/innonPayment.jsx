@@ -330,7 +330,7 @@ function Inpayment() {
     { header: "", accessor: "checkbox" },
     { header: "DELETE", accessor: "delete" },
     { header: "EDIT", accessor: "edit" },
-    { header: "VIEW", accessor: "view" },
+    // { header: "VIEW", accessor: "view" },
     { header: "JOB ID", accessor: "JobId" },
     { header: "MSG ID", accessor: "MSGId" },
     { header: "DECDATE", accessor: "DECDATE" },
@@ -362,8 +362,8 @@ function Inpayment() {
     "TransmitId",
   ];
 
-  const actionColumns = ["checkbox", "delete", "edit", "view"];
-
+  // const actionColumns = ["checkbox", "delete", "edit", "view"];
+  const actionColumns = ["checkbox", "delete", "edit"];
   const showColumnsOptions = columns
     .filter((col) => !actionColumns.includes(col.accessor))
     .map((col) => ({ accessor: col.accessor, header: col.header }));
@@ -465,6 +465,9 @@ function Inpayment() {
   const handleDelete = async (permitId) => {
     try {
       await API.get("/deletePermit/", {
+        params: { PermitId: permitId },
+      });
+      await API.get("/innonpayment/deleteInnonPermit/", {
         params: { PermitId: permitId },
       });
       fetchTableData(showAll);
@@ -649,6 +652,7 @@ function Inpayment() {
                     window.location.assign(
                       `${API.defaults.baseURL}downloadData/?data=${data}`,
                     );
+                    clearSelection();
                   }}
                 >
                   DOWNLOAD DATA
@@ -669,10 +673,13 @@ function Inpayment() {
                     }
                     const permitId = selectedPermits[0];
                     try {
-                      const response = await API.get("/gstStatus/", {
+                      await API.get("/gstStatus/", {
                         params: { PermitId: permitId },
                       });
-                      alert(response.data.message);
+                      await API.get("innonpayment/gstInnonStatus/", {
+                        params: { PermitId: permitId },
+                      });
+                      // alert("GST status updated successfully.");
                       fetchTableData(showAll);
                     } catch (error) {
                       const errMsg =
@@ -680,6 +687,7 @@ function Inpayment() {
                         "Failed to update GST status.";
                       alert(errMsg);
                     }
+                    clearSelection();
                   }}
                 >
                   GST STATUS
@@ -702,6 +710,7 @@ function Inpayment() {
                     window.location.assign(
                       `${API.defaults.baseURL}printGstAll/?data=${data}`,
                     );
+                    clearSelection();
                   }}
                 >
                   PRINT GST ALL
@@ -726,6 +735,7 @@ function Inpayment() {
                         "_blank",
                       );
                     });
+                    clearSelection();
                   }}
                 >
                   PRINT CCP
@@ -748,6 +758,7 @@ function Inpayment() {
                     window.location.assign(
                       `${API.defaults.baseURL}printStatus/${permitId}/`,
                     );
+                    clearSelection();
                   }}
                 >
                   PRINT STATUS
@@ -770,6 +781,7 @@ function Inpayment() {
                     window.location.assign(
                       `${API.defaults.baseURL}gstExcel/?data=${data}`,
                     );
+                    clearSelection();
                   }}
                 >
                   GST EXCEL
@@ -998,7 +1010,7 @@ function Inpayment() {
                     <button
                       className="btn1"
                       disabled={!isInTransmitReady}
-                      onClick={handleInTransmit}
+                      onClick={handleOutTransmit}
                     >
                       Transmit Out
                     </button>
@@ -1095,11 +1107,43 @@ function Inpayment() {
                                       />
                                     </td>
                                   );
-                                case "view":
+                                // case "view":
+                                //   return (
+                                //     <td key={col.accessor}>
+                                //       <FaEye
+                                //         style={{ cursor: "pointer" }}
+                                //         onClick={async () => {
+                                //           try {
+                                //             await API.get(
+                                //               "/getCommonHeaderByPermitId/",
+                                //               {
+                                //                 params: {
+                                //                   PermitId: row.PermitId,
+                                //                 },
+                                //               },
+                                //             );
+                                //             window.open(
+                                //               `/innonpayment/view/${row.PermitId}`,
+                                //               "_blank",
+                                //             );
+                                //           } catch (error) {
+                                //             console.error(
+                                //               "Error fetching permit data:",
+                                //               error,
+                                //             );
+                                //           }
+                                //         }}
+                                //       />
+                                //     </td>
+                                //   );
+                                case "MSGId":
                                   return (
                                     <td key={col.accessor}>
-                                      <FaEye
-                                        style={{ cursor: "pointer" }}
+                                      <span
+                                        style={{
+                                          cursor: "pointer",
+                                          color: "#0720ff",
+                                        }}
                                         onClick={async () => {
                                           try {
                                             await API.get(
@@ -1121,7 +1165,9 @@ function Inpayment() {
                                             );
                                           }
                                         }}
-                                      />
+                                      >
+                                        {row.MSGId}
+                                      </span>
                                     </td>
                                   );
                                 default:

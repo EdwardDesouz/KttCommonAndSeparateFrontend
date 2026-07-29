@@ -515,11 +515,10 @@
   padding: 8px 8px;
   text-align: center;
   vertical-align: middle;
-  font-size: 0.60rem;
+  font-size: 0.6rem;
   line-height: 2;
   white-space: nowrap;
   font-weight: bold;
- 
 }
 
 #inpaymentTable th {
@@ -717,6 +716,100 @@
   border-color: #01445e;
   box-shadow: 0 0 6px rgba(1, 68, 94, 0.3);
 }
+
+/* ==============================
+   Unified Focus/Hover Style (replaces black outline)
+============================== */
+input:focus,
+select:focus,
+textarea:focus,
+.inputStyle:focus,
+.Dropdown:focus,
+.custom-dropdown:focus,
+.pack-input:focus,
+.pack-select:focus,
+#InvoiceCalculationTable input:focus,
+#InvoiceCalculationTable select:focus,
+#ConatinerTable input:focus,
+#ConatinerTable select:focus,
+#ItemTable input:focus,
+#ItemTable select:focus,
+#InvoiceTable input:focus,
+#InvoiceTable select:focus,
+.tab-content input:focus,
+.tab-content select:focus {
+outline: none !important;
+  border: 1px solid #5e012c !important;
+  box-shadow: 0 0 6px rgba(1, 68, 94, 0.45) !important;
+  background-color: #eebebe;
+  transition: all 0.2s ease;
+}
+
+/* Optional: subtle hover feedback before focus/click */
+/* Text-like fields: I-beam cursor */
+input:hover:not(:disabled),
+textarea:hover:not(:disabled),
+.inputStyle:hover,
+.pack-input:hover {
+  border-color: #5e014a;
+  cursor: text;
+}
+
+/* Dropdown/select fields: pointer cursor */
+select:hover:not(:disabled),
+.Dropdown:hover,
+.custom-dropdown:hover,
+.pack-select:hover {
+  border-color: #5e014a;
+  cursor: pointer;
+}
+/* ==============================
+   Unified Button Focus/Hover Style (replaces black outline)
+============================== */
+button:focus,
+.NextpageBtns:focus,
+.NewBtns:focus,
+.StdBtns:focus,
+.MoveOnButtons:focus,
+.ButtonClick:focus,
+.SaveContainer:focus,
+.DeleteContainerBtn:focus,
+.AddContainerBtn:focus,
+.pagination-btn:focus,
+.filters .btn1:focus,
+.filters .btn2:focus,
+.declaration-filters .btn1:focus,
+.declaration-filters .btn2:focus,
+.login-btn:focus,
+.navbar-btn:focus,
+.tab-content .action-buttons button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(248, 1, 1, 0.45) !important;
+  transition: all 0.2s ease;
+}
+
+/* Optional: subtle hover feedback consistent across all buttons */
+button:hover:not(:disabled),
+.NextpageBtns:hover,
+.StdBtns:hover,
+.MoveOnButtons:hover,
+.ButtonClick:hover,
+.pagination-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  cursor: pointer;
+}
+
+/* Disabled buttons should never show focus/hover glow */
+button:disabled,
+.NextpageBtns:disabled,
+.StdBtns:disabled,
+.MoveOnButtons:disabled,
+.pagination-btn:disabled {
+  box-shadow: none !important;
+  filter: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
 /* ==============================
    Buttons inside content
 ============================== */
@@ -730,6 +823,33 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+/* ==============================
+   Exclude checkboxes/radios from text-input styling
+============================== */
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer !important;
+  text-transform: none !important;
+  width: 16px;
+  height: 16px;
+}
+
+/* Undo the text-cursor hover rule for checkboxes/radios specifically */
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  cursor: pointer !important;
+  border-color: inherit;
+}
+
+/* Give checkboxes/radios their own focus ring (not the text-field one) */
+input[type="checkbox"]:focus,
+input[type="radio"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(1, 68, 94, 0.45) !important;
+  background-color: rgb(248, 234, 234);
+  border: 1px solid #01445e !important;
 }
 
 .MoveOnButtons:hover {
@@ -1244,3 +1364,17 @@ textarea {
 }
 
 /* for mobile and tab view */
+
+.module-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background:  #dc2626;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  font-weight: bold;
+font-display: auto;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}

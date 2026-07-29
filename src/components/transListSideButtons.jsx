@@ -99,40 +99,40 @@ function ListButtons({
         }
       }
 
-      if (label === "PRINTGST") {
-        if (!selectedPermits.length) {
-          alert("Please select at least one permit to print GST.");
-          return;
-        }
-        for (const permitId of selectedPermits) {
-          try {
-            const response = await API.get(`PrintGst/${permitId}/`, {
-              responseType: "blob",
-            });
+      // if (label === "PRINTGST") {
+      //   if (!selectedPermits.length) {
+      //     alert("Please select at least one permit to print GST.");
+      //     return;
+      //   }
+      //   for (const permitId of selectedPermits) {
+      //     try {
+      //       const response = await API.get(`PrintGst/${permitId}/`, {
+      //         responseType: "blob",
+      //       });
 
-            const contentDisposition = response.headers["content-disposition"];
-            let filename = `${permitId}_GST.pdf`;
-            if (contentDisposition) {
-              const match = contentDisposition.match(/filename="?([^"]+)"?/);
-              if (match) filename = match[1];
-            }
-            const blob = new Blob([response.data], {
-              type: "application/pdf",
-            });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-          } catch (err) {
-            console.error(`Failed to print GST for PermitId ${permitId}:`, err);
-            alert(`Failed to download GST PDF for Permit: ${permitId}`);
-          }
-        }
-      }
+      //       const contentDisposition = response.headers["content-disposition"];
+      //       let filename = `${permitId}_GST.pdf`;
+      //       if (contentDisposition) {
+      //         const match = contentDisposition.match(/filename="?([^"]+)"?/);
+      //         if (match) filename = match[1];
+      //       }
+      //       const blob = new Blob([response.data], {
+      //         type: "application/pdf",
+      //       });
+      //       const url = window.URL.createObjectURL(blob);
+      //       const link = document.createElement("a");
+      //       link.href = url;
+      //       link.setAttribute("download", filename);
+      //       document.body.appendChild(link);
+      //       link.click();
+      //       link.remove();
+      //       window.URL.revokeObjectURL(url);
+      //     } catch (err) {
+      //       console.error(`Failed to print GST for PermitId ${permitId}:`, err);
+      //       alert(`Failed to download GST PDF for Permit: ${permitId}`);
+      //     }
+      //   }
+      // }
 
       if (label === "SUBMIT") {
         if (!selectedPermits.length) {
@@ -165,12 +165,17 @@ function ListButtons({
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
+
+            if (clearSelection) clearSelection();
+            if (refreshTable) refreshTable();
           } else {
             // Multiple permits → backend returns JSON
             const text = await response.data.text();
             const json = JSON.parse(text);
             if (json.SUCCESS) {
-              alert(`${json.message}`);
+              // alert(`${json.message}`);
+              if (clearSelection) clearSelection();
+              if (refreshTable) refreshTable();
             } else {
               alert(json.error || "Submission failed");
             }
@@ -191,6 +196,12 @@ function ListButtons({
         }
 
         const permitId = selectedPermits[0];
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const currentUsername = userData?.username;
+        if (!currentUsername) {
+          alert("Session Error: Please login again.");
+          return;
+        }
 
         try {
           const headerRes = await API.get("/getCommonHeaderByPermitId/", {
@@ -198,42 +209,69 @@ function ListButtons({
           });
           const headerData = headerRes.data;
 
-          if (
-            headerData.Status !== "APR" &&
-            headerData.prmtStatus !== "APR" &&
-            headerData.prmtStatus !== "AMD"
-          ) {
+          if (headerData.Status !== "APR") {
             alert(
               `Only APPROVED permits can be amended.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
             );
             return;
           }
 
-          // if (setSelectedPermits) setSelectedPermits([]);
-          if (clearSelection) clearSelection();
-
-          navigate(`/out/edit/${permitId}`, {
-            state: {
-              permitData: headerData,
-              openTab: "AmendTab",
-            },
+          const res = await API.post("copyTransAmend/", {
+            permits: [permitId],
+            user: currentUsername,
           });
+
+          if (res.data?.SUCCESS) {
+            if (clearSelection) clearSelection();
+            if (setSelectedPermits) setSelectedPermits([]);
+            const copiedPermits = res.data.copiedPermits || [];
+
+            if (copiedPermits.length === 1) {
+              sessionStorage.removeItem("currentPermit");
+              const newHeaderRes = await API.get(
+                "/getCommonHeaderByPermitId/",
+                {
+                  params: { PermitId: copiedPermits[0] },
+                },
+              );
+              navigate(`/transhipment/edit/${copiedPermits[0]}`, {
+                state: {
+                  permitData: newHeaderRes.data,
+                  openTab: "AmendTab",
+                },
+              });
+            } else {
+              alert(
+                `${copiedPermits.length} permit(s) copied for amend successfully`,
+              );
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(res.data?.error || "Amend copy failed");
+          }
         } catch (err) {
-          console.error("Amend navigation error:", err);
-          alert("Failed to load permit data for amending. Please try again.");
+          console.error("Amend copy/navigation error:", err);
+          alert("Failed to copy permit for amending. Please try again.");
         }
       }
+
       if (label === "CANCEL") {
         if (!selectedPermits.length) {
           alert("Please select a permit to cancel.");
           return;
         }
         if (selectedPermits.length > 1) {
-          alert("Please select only one permit at a time to amend.");
+          alert("Please select only one permit at a time to cancel.");
           return;
         }
 
         const permitId = selectedPermits[0];
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const currentUsername = userData?.username;
+        if (!currentUsername) {
+          alert("Session Error: Please login again.");
+          return;
+        }
 
         try {
           const headerRes = await API.get("/getCommonHeaderByPermitId/", {
@@ -241,30 +279,52 @@ function ListButtons({
           });
           const headerData = headerRes.data;
 
-          if (
-            headerData.Status !== "APR" &&
-            headerData.prmtStatus !== "CNL" &&
-            headerData.prmtStatus !== "CNL"
-          ) {
+          if (headerData.Status !== "APR") {
             alert(
-              `Only CANCELLED permits can be cancelled.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
+              `Only APPROVED permits can be canceled.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
             );
             return;
           }
 
-          // if (setSelectedPermits) setSelectedPermits([]);
-          if (clearSelection) clearSelection();
-          navigate(`/out/edit/${permitId}`, {
-            state: {
-              permitData: headerData,
-              openTab: "CancelTab",
-            },
+          const res = await API.post("copyTransCancel/", {
+            permits: [permitId],
+            user: currentUsername,
           });
+
+          if (res.data?.SUCCESS) {
+            if (clearSelection) clearSelection();
+            if (setSelectedPermits) setSelectedPermits([]);
+            const copiedPermits = res.data.copiedPermits || [];
+
+            if (copiedPermits.length === 1) {
+              sessionStorage.removeItem("currentPermit");
+              const newHeaderRes = await API.get(
+                "/getCommonHeaderByPermitId/",
+                {
+                  params: { PermitId: copiedPermits[0] },
+                },
+              );
+              navigate(`/transhipment/edit/${copiedPermits[0]}`, {
+                state: {
+                  permitData: newHeaderRes.data,
+                  openTab: "CancelTab",
+                },
+              });
+            } else {
+              alert(
+                `${copiedPermits.length} permit(s) copied for cancel successfully`,
+              );
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(res.data?.error || "Cancel copy failed");
+          }
         } catch (err) {
-          console.error("Amend navigation error:", err);
-          alert("Failed to load permit data for amending. Please try again.");
+          console.error("Cancel copy/navigation error:", err);
+          alert("Failed to copy permit for canceling. Please try again.");
         }
       }
+
       if (label === "REFUND") {
         if (!selectedPermits.length) {
           alert("Please select a permit to refund.");
@@ -296,7 +356,7 @@ function ListButtons({
 
           // if (setSelectedPermits) setSelectedPermits([]);
           if (clearSelection) clearSelection();
-          navigate(`/out/edit/${permitId}`, {
+          navigate(`/transhipment/edit/${permitId}`, {
             state: {
               permitData: headerData,
               openTab: "RefundTab",
@@ -319,10 +379,10 @@ function ListButtons({
   const buttons = [
     "NEW",
     "SUBMIT",
-    "PRINTGST",
-    "PRINTREFUND",
+    // "PRINTGST",
+    // "PRINTREFUND",
     "COPY",
-    "REFUND",
+    // "REFUND",
     "AMEND",
     "CANCEL",
   ];
@@ -333,10 +393,17 @@ function ListButtons({
         {buttons.map((label) => (
           <li key={label}>
             <button
-              className="navbar-btn"
+              className={`navbar-btn ${label === "SUBMIT" ? "navbar-btn-submit" : ""}`}
               onClick={() => handleClick(label)}
               disabled={label !== "NEW" && btnState && !btnState[label]} // ✅ ADD
               style={{
+                backgroundColor:
+                  label === "SUBMIT"
+                    ? label !== "NEW" && btnState && !btnState[label]
+                      ? "#8fbf8f" // muted green when disabled
+                      : "#2f01fd" // solid green when enabled
+                    : undefined,
+                color: label === "SUBMIT" ? "#fff" : undefined,
                 opacity:
                   label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1, // ✅ ADD
                 cursor:

@@ -81,6 +81,7 @@ function Cargo({ setActiveTab, isViewMode }) {
     showTransportDetails,
     setShowTransportDetails,
     showNotRequired,
+    setShowDepartureDateError,
     setShowNotRequired,
     totalOuterPackValue,
     setTotalOuterPackValue,
@@ -1298,110 +1299,234 @@ function Cargo({ setActiveTab, isViewMode }) {
   };
 
   // ====================== Delete Single Container ======================
-  const deleteContainer = async (container) => {
+  // const deleteContainer = async (container) => {
+  //   const rowNo = getRowNo(container);
+  //   const payload = { PermitId: permitDetails?.PermitId, RowNo: rowNo };
+
+  //   try {
+  //     setLoading(true);
+  //     await API.post("/deleteContainer/", payload);
+
+  //     setContainers((prev) => {
+  //       const remaining = prev.filter((c) => c.id !== container.id);
+  //       return remaining.length ? remaining : [resetEmptyContainer()];
+  //     });
+  //   } catch (err) {
+  //     console.error("Delete error:", err);
+  //     alert("Error deleting container");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+    const deleteContainer = async (container) => {
     const rowNo = getRowNo(container);
     const payload = { PermitId: permitDetails?.PermitId, RowNo: rowNo };
-
+  
     try {
       setLoading(true);
+  
+      // Delete from CommonContainerTable
       await API.post("/deleteContainer/", payload);
-
+  
+      // Mirror delete to InContainerTable (inpayment)
+      await API.post("out/deleteOutContainer/", payload);
+  
       setContainers((prev) => {
         const remaining = prev.filter((c) => c.id !== container.id);
         return remaining.length ? remaining : [resetEmptyContainer()];
       });
     } catch (err) {
-      console.error("Delete error:", err);
-      alert("Error deleting container");
+      console.error("Error deleting container:", err.response?.data || err);
+      alert(
+        err.response?.data?.error || "Error deleting container! Check console for details."
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   // ====================== Bulk Delete Selected Containers ======================
-  const deleteSelectedContainers = async () => {
-    // get all selected containers
-    const selected = containers.filter((c) => c.isChecked);
-    if (!selected.length)
-      return alert("Select at least one container to delete");
+  // const deleteSelectedContainers = async () => {
+  //   // get all selected containers
+  //   const selected = containers.filter((c) => c.isChecked);
+  //   if (!selected.length)
+  //     return alert("Select at least one container to delete");
 
-    try {
-      setLoading(true);
+  //   try {
+  //     setLoading(true);
 
-      // sort by RowNo descending to avoid shifting issues
-      const sortedSelected = selected
-        .map((c) => ({ ...c, RowNo: getRowNo(c) }))
-        .sort((a, b) => b.RowNo - a.RowNo);
+  //     // sort by RowNo descending to avoid shifting issues
+  //     const sortedSelected = selected
+  //       .map((c) => ({ ...c, RowNo: getRowNo(c) }))
+  //       .sort((a, b) => b.RowNo - a.RowNo);
 
-      // delete each container
-      for (let container of sortedSelected) {
-        await API.post("/deleteContainer/", {
-          PermitId: permitDetails?.PermitId,
-          RowNo: container.RowNo,
+  //     // delete each container
+  //     for (let container of sortedSelected) {
+  //       await API.post("/deleteContainer/", {
+  //         PermitId: permitDetails?.PermitId,
+  //         RowNo: container.RowNo,
+  //       });
+  //     }
+
+  //     // remove deleted containers from state
+  //     setContainers((prev) => {
+  //       const remaining = prev.filter((c) => !c.isChecked);
+  //       return remaining.length
+  //         ? remaining.map((c) => ({ ...c, isChecked: false }))
+  //         : [resetEmptyContainer()];
+  //     });
+  //   } catch (err) {
+  //     console.error("Error deleting selected containers:", err);
+  //     alert("Error deleting containers");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+      const deleteSelectedContainers = async () => {
+      const selected = containers.filter((c) => c.isChecked);
+      if (!selected.length)
+        return alert("Select at least one container to delete");
+    
+      try {
+        setLoading(true);
+    
+        // sort by RowNo descending to avoid shifting issues
+        const sortedSelected = selected
+          .map((c) => ({ ...c, RowNo: getRowNo(c) }))
+          .sort((a, b) => b.RowNo - a.RowNo);
+    
+        for (let container of sortedSelected) {
+          const payload = {
+            PermitId: permitDetails?.PermitId,
+            RowNo: container.RowNo,
+          };
+          // Delete from CommonContainerTable
+          await API.post("/deleteContainer/", payload);
+          // Mirror delete to InContainerTable (inpayment)
+          await API.post("out/deleteOutContainer/", payload);
+        }
+    
+        setContainers((prev) => {
+          const remaining = prev.filter((c) => !c.isChecked);
+          return remaining.length
+            ? remaining.map((c) => ({ ...c, isChecked: false }))
+            : [resetEmptyContainer()];
         });
+      } catch (err) {
+        console.error("Error deleting selected containers:", err.response?.data || err);
+        alert(
+          err.response?.data?.error || "Error deleting containers! Check console for details."
+        );
+      } finally {
+        setLoading(false);
       }
-
-      // remove deleted containers from state
-      setContainers((prev) => {
-        const remaining = prev.filter((c) => !c.isChecked);
-        return remaining.length
-          ? remaining.map((c) => ({ ...c, isChecked: false }))
-          : [resetEmptyContainer()];
-      });
-    } catch (err) {
-      console.error("Error deleting selected containers:", err);
-      alert("Error deleting containers");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ====================== Save Single Container ======================
-  const saveContainer = async (container) => {
-    const rowNo = getRowNo(container);
-    const regex = /^[A-Za-z]{4}\d{7}$/;
-    if (
-      !regex.test(container.number) ||
-      !container.sizeType ||
-      container.sizeType === "--Select--" ||
-      !container.weight ||
-      !container.seal
-    ) {
-      alert(`Please fill all details correctly for row ${rowNo}`);
-      return;
-    }
-    const payload = {
-      PermitId: permitDetails?.PermitId,
-      RowNo: rowNo,
-      ContainerNo: String(container.number).trim(),
-      Size:
-        typeof container.sizeType === "object"
-          ? String(container.sizeType.value).trim()
-          : String(container.sizeType).trim(),
-      Weight: Number(container.weight),
-      SealNo: String(container.seal).trim(),
-      MessageType: "OUTDEC",
-      TouchUser: user.username.toUpperCase(),
-      TouchTime: new Date().toISOString(),
     };
 
-    try {
-      setLoading(true);
-      const res = await API.post("/postContainerTable/", payload);
-      alert(res.data.Result);
+  // ====================== Save Single Container ======================
+  // const saveContainer = async (container) => {
+  //   const rowNo = getRowNo(container);
+  //   const regex = /^[A-Za-z]{4}\d{7}$/;
+  //   if (
+  //     !regex.test(container.number) ||
+  //     !container.sizeType ||
+  //     container.sizeType === "--Select--" ||
+  //     !container.weight ||
+  //     !container.seal
+  //   ) {
+  //     alert(`Please fill all details correctly for row ${rowNo}`);
+  //     return;
+  //   }
+  //   const payload = {
+  //     PermitId: permitDetails?.PermitId,
+  //     RowNo: rowNo,
+  //     ContainerNo: String(container.number).trim(),
+  //     Size:
+  //       typeof container.sizeType === "object"
+  //         ? String(container.sizeType.value).trim()
+  //         : String(container.sizeType).trim(),
+  //     Weight: Number(container.weight),
+  //     SealNo: String(container.seal).trim(),
+  //     MessageType: "OUTDEC",
+  //     TouchUser: user.username.toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //   };
 
-      setContainers((prev) =>
-        prev.map((c) =>
-          c.id === container.id ? { ...c, isSaved: true, isChecked: false } : c,
-        ),
-      );
-    } catch (err) {
-      console.error("Error saving container:", err.response?.data || err);
-      alert("Error saving container! Check console for details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     setLoading(true);
+  //     const res = await API.post("/postContainerTable/", payload);
+  //     alert(res.data.Result);
+
+  //     setContainers((prev) =>
+  //       prev.map((c) =>
+  //         c.id === container.id ? { ...c, isSaved: true, isChecked: false } : c,
+  //       ),
+  //     );
+  //   } catch (err) {
+  //     console.error("Error saving container:", err.response?.data || err);
+  //     alert("Error saving container! Check console for details.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+      const saveContainer = async (container) => {
+      const rowNo = getRowNo(container);
+      const regex = /^[A-Za-z]{4}\d{7}$/;
+      if (
+        !regex.test(container.number) ||
+        !container.sizeType ||
+        container.sizeType === "--Select--" ||
+        !container.weight ||
+        !container.seal
+      ) {
+        alert(`Please fill all details correctly for row ${rowNo}`);
+        return;
+      }
+      const payload = {
+        PermitId: permitDetails?.PermitId,
+        RowNo: rowNo,
+        ContainerNo: String(container.number).trim(),
+        Size:
+          typeof container.sizeType === "object"
+            ? String(container.sizeType.value).trim()
+            : String(container.sizeType).trim(),
+        Weight: Number(container.weight),
+        SealNo: String(container.seal).trim(),
+        MessageType: "OUTDEC",
+        TouchUser: user.username.toUpperCase(),
+        TouchTime: new Date().toISOString(),
+      };
+  
+      try {
+        setLoading(true);
+  
+        // Save to CommonContainerTable
+        const res = await API.post("/postContainerTable/", payload);
+  
+        // Mirror save to OutContainerTable (outpayment)
+        await API.post("out/postOutContainerTable/", payload);
+  
+        alert(res.data?.Result || "Container saved successfully!");
+  
+        setContainers((prev) =>
+          prev.map((c) =>
+            c.id === container.id ? { ...c, isSaved: true, isChecked: false } : c,
+          ),
+        );
+      } catch (err) {
+        console.error("Error saving container:", err.response?.data || err);
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.Result ||
+            "Error saving container! Check console for details.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // ====================== Select All Checkbox ======================
   const handleSelectAll = (checked) => {
@@ -1533,7 +1658,10 @@ function Cargo({ setActiveTab, isViewMode }) {
         RecepitLocName: receiptLocationDescription || "",
         TotalOuterPack: totalOuterPackValue || "",
         TotalOuterPackUOM: totalOuterPackName || "",
-        TotalGrossWeight: totalGrossWeight || "",
+        // TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeight: permitGrossWeight !== "" && permitGrossWeight !== undefined
+  ? permitGrossWeight
+  : totalGrossWeight || "",
         TotalGrossWeightUOM: grossUOM || "",
         BlanketStartDate: formatDate(blanketStartDate) || null,
 
@@ -2409,7 +2537,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       value={departureDate}
                       setValue={(val) => {
                         setDepartureDate(val);
-                        if (val) setShowDepartureDateError(false);
+                        // if (val) setShowDepartureDateError(false);
                       }}
                     />
                     {/* {showDepartureDateError && (

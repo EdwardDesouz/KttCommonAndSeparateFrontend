@@ -10,6 +10,7 @@ import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import ToastNotification, {
   useToast,
 } from "../../../components/ToastNotification/toastNotification";
+import { CircleLoader } from "react-spinners";
 
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
@@ -276,6 +277,10 @@ function Item({ setActiveTab, isViewMode }) {
 
   // ------------------ States ------------------
   const { toast, showToast, hideToast } = useToast();
+  const [isItemEditall, setIsItemEditall] = useState(false);
+  const [isUploadItem, setIsUploadItem] = useState(false);
+  const [isAddItem, setIsAddItem] = useState(false);
+  const [isDeletingItem, setIsDeletingItem] = useState(false);
 
   useEffect(() => {
     console.log("PERMIT DETAILS:", permitDetails);
@@ -706,7 +711,7 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
- const applyHsLogic = (item) => {
+  const applyHsLogic = (item) => {
     const {
       HSCode,
       UOM,
@@ -877,7 +882,7 @@ function Item({ setActiveTab, isViewMode }) {
       setTotalDuitableQuantityUom(DuitableUom);
     }
   };
-  
+
   // ── HS CODE FOCUS OUT ────────────────────────────────────
   const handleHsCodeFocusOut = () => {
     setTimeout(() => {
@@ -1583,6 +1588,115 @@ function Item({ setActiveTab, isViewMode }) {
   };
   // ----------------------- Add Item Function ---------------------------
 
+  // const ItemSave = async () => {
+  //   if (!validateItemFields()) return;
+  //   // const itemNumber = serialNumber;
+  //   const itemNumber = Number(serialNumber);
+  //   const payload = {
+  //     CascDatas: JSON.stringify(ItemCascSave(itemNumber)),
+  //     PermitId: permitDetails?.PermitId,
+  //     ItemNo: itemNumber || null,
+  //     MessageType: "COODEC",
+  //     HSCode: hsCode || "",
+  //     Description: hsCodeDescription || "",
+  //     DGIndicator: dgIndicator ? "Yes" : "No",
+  //     Contry: countryCode || "",
+  //     EndUserDescription: "",
+  //     Brand: brand || "",
+  //     Model: model || "",
+  //     InHAWBOBL: hawb || "",
+  //     OutHAWBOBL: outHawb || outCargoHawbList[0] || "",
+  //     DutiableQty: duitableQuantity || 0,
+  //     DutiableUOM: duitableQuantityUom || "",
+  //     TotalDutiableQty: totalDuitableQuantity || 0,
+  //     TotalDutiableUOM: totalDuitableQuantityUom || "",
+  //     InvoiceQuantity: invoiceQuantity || 0,
+  //     HSQty: hsQuantity || 0,
+  //     HSUOM: hsUom || "",
+  //     AlcoholPer: alcoholPercentage || 0,
+  //     InvoiceNo: selectedInvoice || "",
+  //     ChkUnitPrice: showUnitPriceVal || "",
+  //     UnitPrice: unitPrice || 0,
+  //     UnitPriceCurrency: invoiceCurrency || "",
+  //     ExchangeRate: invoiceExRate || 0,
+  //     SumExchangeRate: sumExchangeRate || 0,
+  //     TotalLineAmount: totalLineAmount || 0,
+  //     InvoiceCharges: totalInvoiceCharge || 0,
+  //     CIFFOB: cifFob || 0,
+  //     OPQty: outerPackQuantity || 0,
+  //     OPUOM: outerPackQuantityUom || "",
+  //     IPQty: inPackQuantity || 0,
+  //     IPUOM: inPackQuantityUom || "",
+  //     InPqty: innerPackQuantity || 0,
+  //     InPUOM: innerPackQuantityUom || "",
+  //     ImPQty: immostPackQuantity || 0,
+  //     ImPUOM: immostPackQuantityUom || "",
+  //     PreferentialCode: preferentialCode || "",
+  //     GSTRate: gstRateValue,
+  //     GSTUOM: gstUom || "",
+  //     GSTAmount: gstSum || 0,
+  //     ExciseDutyRate: exciseDutyRate || 0,
+  //     ExciseDutyUOM: exciseDutyUom || "",
+  //     ExciseDutyAmount: exciseDutyAmount || 0,
+  //     CustomsDutyRate: customsDutyRate || 0,
+  //     CustomsDutyUOM: customsDutyUom || "",
+  //     CustomsDutyAmount: customsDutyAmount || 0,
+  //     OtherTaxRate: otherTaxRate || 0,
+  //     OtherTaxUOM: otherTaxUom || "",
+  //     OtherTaxAmount: otherTaxAmount || 0,
+  //     LSPValue: lastSellingPrice || 0,
+  //     ShippingMarks1: shippingMarks || "",
+  //     ShippingMarks2: "",
+  //     ShippingMarks3: "",
+  //     ShippingMarks4: "",
+  //     TouchUser: user.username.toUpperCase() || "",
+  //     TouchTime: new Date().toISOString(),
+  //     VehicleType: vehicleType || "",
+  //     OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "",
+  //     EngineCapcity: engineCapacityValue || "",
+  //     Optioncahrge: optionalCharges || 0,
+  //     OptionalSumtotal: optionlAmount || 0,
+  //     OptionalSumExchage: selectedCurrency?.CurrencyRate || 0,
+  //     EngineCapUOM: engineCapacityUom || "",
+  //     orignaldatereg: originalRegistrationDate || "",
+
+  //     CerItemQty: cerItemQty || 0,
+  //     CerItemUOM: cerItemUOM || "",
+  //     CIFValOfCer: cifCerValue || 0,
+  //     // ManufactureCostDate: manuDate || "",
+  //     ManufactureCostDate: formatItemDate(manuDate),
+  //     TexCat: textileCategory || "",
+  //     TexQuotaQty: textileQuotaQty || 0,
+  //     TexQuotaUOM: textileQuotaUOM || "",
+  //     CerInvNo: cerInvoiceNumber || "",
+  //     // CerInvDate: invDate || "",
+  //     CerInvDate: formatItemDate(invDate),
+  //     OriginOfCer: originCeritficateDetails || "",
+  //     HSCodeCer: hsCodeCer || "",
+  //     PerContent: percentageOrigin || "",
+  //     CertificateDescription: cerDescription || "",
+  //   };
+  //   console.log("payload:", payload);
+  //   try {
+  //     const res = await API.post("/postItemTable/", payload);
+  //     setItemTable(res.data.Records);
+  //     showToast("Item Saved Successfully");
+  //     const cascData = ItemCascSave(itemNumber);
+  //     console.log("cascData:", cascData);
+  //     if (cascData.length > 0) {
+  //       await API.post("/postCascTable/", cascData);
+  //       console.log("CASC Data Saved Successfully");
+  //     }
+  //     setEditingSNo(null);
+  //     // setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
+  //     setSerialNumber(res.data.Records.length + 1);
+  //     resetItemForm();
+  //   } catch (error) {
+  //     console.error("Save failed", error);
+  //     console.error("Error response:", error.response?.data);
+  //   }
+  // };
+
   const ItemSave = async () => {
     if (!validateItemFields()) return;
     // const itemNumber = serialNumber;
@@ -1606,7 +1720,9 @@ function Item({ setActiveTab, isViewMode }) {
       TotalDutiableQty: totalDuitableQuantity || 0,
       TotalDutiableUOM: totalDuitableQuantityUom || "",
       InvoiceQuantity: invoiceQuantity || 0,
+      InvoiceQty: invoiceQuantity || 0,
       HSQty: hsQuantity || 0,
+      HSQTY: hsQuantity || 0,
       HSUOM: hsUom || "",
       AlcoholPer: alcoholPercentage || 0,
       InvoiceNo: selectedInvoice || "",
@@ -1627,24 +1743,28 @@ function Item({ setActiveTab, isViewMode }) {
       ImPQty: immostPackQuantity || 0,
       ImPUOM: immostPackQuantityUom || "",
       PreferentialCode: preferentialCode || "",
+
       GSTRate: gstRateValue,
-      GSTUOM: gstUom || "",
-      GSTAmount: gstSum || 0,
-      ExciseDutyRate: exciseDutyRate || 0,
-      ExciseDutyUOM: exciseDutyUom || "",
-      ExciseDutyAmount: exciseDutyAmount || 0,
-      CustomsDutyRate: customsDutyRate || 0,
-      CustomsDutyUOM: customsDutyUom || "",
-      CustomsDutyAmount: customsDutyAmount || 0,
-      OtherTaxRate: otherTaxRate || 0,
-      OtherTaxUOM: otherTaxUom || "",
-      OtherTaxAmount: otherTaxAmount || 0,
+      GSTUOM: "",
+      GSTAmount: 0,
+      ExciseDutyRate: 0,
+      ExciseDutyUOM: "",
+      ExciseDutyAmount: 0,
+      CustomsDutyRate: 0,
+      CustomsDutyUOM: "",
+      CustomsDutyAmount: 0,
+      OtherTaxRate: 0,
+      OtherTaxUOM: "",
+      OtherTaxAmount: 0,
+
       LSPValue: lastSellingPrice || 0,
       ShippingMarks1: shippingMarks || "",
       ShippingMarks2: "",
       ShippingMarks3: "",
       ShippingMarks4: "",
+      ShippingMark: shippingMarks || "",
       TouchUser: user.username.toUpperCase() || "",
+      Touch_user: user.username.toUpperCase() || "",
       TouchTime: new Date().toISOString(),
       VehicleType: vehicleType || "",
       OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "",
@@ -1660,35 +1780,74 @@ function Item({ setActiveTab, isViewMode }) {
       CIFValOfCer: cifCerValue || 0,
       // ManufactureCostDate: manuDate || "",
       ManufactureCostDate: formatItemDate(manuDate),
+      ManfCostDate: formatItemDate(manuDate),
       TexCat: textileCategory || "",
+      TextileCat: textileCategory || "",
       TexQuotaQty: textileQuotaQty || 0,
+      TextileQuotaQty: textileQuotaQty || 0,
       TexQuotaUOM: textileQuotaUOM || "",
+      TextileQuotaQtyUOM: textileQuotaUOM || "",
       CerInvNo: cerInvoiceNumber || "",
+      InvoiceNumber: cerInvoiceNumber || "",
       // CerInvDate: invDate || "",
       CerInvDate: formatItemDate(invDate),
+      InvoiceDate: formatItemDate(invDate),
       OriginOfCer: originCeritficateDetails || "",
+      OriginCriterion: originCeritficateDetails || "",
       HSCodeCer: hsCodeCer || "",
+      HSOnCer: hsCodeCer || "",
       PerContent: percentageOrigin || "",
+      PerOrgainCRI: percentageOrigin || "",
       CertificateDescription: cerDescription || "",
+      CertificateDes: cerDescription || "",
     };
     console.log("payload:", payload);
+    let commonSaved = false;
+
     try {
+      setIsAddItem(true);
+      // Step 1: Save to CommonItemDtl
       const res = await API.post("/postItemTable/", payload);
+      commonSaved = true;
       setItemTable(res.data.Records);
-      showToast("Item Saved Successfully");
+
       const cascData = ItemCascSave(itemNumber);
       console.log("cascData:", cascData);
       if (cascData.length > 0) {
         await API.post("/postCascTable/", cascData);
-        console.log("CASC Data Saved Successfully");
+        console.log("CASC Data Saved Successfully (Common)");
       }
+
+      // Step 2: Save to ItemDtl (coo)
+      const inpaymentRes = await API.post("coo/postCooItemTable/", payload);
+      console.log("Saved to ItemDtl:", inpaymentRes.data);
+
+      if (cascData.length > 0) {
+        await API.post("coo/postCooCascTable/", cascData);
+        console.log("CASC Data Saved Successfully (CooItemDtl)");
+      }
+      setIsAddItem(false);
       setEditingSNo(null);
-      // setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
-      setSerialNumber(res.data.Records.length + 1);
+      setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
       resetItemForm();
     } catch (error) {
       console.error("Save failed", error);
-      console.error("Error response:", error.response?.data);
+
+      if (commonSaved) {
+        alert(
+          `Warning: Item "${payload.HSCode}" (Item No ${itemNumber}) was saved to CommonItemDtl but FAILED to save to ItemDtl. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else if (error.response?.status === 400) {
+        alert(
+          error.response.data?.error ||
+            error.response.data?.Result ||
+            "Failed to save item",
+        );
+      } else {
+        alert("Failed to save item, check console for details");
+      }
     }
   };
 
@@ -1765,42 +1924,113 @@ function Item({ setActiveTab, isViewMode }) {
     );
   };
 
+  // const deleteSelectedItems = async () => {
+  //   if (selectedItems.length === 0) return;
+  //   const permitId = permitDetails?.PermitId;
+  //   try {
+  //     const sorted = [...selectedItems].sort((a, b) => b - a);
+  //     let latestRecords = itemTable;
+  //     for (const itemNo of sorted) {
+  //       const res = await API.post("/deleteItem/", {
+  //         PermitId: permitId,
+  //         ItemNo: itemNo,
+  //       });
+  //       latestRecords = res.data.Records;
+  //     }
+  //     setItemTable(latestRecords);
+  //     setSelectedItems([]);
+  //     setSelectAll(false);
+  //     resetItemForm();
+  //     alert("Selected items deleted successfully");
+  //   } catch (error) {
+  //     console.error("Bulk delete failed", error);
+  //   }
+  // };
+
   const deleteSelectedItems = async () => {
     if (selectedItems.length === 0) return;
     const permitId = permitDetails?.PermitId;
+    setIsDeletingItem(true);
     try {
-      const sorted = [...selectedItems].sort((a, b) => b - a);
-      let latestRecords = itemTable;
-      for (const itemNo of sorted) {
-        const res = await API.post("/deleteItem/", {
-          PermitId: permitId,
-          ItemNo: itemNo,
-        });
-        latestRecords = res.data.Records;
-      }
-      setItemTable(latestRecords);
+      const commonRes = await API.post("/deleteItem/", {
+        PermitId: permitId,
+        ItemNos: selectedItems,
+      });
+
+      setItemTable(commonRes.data.Records);
       setSelectedItems([]);
       setSelectAll(false);
       resetItemForm();
-      alert("Selected items deleted successfully");
+
+      try {
+        await API.post("coo/syncCooItemFromCommon/", {
+          PermitId: permitId,
+        });
+      } catch (syncErr) {
+        alert(
+          "Warning: Items were deleted from CommonItemDtl but FAILED to sync to ItemDtl. " +
+            "Please contact support or retry.\n\n" +
+            `Error: ${syncErr.response?.data?.error || syncErr.message}`,
+        );
+      }
     } catch (error) {
       console.error("Bulk delete failed", error);
+      alert(
+        error.response?.data?.error ||
+          "Failed to delete items, check console for details",
+      );
+    } finally {
+      setIsDeletingItem(false);
     }
   };
 
+  // const deleteItem = async (itemNo) => {
+  //   const permitId = permitDetails?.PermitId;
+  //   try {
+  //     const res = await API.post("/deleteItem/", {
+  //       ItemNo: itemNo,
+  //       PermitId: permitId,
+  //     });
+  //     setItemTable(res.data.Records);
+  //     // const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
+  //     const nextSerial = res.data.Records.length + 1;
+  //     setSerialNumber(nextSerial);
+  //   } catch (error) {
+  //     console.error("Delete failed", error);
+  //   }
+  //   resetItemForm();
+  // };
+
   const deleteItem = async (itemNo) => {
     const permitId = permitDetails?.PermitId;
+    setIsDeletingItem(true);
     try {
       const res = await API.post("/deleteItem/", {
-        ItemNo: itemNo,
+        ItemNos: [itemNo],
         PermitId: permitId,
       });
       setItemTable(res.data.Records);
-      // const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
-      const nextSerial = res.data.Records.length + 1;
+      const nextSerial = (res.data.Records.length + 1).toString().padStart("0");
       setSerialNumber(nextSerial);
+
+      try {
+        await API.post("coo/syncCooItemFromCommon/", {
+          PermitId: permitId,
+        });
+      } catch (mirrorErr) {
+        alert(
+          `Warning: Item No ${itemNo} was deleted from CommonItemDtl but FAILED to sync to InNonItemDtl. ` +
+            `Please contact support or retry.\n\nError: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+      }
     } catch (error) {
       console.error("Delete failed", error);
+      alert(
+        error.response?.data?.error ||
+          "Failed to delete item, check console for details",
+      );
+    } finally {
+      setIsDeletingItem(false);
     }
     resetItemForm();
   };
@@ -2121,14 +2351,77 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
+  // const ItemUploadData = async () => {
+  //   const fileInput = fileInputRef.current;
+  //   if (!fileInput || !fileInput.files[0]) {
+  //     alert("Please select a file first!");
+  //     return;
+  //   }
+  //   if (itemTable.length >= 50) {
+  //     alert("Maximum 50 items allowed. Cannot upload more items.");
+  //     return;
+  //   }
+
+  //   const file = fileInput.files[0];
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("PermitId", permitDetails?.PermitId);
+  //   formData.append("MsgType", "TNPDEC");
+  //   formData.append("UserName", user.username.toUpperCase());
+  //   formData.append("TouchTime", new Date().toISOString());
+  //   try {
+  //     setLoading(true);
+  //     const res = await API.post("/uploadedExcelItem/", formData, {
+  //       headers: { "Content-Type": "multipart/form-data" },
+  //     });
+
+  //     if (res.data.error) {
+  //       alert(res.data.error);
+  //       return;
+  //     }
+
+  //     setItemTable(res.data.item);
+
+  //     if (res.data.casc && res.data.casc.length > 0) {
+  //       const groupedCasc = defaultItemCasc.map((defaultCasc, i) => {
+  //         const cascId = `Casc${i + 1}`;
+  //         const rows = res.data.casc.filter((c) => c.CASCId === cascId);
+  //         if (rows.length === 0) return defaultCasc;
+  //         return {
+  //           enduserDescription: rows[0].EndUserDescription || "",
+  //           code: rows[0].ProductCode || "",
+  //           hsQuantity: rows[0].Quantity || 0,
+  //           uom: rows[0].ProductUOM || "",
+  //           CascId: cascId,
+  //           casc: rows.map((r) => [
+  //             r.CascCode1 || "",
+  //             r.CascCode2 || "",
+  //             r.CascCode3 || "",
+  //           ]),
+  //         };
+  //       });
+  //       setItemCasc(groupedCasc);
+  //     } else {
+  //       setItemCasc(defaultItemCasc);
+  //     }
+  //     alert(res.data.Result);
+  //   } catch (error) {
+  //     console.error("Upload failed", error);
+  //     alert("Upload failed: " + (error.response?.data?.error || error.message));
+  //   } finally {
+  //     setLoading(false);
+  //     fileInputRef.current.value = "";
+  //   }
+  // };
+
   const ItemUploadData = async () => {
     const fileInput = fileInputRef.current;
     if (!fileInput || !fileInput.files[0]) {
       alert("Please select a file first!");
       return;
     }
-    if (itemTable.length >= 50) {
-      alert("Maximum 50 items allowed. Cannot upload more items.");
+    if (itemTable.length >= 150) {
+      alert("Maximum 150 items allowed. Cannot upload more items.");
       return;
     }
 
@@ -2136,11 +2429,11 @@ function Item({ setActiveTab, isViewMode }) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("PermitId", permitDetails?.PermitId);
-    formData.append("MsgType", "TNPDEC");
+    formData.append("MsgType", "COODEC");
     formData.append("UserName", user.username.toUpperCase());
     formData.append("TouchTime", new Date().toISOString());
     try {
-      setLoading(true);
+      setIsUploadItem(true);
       const res = await API.post("/uploadedExcelItem/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -2174,12 +2467,35 @@ function Item({ setActiveTab, isViewMode }) {
       } else {
         setItemCasc(defaultItemCasc);
       }
-      alert(res.data.Result);
+      // ---------------- Mirror upload to InItemDtl / InCASCDtl ----------------
+      const inFormData = new FormData();
+      inFormData.append("file", file);
+      inFormData.append("PermitId", permitDetails?.PermitId);
+      inFormData.append("MsgType", "COODEC");
+      inFormData.append("UserName", user.username.toUpperCase());
+      inFormData.append("TouchTime", new Date().toISOString());
+      try {
+        // await API.post("coo/uploadedCooItemExcel/", inFormData, {
+        //   headers: { "Content-Type": "multipart/form-data" },
+        // });
+        await API.post("coo/syncCooItemFromCommon/", {
+          PermitId: permitDetails?.PermitId,
+        });
+      } catch (mirrorError) {
+        console.error("Mirror upload failed", mirrorError);
+        alert(
+          "Warning: Excel data was uploaded to CommonItemDtl but FAILED to mirror to InItemDtl. " +
+            "Please contact support or re-upload.\n\n" +
+            `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
+        );
+      }
+
+      // alert(res.data.Result);
     } catch (error) {
       console.error("Upload failed", error);
       alert("Upload failed: " + (error.response?.data?.error || error.message));
     } finally {
-      setLoading(false);
+      setIsUploadItem(false);
       fileInputRef.current.value = "";
     }
   };
@@ -2199,6 +2515,140 @@ function Item({ setActiveTab, isViewMode }) {
 
   // ================= Edit All Items Function =================
 
+  // const ItemEditAll = async () => {
+  //   if (itemTable.length === 0) {
+  //     alert("No items to update.");
+  //     return;
+  //   }
+
+  //   const firstHawb = (cargoHawbList || [])[0] || "";
+  //   const firstOutHawb = (outCargoHawbList || [])[0] || "";
+
+  //   setLoading(true);
+
+  //   try {
+  //     const ItemAllData = itemTable.map((item) => {
+  //       const matchedCurrency = currency.find(
+  //         (cur) => cur.Currency === item.UnitPriceCurrency,
+  //       );
+  //       const resolvedExRate = matchedCurrency
+  //         ? parseFloat(matchedCurrency.CurrencyRate)
+  //         : parseFloat(item.ExchangeRate) || 0;
+
+  //       const recalcCIFFOB = parseFloat(
+  //         (resolvedExRate * Number(item.TotalLineAmount)).toFixed(2),
+  //       );
+
+  //       const gstPerval = (parseFloat(item.GSTRate) || 0) / 100;
+  //       const exciseAmt = parseFloat(item.ExciseDutyAmount) || 0;
+  //       const customsAmt = parseFloat(item.CustomsDutyAmount) || 0;
+  //       let recalcGST =
+  //         decType !== "GST : GST (Including Duty Exemption)"
+  //           ? (exciseAmt + recalcCIFFOB + customsAmt) * gstPerval
+  //           : recalcCIFFOB * gstPerval;
+  //       recalcGST = parseFloat(recalcGST.toFixed(2));
+
+  //       const hsCodeVal = (item.HSCode || "").toString().trim();
+  //       const finalDescription =
+  //         (item.Description || "").trim() || hsCodeMap[hsCodeVal] || "";
+
+  //       return {
+  //         ItemNo: item.ItemNo,
+  //         PermitId: permitDetails?.PermitId,
+  //         MessageType: "COODEC",
+  //         HSCode: item.HSCode || "",
+  //         Description: finalDescription,
+  //         DGIndicator: item.DGIndicator || "",
+  //         Contry: item.Contry || "",
+  //         Brand: item.Brand || "",
+  //         Model: item.Model || "",
+  //         InHAWBOBL: firstHawb || item.InHAWBOBL || "",
+  //         OutHAWBOBL: firstOutHawb || item.OutHAWBOBL || "",
+  //         DutiableQty: item.DutiableQty || 0,
+  //         DutiableUOM: item.DutiableUOM || "",
+  //         TotalDutiableQty: item.TotalDutiableQty || 0,
+  //         TotalDutiableUOM: item.TotalDutiableUOM || "",
+  //         InvoiceQuantity: item.InvoiceQuantity || 0,
+  //         HSQty: item.HSQty || 0,
+  //         HSUOM: item.HSUOM || "",
+  //         AlcoholPer: item.AlcoholPer || 0,
+  //         InvoiceNo: item.InvoiceNo || "",
+  //         ChkUnitPrice: item.ChkUnitPrice || "",
+  //         UnitPrice: item.UnitPrice || 0,
+  //         UnitPriceCurrency: item.UnitPriceCurrency || "",
+  //         ExchangeRate: resolvedExRate,
+  //         SumExchangeRate: item.SumExchangeRate || 0,
+  //         TotalLineAmount: item.TotalLineAmount || 0,
+  //         InvoiceCharges: item.InvoiceCharges || 0,
+  //         CIFFOB: recalcCIFFOB,
+  //         OPQty: item.OPQty || 0,
+  //         OPUOM: item.OPUOM || "",
+  //         IPQty: item.IPQty || 0,
+  //         IPUOM: item.IPUOM || "",
+  //         InPqty: item.InPqty || 0,
+  //         InPUOM: item.InPUOM || "",
+  //         ImPQty: item.ImPQty || 0,
+  //         ImPUOM: item.ImPUOM || "",
+  //         PreferentialCode: item.PreferentialCode || "",
+  //         GSTRate: item.GSTRate || 0,
+  //         GSTUOM: item.GSTUOM || "",
+  //         GSTAmount: recalcGST,
+  //         ExciseDutyRate: item.ExciseDutyRate || 0,
+  //         ExciseDutyUOM: item.ExciseDutyUOM || "",
+  //         ExciseDutyAmount: item.ExciseDutyAmount || 0,
+  //         CustomsDutyRate: item.CustomsDutyRate || 0,
+  //         CustomsDutyUOM: item.CustomsDutyUOM || "",
+  //         CustomsDutyAmount: item.CustomsDutyAmount || 0,
+  //         OtherTaxRate: item.OtherTaxRate || 0,
+  //         OtherTaxUOM: item.OtherTaxUOM || "",
+  //         OtherTaxAmount: item.OtherTaxAmount || 0,
+  //         LSPValue: item.LSPValue || 0,
+  //         ShippingMarks1: item.ShippingMarks1 || "",
+  //         ShippingMarks2: "",
+  //         ShippingMarks3: "",
+  //         ShippingMarks4: "",
+  //         TouchUser: user.username.toUpperCase(),
+  //         TouchTime: new Date().toISOString(),
+  //         VehicleType: item.VehicleType || "",
+  //         EngineCapcity: item.EngineCapcity || "",
+  //         EngineCapUOM: item.EngineCapUOM || "",
+  //         orignaldatereg: item.orignaldatereg || "",
+  //         OptionalChrgeUOM: item.OptionalChrgeUOM || "",
+  //         Optioncahrge: item.Optioncahrge || 0,
+  //         OptionalSumtotal: item.OptionalSumtotal || 0,
+  //         OptionalSumExchage: item.OptionalSumExchage || 0,
+  //         CerItemQty: item.CerItemQty || 0,
+  //         CerItemUOM: item.CerItemUOM || "",
+  //         CIFValOfCer: item.CIFValOfCer || 0,
+  //         ManufactureCostDate: item.ManufactureCostDate || "",
+  //         TexCat: item.TexCat || "",
+  //         TexQuotaQty: item.TexQuotaQty || 0,
+  //         TexQuotaUOM: item.TexQuotaUOM || "",
+  //         CerInvNo: item.CerInvNo || "",
+  //         CerInvDate: item.CerInvDate || "",
+  //         OriginOfCer: item.OriginOfCer || "",
+  //         HSCodeCer: item.HSCodeCer || "",
+  //         PerContent: item.PerContent || "",
+  //         CertificateDescription: item.CertificateDescription || "",
+  //       };
+  //     });
+
+  //     const res = await API.post("/editAllItems/", {
+  //       Item: ItemAllData,
+  //       PermitId: permitDetails?.PermitId,
+  //     });
+  //     setItemTable(res.data.Item);
+  //     alert(res.data.message);
+  //   } catch (error) {
+  //     console.error("Edit All failed", error);
+  //     alert(
+  //       "Update failed: " + (error.response?.data?.message || error.message),
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const ItemEditAll = async () => {
     if (itemTable.length === 0) {
       alert("No items to update.");
@@ -2208,7 +2658,7 @@ function Item({ setActiveTab, isViewMode }) {
     const firstHawb = (cargoHawbList || [])[0] || "";
     const firstOutHawb = (outCargoHawbList || [])[0] || "";
 
-    setLoading(true);
+    setIsItemEditall(true);
 
     try {
       const ItemAllData = itemTable.map((item) => {
@@ -2253,8 +2703,10 @@ function Item({ setActiveTab, isViewMode }) {
           TotalDutiableQty: item.TotalDutiableQty || 0,
           TotalDutiableUOM: item.TotalDutiableUOM || "",
           InvoiceQuantity: item.InvoiceQuantity || 0,
+          InvoiceQty: item.invoiceQuantity || 0,
           HSQty: item.HSQty || 0,
           HSUOM: item.HSUOM || "",
+          HSQTY: item.hsQuantity || 0,
           AlcoholPer: item.AlcoholPer || 0,
           InvoiceNo: item.InvoiceNo || "",
           ChkUnitPrice: item.ChkUnitPrice || "",
@@ -2276,16 +2728,16 @@ function Item({ setActiveTab, isViewMode }) {
           PreferentialCode: item.PreferentialCode || "",
           GSTRate: item.GSTRate || 0,
           GSTUOM: item.GSTUOM || "",
-          GSTAmount: recalcGST,
-          ExciseDutyRate: item.ExciseDutyRate || 0,
-          ExciseDutyUOM: item.ExciseDutyUOM || "",
-          ExciseDutyAmount: item.ExciseDutyAmount || 0,
-          CustomsDutyRate: item.CustomsDutyRate || 0,
-          CustomsDutyUOM: item.CustomsDutyUOM || "",
-          CustomsDutyAmount: item.CustomsDutyAmount || 0,
-          OtherTaxRate: item.OtherTaxRate || 0,
-          OtherTaxUOM: item.OtherTaxUOM || "",
-          OtherTaxAmount: item.OtherTaxAmount || 0,
+          GSTAmount: 0,
+          ExciseDutyRate: 0,
+          ExciseDutyUOM: "",
+          ExciseDutyAmount: 0,
+          CustomsDutyRate: 0,
+          CustomsDutyUOM: "",
+          CustomsDutyAmount: 0,
+          OtherTaxRate: 0,
+          OtherTaxUOM: "",
+          OtherTaxAmount: 0,
           LSPValue: item.LSPValue || 0,
           ShippingMarks1: item.ShippingMarks1 || "",
           ShippingMarks2: "",
@@ -2305,31 +2757,61 @@ function Item({ setActiveTab, isViewMode }) {
           CerItemUOM: item.CerItemUOM || "",
           CIFValOfCer: item.CIFValOfCer || 0,
           ManufactureCostDate: item.ManufactureCostDate || "",
+          ManfCostDate: item.ManfCostDate || "",
           TexCat: item.TexCat || "",
+          TextileCat: item.TextileCat || "",
           TexQuotaQty: item.TexQuotaQty || 0,
+          TextileQuotaQty: item.TextileQuotaQty || 0,
           TexQuotaUOM: item.TexQuotaUOM || "",
+          TextileQuotaQtyUOM: item.TextileQuotaQtyUOM || "",
           CerInvNo: item.CerInvNo || "",
           CerInvDate: item.CerInvDate || "",
+          InvoiceDate: item.InvoiceDate || "",
           OriginOfCer: item.OriginOfCer || "",
           HSCodeCer: item.HSCodeCer || "",
+          HSOnCer: item.HSOnCer || "",
+          Hawblno: item.Hawblno || "",
           PerContent: item.PerContent || "",
+          PerOrgainCRI: item.PerOrgainCRI || "",
           CertificateDescription: item.CertificateDescription || "",
+          CertificateDes: item.CertificateDes || "",
         };
       });
 
-      const res = await API.post("/editAllItems/", {
+      const payload = {
         Item: ItemAllData,
         PermitId: permitDetails?.PermitId,
-      });
+      };
+
+      // Step 1: Update CommonItemDtl
+      const res = await API.post("/editAllItems/", payload);
       setItemTable(res.data.Item);
-      alert(res.data.message);
+
+      // Step 2: Mirror update to ItemDtl (inpayment)
+      try {
+        // await API.post("coo/editCooAllItems/", payload);
+        // console.log("All items mirrored to ItemDtl");
+        await API.post("coo/syncCooItemFromCommon/", {
+          PermitId: permitDetails?.PermitId,
+        });
+      } catch (mirrorError) {
+        console.error("Mirror edit-all failed", mirrorError);
+        alert(
+          "Warning: Items were updated in CommonItemDtl but FAILED to mirror to ItemDtl. " +
+            "Please contact support or retry.\n\n" +
+            `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
+        );
+        return;
+      }
+
+      // alert(res.data.message);
     } catch (error) {
       console.error("Edit All failed", error);
       alert(
         "Update failed: " + (error.response?.data?.message || error.message),
       );
     } finally {
-      setLoading(false);
+      setIsItemEditall(false);
     }
   };
 
@@ -2631,6 +3113,36 @@ function Item({ setActiveTab, isViewMode }) {
   //   delay: 2000,
   // });
 
+  // if this permit data already exists
+
+  // ======================== LOAD EXISTING ITEMS ON PAGE (RE)ENTRY ========================
+  const itemFetchedRef = useRef(false);
+
+  useEffect(() => {
+    const fetchExistingItems = async () => {
+      if (!permitDetails?.PermitId) return;
+      if (itemFetchedRef.current) return;
+      itemFetchedRef.current = true;
+
+      try {
+        const response = await API.get(
+          `/getItemByEditPermitId/?PermitId=${permitDetails.PermitId}`,
+        );
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setItemTable(response.data);
+          setSerialNumber((response.data.length + 1).toString().padStart(3));
+        }
+      } catch (err) {
+        // 404 = no items yet for this permit — that's fine, not an error
+        if (err.response?.status !== 404) {
+          console.error("Failed to load existing items for this permit", err);
+        }
+      }
+    };
+
+    fetchExistingItems();
+  }, [permitDetails?.PermitId]);
+
   // ----------------------- UI ---------------------------------
   return (
     <div className="row g-2">
@@ -2644,8 +3156,9 @@ function Item({ setActiveTab, isViewMode }) {
               className="NextpageBtns"
               tabIndex={27}
               onClick={ItemSave}
+              disabled={isAddItem}
             >
-              ADD ITEM
+              {isAddItem ? "Adding Items..." : "ADD ITEM"}
             </button>
 
             <button
@@ -3592,9 +4105,9 @@ function Item({ setActiveTab, isViewMode }) {
             className="MoveOnButtons showDisable"
             type="button"
             onClick={deleteSelectedItems}
-            disabled={selectedItems.length === 0}
+            disabled={selectedItems.length === 0 || isDeletingItem}
           >
-            DELETE ITEM
+            {isDeletingItem ? "DELETING..." : "DELETE ITEM"}
           </button>
         </div>
 
@@ -3603,8 +4116,9 @@ function Item({ setActiveTab, isViewMode }) {
             className="MoveOnButtons showDisable"
             type="button"
             onClick={ItemEditAll}
+            disabled={isItemEditall}
           >
-            EDIT ALL ITEM
+            {isItemEditall ? "EDITING ALL ITEMS..." : "EDIT ALL ITEM"}
           </button>
         </div>
 
@@ -3740,6 +4254,122 @@ function Item({ setActiveTab, isViewMode }) {
             setPopupType(null);
           }}
         />
+      )}
+      {isItemEditall && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#07b4f8" loading={isItemEditall} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#1a6db5",
+            }}
+          >
+            EDIT ITEMS...
+          </div>
+        </div>
+      )}
+      {isUploadItem && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#07b4f8" loading={isUploadItem} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#1a6db5",
+            }}
+          >
+            UPLOAD ITEMS...
+          </div>
+        </div>
+      )}
+      {isAddItem && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#23f807" loading={isAddItem} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#1ab522",
+            }}
+          >
+            ADDING ITEM...
+          </div>
+        </div>
+      )}
+      {isDeletingItem && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#fc0f07" loading={isDeletingItem} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#fc0f07",
+            }}
+          >
+            DELETING ITEMS...
+          </div>
+        </div>
       )}
     </div>
   );

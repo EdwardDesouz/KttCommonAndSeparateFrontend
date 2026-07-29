@@ -341,34 +341,62 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
         TradeNetMailboxID: d.TradeNetMailboxID || "",
       });
 
-      const touchUser = d.TouchUser || "";
-      if (touchUser) {
+      // const touchUser = d.TouchUser || "";
+      // if (touchUser) {
+      //   try {
+      //     const declarantRes = await API.get(
+      //       `/innonpaymentnew/?user=${touchUser}`,
+      //     );
+      //     const dec = declarantRes.data;
+
+      //     updatePermitDetails({
+      //       PermitId: permitId,
+      //       JobId: d.JobId || "",
+      //       MsgId: d.MSGId || "",
+      //       RefId: d.Refid || "",
+      //       MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
+      //       TradeNetMailboxID:
+      //         dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+      //       DeclarantName: dec.DeclarantName || "",
+      //       DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
+      //       DeclarantTel: dec.DeclarantTel || "",
+      //       CRUEI: dec.CRUEI || "",
+      //       Code: dec.Code || "",
+      //       name: dec.name || "",
+      //       name1: dec.name1 || "",
+      //       PermitNumber: d.PermitNumber || "",
+      //       prmtStatus: d.prmtStatus || "NEW",
+      //       SeqPool: dec.SeqPool || "",
+      //       StartSequence: dec.StartSequence || "",
+      //       AccountId: dec.AccountId || "",
+      //     });
+      //   } catch (err) {
+      //     console.error("Failed to fetch declarant details in edit mode:", err);
+      //   }
+      // }
+      const mailboxId = d.TradeNetMailboxID || "";
+      if (mailboxId) {
         try {
           const declarantRes = await API.get(
-            `/innonpaymentnew/?user=${touchUser}`,
+            `/getDeclarantByMailbox/?MailboxId=${mailboxId}`,
           );
           const dec = declarantRes.data;
-
           updatePermitDetails({
             PermitId: permitId,
             JobId: d.JobId || "",
             MsgId: d.MSGId || "",
             RefId: d.Refid || "",
-            MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
-            TradeNetMailboxID:
-              dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+            MailBoxId: mailboxId,
+            TradeNetMailboxID: mailboxId,
             DeclarantName: dec.DeclarantName || "",
             DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
             DeclarantTel: dec.DeclarantTel || "",
             CRUEI: dec.CRUEI || "",
             Code: dec.Code || "",
-            name: dec.name || "",
-            name1: dec.name1 || "",
+            name: dec.Name || "",
+            name1: dec.Name1 || "",
             PermitNumber: d.PermitNumber || "",
             prmtStatus: d.prmtStatus || "NEW",
-            SeqPool: dec.SeqPool || "",
-            StartSequence: dec.StartSequence || "",
-            AccountId: dec.AccountId || "",
           });
         } catch (err) {
           console.error("Failed to fetch declarant details in edit mode:", err);
@@ -700,7 +728,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       const congineeCodeVal = d.ConsigneeCode || d.CONSIGNEECode || "";
       const endUserCodeVal = d.EndUserCode || "";
       const manufacturerCodeVal = d.Manufacturer || "";
-      const handlingAgentCodeVal = d.HandlingAgentCode||"";
+      const handlingAgentCodeVal = d.HandlingAgentCode || "";
 
       setImporterCode(importerCode);
       setInwardCode(inwardCode);
@@ -711,7 +739,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       setCongineeCode(congineeCodeVal);
       setEndUserCode(endUserCodeVal);
       setManufacturerCode(manufacturerCodeVal);
-      setHandlingAgentCode(handlingAgentCodeVal)
+      setHandlingAgentCode(handlingAgentCodeVal);
 
       // Fetch Importer
       if (importerCode) {
@@ -909,21 +937,18 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
           console.error("Failed to fetch manufacturer details:", err);
         }
       }
-      if(handlingAgentCodeVal){
-                try {
+      if (handlingAgentCodeVal) {
+        try {
           const handlingAgentRes = await API.get(
             "/getCommonHandlingAgentTableInfo/",
           );
           const matched = handlingAgentRes.data.find(
-            (i) =>
-              i.Code?.toLowerCase() ===
-              handlingAgentCodeVal.toLowerCase(),
+            (i) => i.Code?.toLowerCase() === handlingAgentCodeVal.toLowerCase(),
           );
           if (matched) {
             setHandlingAgentCruei(matched.Code || "");
             setHandlingAgentName(matched.Name || "");
             setHandlingAgentName1(matched.Name1 || "");
-
           }
         } catch (err) {
           console.error("Failed to fetch handlingAgent details:", err);
@@ -981,8 +1006,21 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       setReceiptLocationDescription(d.RecepitLocName || "");
       setTotalOuterPackValue(d.TotalOuterPack || "");
       setTotalOuterPackName(d.TotalOuterPackUOM || "");
-      setTotalGrossWeight(d.TotalGrossWeight || "");
-      setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      // setTotalGrossWeight(d.TotalGrossWeight || "");
+      // setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      const savedGrossWeight = d.TotalGrossWeight || "";
+      const savedGrossUOM = d.TotalGrossWeightUOM || "--Select--";
+
+      let displayGrossWeight = savedGrossWeight;
+      if (savedGrossUOM === "TNE" && savedGrossWeight !== "") {
+        const num = Number(savedGrossWeight);
+        if (!isNaN(num)) {
+          displayGrossWeight = String(num * 1000);
+        }
+      }
+
+      setTotalGrossWeight(displayGrossWeight);
+      setGrossUOM(savedGrossUOM);
       setBlanketStartDate(formatApiDate(d.BlanketStartDate));
       setExhibitionStartDate(formatApiDate(d.ExhibitionSDate));
       setExhibitionEndDate(formatApiDate(d.ExhibitionEDate));

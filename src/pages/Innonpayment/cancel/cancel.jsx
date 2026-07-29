@@ -4,15 +4,22 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { FaTrash } from "react-icons/fa";
+import { CircleLoader } from "react-spinners";
 
-function Cancel({ setActiveTab,isViewMode }) {
+function Cancel({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   const {
+    
     permitDetails,
+
+    // Header
     decType,
     prevPermitNo,
+    setPrevPermitNo,
+    showPermit,
+    setShowPermit,
     cargo,
     transportMode,
     declFor,
@@ -21,13 +28,41 @@ function Cancel({ setActiveTab,isViewMode }) {
     refDocs,
     Licence,
     Recipients,
+    showDeclarationTypeError,
+    setShowDeclarationTypeError,
+    showCargoPackTypeError,
+    setShowCargoPackTypeError,
+    showDeclaringForError,
+    setShowDeclaringForError,
+    setShowInwardTransportError,
+    showInwardTransportError,
+
+    // Party
     importerCode,
+    showImporterCrueiError,
+    setShowImporterCrueiError,
+    showImporterNameError,
+    setShowImporterNameError,
     inwardCode,
+    showInwardCrueiError,
+    setShowInwardCrueiError,
+    showInwardNameError,
+    setShowInwardNameError,
     freightForwarderCode,
     claimantCode,
+    congineeCode,
+    outTransportMode,
+    exporterCode,
+    outwardCode,
+
+    // Cargo
     cargoHawb,
     arrivalDate,
+    showArriavalDateError,
+    setShowArrivalDateError,
     loadingPortCode,
+    showLoadingPortCodeError,
+    setShowLoadingPortCodeError,
     voyageNumber,
     vesselName,
     obl,
@@ -37,30 +72,92 @@ function Cancel({ setActiveTab,isViewMode }) {
     airCraftRegNumber,
     mawbNumber,
     releaseCode,
+    showReleaseCodeError,
+    setShowReleaseCodeError,
     releaseLocationDescription,
     receiptCode,
+    showreceiptCodeError,
+    setShowReceiptCodeError,
     receiptLocationDescription,
     totalOuterPackValue,
     totalOuterPackName,
+    showTotalOuterPackValueError,
+    setShowTotalOuterPackValueError,
+    showTotalOuterPackUomError,
+    setShowTotalOuterPackUomError,
     permitGrossWeight,
     totalGrossWeight,
     grossUOM,
+    showTotalGrossWeightError,
+    setShowTotalGrossWeightError,
+    showGrossUOMError,
+    setShowGrossUOMError,
     blanketStartDate,
     containers,
+
+    // Invoice & Item tables
     invoiceTable,
     itemTable,
+
+    // Summary states
+    summaryImporterCruei,
+    setSummaryImporterCruei,
+    summaryImporterName,
+    setSummaryImporterName,
+    totalAmountPayable,
+    setTotalAmountPayable,
+    showCifMatchingError,
+    setShowCifMatchingError,
     summaryRemarks,
+    setSummaryRemarks,
+    formatRemark,
+    setFormatRemark,
     summaryCrossReference,
+    setSummaryCrossReference,
     summaryInternalReamarks,
+    setSummaryInternalRemarks,
     summaryDate,
+    setSummaryDate,
     summaryTime,
-    cnBChecked,
+    setSummaryTime,
+    summaryDeclaringFor,
+    setSummaryDeclaringFor,
+
+    // CPC
     showAeo,
     showCwc,
     showScheme,
+    cnBChecked,
     aeoRows,
     cwcRows,
     schemeRows,
+
+    storageCode,
+    exhibitionStartDate,
+    exhibitionEndDate,
+    summaryCustomerRemarks,
+    departureDate,
+    dischargePortCode,
+    finalDestinationCountry,
+    outVoyageNumber,
+    outVesselName,
+    outObl,
+    vesselType,
+    vesselNetRegisterTonnage,
+    vesselNationality,
+    towingVesselId,
+    towingVesselName,
+    nextPortCode,
+    lastPortCode,
+    outConveyanceNumber,
+    outTransportDetails,
+    outFlightNumber,
+    outAirCraftRegNumber,
+    outMawbNumber,
+    outCargoHawb,
+    outSeaStore,
+    summaryApprovedBy,
+
     uploadedFiles,
     setUploadedFiles,
   } = useInnonpayment();
@@ -203,26 +300,47 @@ function Cancel({ setActiveTab,isViewMode }) {
       formData.append("Type", "CNL");
       formData.append("TouchUser", UserName);
       formData.append("TouchTime", new Date().toISOString());
+      // Save to CommonFileTable
       const response = await API.post("/postFileTable/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Mirror save to InFileTable (inpayment) — needs a fresh FormData
+      const inFormData = new FormData();
+      formData.forEach((value, key) => inFormData.append(key, value));
+      await API.post("innonpayment/postInnonFileTable/", inFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       const files = response?.data?.Records || [];
       setUploadedFiles(files);
       setSelectedFile(null);
       setDocType("");
     } catch (err) {
-      console.error("UPLOAD ERROR:", err);
+      console.error("UPLOAD ERROR:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error uploading file! Check console for details.",
+      );
     }
   };
 
   const handleDelete = async (sno) => {
     try {
       const PermitId = permitDetails?.PermitId;
+
       const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+
+      await API.delete(`innonpayment/deleteInnonFile/${PermitId}/${sno}/`);
+
       setUploadedFiles(res.data.Records);
       alert("File Deleted Successfully");
     } catch (err) {
-      console.error("DELETE ERROR:", err);
+      console.error("DELETE ERROR:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error deleting file! Check console for details.",
+      );
     }
   };
 
@@ -269,7 +387,7 @@ function Cancel({ setActiveTab,isViewMode }) {
     const touchTime = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const cancelPayload = {
-      Permitno: permitId,
+      Permitno: permitDetails?.PermitNumber,
       UpdateIndicator: updateIndicator,
       ReplacementPermitno: replacementPermitNumber,
       ReasonForCancel: reasonForCancel,
@@ -289,22 +407,28 @@ function Cancel({ setActiveTab,isViewMode }) {
       TradeNetMailboxID:
         permitDetails?.MailBoxId || permitDetails?.TradeNetMailboxID || "",
       MessageType: "INPDEC",
-      DeclarationType: cleanSelect(decType),
+      DeclarationType: decType || "",
       PreviousPermit: prevPermitNo || "",
-      CargoPackType: cleanSelect(cargo),
-      InwardTransportMode: cleanSelect(transportMode),
-      BGIndicator: cleanSelect(bgInd),
+      CargoPackType: cargo || "",
+      InwardTransportMode: transportMode || "",
+      OutwardTransportMode: outTransportMode || "",
+      BGIndicator: bgInd || "",
       SupplyIndicator: supplyInd ? "Y" : "N",
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
+
       ImporterCompanyCode: importerCode || "",
+      ExporterCompanyCode: exporterCode || "",
       InwardCarrierAgentCode: inwardCode || "",
+      OutwardCarrierAgentCode: outwardCode || "",
+      ConsigneeCode: congineeCode || "",
+      CONSIGNEECode: congineeCode || "",
       FreightForwarderCode: freightForwarderCode || "",
       ClaimantPartyCode: claimantCode || "",
-      HBL: cargoHawb || "",
-      ArrivalDate: formatDate(arrivalDate),
+
+      ArrivalDate: formatDate(arrivalDate) || null,
       LoadingPortCode: loadingPortCode || "",
       VoyageNumber: voyageNumber || "",
       VesselName: vesselName || "",
@@ -318,14 +442,40 @@ function Cancel({ setActiveTab,isViewMode }) {
       ResLoaName: releaseLocationDescription || "",
       RecepitLocation: receiptCode || "",
       RecepitLocName: receiptLocationDescription || "",
-      TotalOuterPack: totalOuterPackValue || "",
-      TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
-      TotalGrossWeightUOM: cleanSelect(grossUOM),
-      BlanketStartDate: formatDate(blanketStartDate),
-      GrossReference: summaryCrossReference || "",
+      StorageLocation: storageCode || "",
+      ExhibitionSDate: formatDate(exhibitionStartDate) || null,
+      ExhibitionEDate: formatDate(exhibitionEndDate) || null,
+      BlanketStartDate: formatDate(blanketStartDate) || null,
       TradeRemarks: summaryRemarks || "",
       InternalRemarks: summaryInternalReamarks || "",
+      CustomerRemarks: summaryCustomerRemarks || "",
+      DepartureDate: formatDate(departureDate) || null,
+      DischargePort: dischargePortCode || "",
+      FinalDestinationCountry: finalDestinationCountry || "",
+      OutVoyageNumber: outVoyageNumber || "",
+      OutVesselName: outVesselName || "",
+      OutOceanBillofLadingNo: outObl || "",
+      VesselType: vesselType || "",
+      VesselNetRegTon: vesselNetRegisterTonnage || "",
+      VesselNationality: vesselNationality || "",
+      TowingVesselID: towingVesselId || "",
+      TowingVesselName: towingVesselName || "",
+      NextPort: nextPortCode || "",
+      LastPort: lastPortCode || "",
+      OutConveyanceRefNo: outConveyanceNumber || "",
+      OutTransportId: outTransportDetails || "",
+      OutFlightNO: outFlightNumber || "",
+      OutAircraftRegNo: outAirCraftRegNumber || "",
+      OutMasterAirwayBill: outMawbNumber || "",
+      TotalOuterPack: totalOuterPackValue || "",
+      TotalOuterPackUOM: totalOuterPackName || "",
+      // TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
+      TotalGrossWeightUOM: grossUOM || "",
+      GrossReference: summaryCrossReference || "",
       DeclareIndicator: declarationChecked ? "Y" : "N",
       NumberOfItems: toDecimal(itemTable.length),
       TotalCIFFOBValue: toDecimal(totalItemCifValue),
@@ -333,29 +483,56 @@ function Cancel({ setActiveTab,isViewMode }) {
       TotalExDutyAmt: toDecimal(sumOfExciseDutyAmount),
       TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
       TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
-      TotalAmtPay: toDecimal(totalItemGstAmount),
+      TotalAmtPay: toDecimal(totalAmountPayable),
       Status: "NEW",
       TouchUser: touchUser,
       TouchTime: touchTime,
       PermitNumber: permitDetails?.PermitNumber || "",
       prmtStatus: "CNL",
+      ReleaseLocaName: releaseLocationDescription || "",
+      Inhabl: cargoHawb || "",
+      outhbl: outCargoHawb || "",
+      seastore: outSeaStore ? "Y" : "N",
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
-      MRDate: formatDate(summaryDate),
+      DeclarningFor: declFor || "--Select--",
+      MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
+      gstVerified: summaryApprovedBy || "",
     };
 
     try {
-      await API.post("/postCancelPermit/", cancelPayload);
+      // Save cancel record first — writes CommonCancel + InNonCancel,
+      // and flips prmtStatus='CNL' on CommonHeaderTbl + InnonHeaderTbl.
+      await API.post("/postInnonCancelTable/", cancelPayload);
+      // Then save/update the main header
       await API.post("/postCommonHeaderTable/", headerPayload);
+
+      // Mirror header into InnonHeaderTbl (same pattern as inpayment's Cancel.jsx)
+      const inHeaderPayload = {
+        ...headerPayload,
+        ReleaseLocaName: releaseLocationDescription || "",
+      };
+      delete inHeaderPayload.ResLoaName;
+
+      try {
+        await API.post("innonpayment/postInnonHeaderTable/", inHeaderPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        setSaveMessage(
+          "Warning: Cancel was saved but failed to mirror to InnonHeaderTbl. " +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        setSaving(false);
+        return;
+      }
+
       setSaveMessage("Permit cancelled successfully.");
-      navigate("/innonpayment");
+      setTimeout(() => navigate("/innonpayment"), 1000);
     } catch (err) {
       console.error("Cancel save error:", err);
       setSaveMessage(
         err?.response?.data?.error || "Failed to save. Please try again.",
       );
-    } finally {
       setSaving(false);
     }
   };
@@ -629,6 +806,35 @@ function Cancel({ setActiveTab,isViewMode }) {
         )}
       </div>
       <br />
+      {saving && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={saving} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

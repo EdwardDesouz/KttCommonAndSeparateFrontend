@@ -1,14 +1,16 @@
-
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect,useRef  } from "react";
+import API from "../api/api";
 
 export const UserContext = createContext();
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState({
     username: "",
-     accountId: "", 
+    accountId: "",
     isLoggedIn: false,
   });
+
+  const forcedLogoutRef = useRef(false);
 
   // =========================
   // LOAD FROM LOCALSTORAGE ON START
@@ -28,16 +30,42 @@ export function UserProvider({ children }) {
   }, []);
 
   // =========================
+  // SAFETY NET: tab/browser close -> notify backend to clear LoginStatus
+  // =========================
+  useEffect(() => {
+    const handleUnload = () => {
+      if (user.isLoggedIn && user.username) {
+        try {
+          navigator.sendBeacon(
+            `${API.defaults.baseURL}/logoutUser/`,
+            new Blob([JSON.stringify({ Username: user.username })], {
+              type: "application/json",
+            }),
+          );
+        } catch (e) {
+          console.log("sendBeacon failed:", e);
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [user.isLoggedIn, user.username]);
+
+
+  
+
+  // =========================
   // LOGIN
   // =========================
-  const login = (username,accountId ) => {
-   console.log("login() called with:", username, accountId);
+  const login = (username, accountId) => {
+    console.log("login() called with:", username, accountId);
     const userData = {
       username,
       accountId,
       isLoggedIn: true,
     };
-  console.log(" userData being saved:", userData);
+    console.log(" userData being saved:", userData);
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
     sessionStorage.setItem("user", JSON.stringify(userData));
@@ -46,9 +74,18 @@ export function UserProvider({ children }) {
   // =========================
   // LOGOUT
   // =========================
-  const logout = () => {
+  const logout = async () => {
+    if (user.username) {
+      try {
+        await API.post("/logoutUser/", { Username: user.username });
+      } catch (err) {
+        console.error("Logout API failed:", err);
+      }
+    }
+
     const userData = {
       username: "",
+      accountId: "",
       isLoggedIn: false,
     };
 
@@ -56,7 +93,6 @@ export function UserProvider({ children }) {
     localStorage.removeItem("user");
     sessionStorage.removeItem("user");
   };
-
   return (
     <UserContext.Provider value={{ user, login, logout }}>
       {children}

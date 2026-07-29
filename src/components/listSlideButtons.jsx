@@ -77,29 +77,29 @@ function ListButtons({
           if (setSelectedPermits) setSelectedPermits([]);
           const copiedPermits = res.data.copiedPermits || [];
 
-          // if (copiedPermits.length === 1) {
-          //   try {
-          //     sessionStorage.removeItem("currentPermit");
-          //     const headerRes = await API.get("/getCommonHeaderByPermitId/", {
-          //       params: { PermitId: copiedPermits[0] },
-          //     });
-          //     navigate(`/inpayment/edit/${copiedPermits[0]}`, {
-          //       state: { permitData: headerRes.data },
-          //     });
-          //   } catch (err) {
-          //     console.error("Failed to load copied permit:", err);
-          //     if (refreshTable) refreshTable();
-          //   }
-          // } else {
-          //   alert(`${copiedPermits.length} permit(s) copied successfully`);
-          //   if (refreshTable) refreshTable();
-          // }
-          alert(
-            copiedPermits.length === 1
-              ? `Permit copied successfully. New Permit ID: ${copiedPermits[0]}`
-              : `${copiedPermits.length} permit(s) copied successfully`,
-          );
-          if (refreshTable) refreshTable();
+          if (copiedPermits.length === 1) {
+            try {
+              sessionStorage.removeItem("currentPermit");
+              const headerRes = await API.get("/getCommonHeaderByPermitId/", {
+                params: { PermitId: copiedPermits[0] },
+              });
+              navigate(`/inpayment/edit/${copiedPermits[0]}`, {
+                state: { permitData: headerRes.data },
+              });
+            } catch (err) {
+              console.error("Failed to load copied permit:", err);
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(`${copiedPermits.length} permit(s) copied successfully`);
+            if (refreshTable) refreshTable();
+          }
+          // alert(
+          //   copiedPermits.length === 1
+          //     ? `Permit copied successfully. New Permit ID: ${copiedPermits[0]}`
+          //     : `${copiedPermits.length} permit(s) copied successfully`,
+          // );
+          // if (refreshTable) refreshTable();
         } else {
           alert(res.data?.error || "Copy failed");
         }
@@ -138,6 +138,8 @@ function ListButtons({
             alert(`Failed to download GST PDF for Permit: ${permitId}`);
           }
         }
+        if (clearSelection) clearSelection();
+        if (refreshTable) refreshTable();
       }
 
       if (label === "SUBMIT") {
@@ -155,36 +157,25 @@ function ListButtons({
               PermitNumber: JSON.stringify(selectedPermits),
               user: currentUsername,
             },
-            responseType: "blob",
           });
 
-          const contentType = response.headers["content-type"] || "";
-
-          if (contentType.includes("application/xml")) {
-            const blob = new Blob([response.data], { type: "application/xml" });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", `${selectedPermits[0]}.xml`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+          if (response.data?.SUCCESS) {
+            // alert(response.data.message);
+            console.log(response.data.message);
+            if (clearSelection) clearSelection();
+            if (refreshTable) refreshTable();
           } else {
-            // Multiple permits → backend returns JSON
-            const text = await response.data.text();
-            const json = JSON.parse(text);
-            if (json.SUCCESS) {
-              alert(`${json.message}`);
-            } else {
-              alert(json.error || "Submission failed");
-            }
+            alert(response.data?.error || "Submission failed");
           }
         } catch (error) {
           console.error("Submit error:", error);
-          alert("Failed to submit permit(s). Please try again.");
+          alert(
+            error.response?.data?.error ||
+              "Failed to submit permit(s). Please try again.",
+          );
         }
       }
+
       if (label === "AMEND") {
         if (!selectedPermits.length) {
           alert("Please select a permit to amend.");
@@ -196,6 +187,12 @@ function ListButtons({
         }
 
         const permitId = selectedPermits[0];
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const currentUsername = userData?.username;
+        if (!currentUsername) {
+          alert("Session Error: Please login again.");
+          return;
+        }
 
         try {
           const headerRes = await API.get("/getCommonHeaderByPermitId/", {
@@ -203,42 +200,69 @@ function ListButtons({
           });
           const headerData = headerRes.data;
 
-          if (
-            headerData.Status !== "APR" &&
-            headerData.prmtStatus !== "APR" &&
-            headerData.prmtStatus !== "AMD"
-          ) {
+          if (headerData.Status !== "APR") {
             alert(
               `Only APPROVED permits can be amended.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
             );
             return;
           }
 
-          // if (setSelectedPermits) setSelectedPermits([]);
-          if (clearSelection) clearSelection();
-
-          navigate(`/inpayment/edit/${permitId}`, {
-            state: {
-              permitData: headerData,
-              openTab: "AmendTab",
-            },
+          const res = await API.post("copyInpaymentAmend/", {
+            permits: [permitId],
+            user: currentUsername,
           });
+
+          if (res.data?.SUCCESS) {
+            if (clearSelection) clearSelection();
+            if (setSelectedPermits) setSelectedPermits([]);
+            const copiedPermits = res.data.copiedPermits || [];
+
+            if (copiedPermits.length === 1) {
+              sessionStorage.removeItem("currentPermit");
+              const newHeaderRes = await API.get(
+                "/getCommonHeaderByPermitId/",
+                {
+                  params: { PermitId: copiedPermits[0] },
+                },
+              );
+              navigate(`/inpayment/edit/${copiedPermits[0]}`, {
+                state: {
+                  permitData: newHeaderRes.data,
+                  openTab: "AmendTab",
+                },
+              });
+            } else {
+              alert(
+                `${copiedPermits.length} permit(s) copied for amend successfully`,
+              );
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(res.data?.error || "Amend copy failed");
+          }
         } catch (err) {
-          console.error("Amend navigation error:", err);
-          alert("Failed to load permit data for amending. Please try again.");
+          console.error("Amend copy/navigation error:", err);
+          alert("Failed to copy permit for amending. Please try again.");
         }
       }
+
       if (label === "CANCEL") {
         if (!selectedPermits.length) {
           alert("Please select a permit to cancel.");
           return;
         }
         if (selectedPermits.length > 1) {
-          alert("Please select only one permit at a time to amend.");
+          alert("Please select only one permit at a time to cancel.");
           return;
         }
 
         const permitId = selectedPermits[0];
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const currentUsername = userData?.username;
+        if (!currentUsername) {
+          alert("Session Error: Please login again.");
+          return;
+        }
 
         try {
           const headerRes = await API.get("/getCommonHeaderByPermitId/", {
@@ -246,33 +270,61 @@ function ListButtons({
           });
           const headerData = headerRes.data;
 
-          if (
-            headerData.Status !== "APR" &&
-            headerData.prmtStatus !== "CNL" &&
-            headerData.prmtStatus !== "CNL"
-          ) {
+          if (headerData.Status !== "APR") {
             alert(
-              `Only CANCELLED permits can be cancelled.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
+              `Only APPROVED permits can be canceled.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
             );
             return;
           }
 
-          // if (setSelectedPermits) setSelectedPermits([]);
-          if (clearSelection) clearSelection();
-          navigate(`/inpayment/edit/${permitId}`, {
-            state: {
-              permitData: headerData,
-              openTab: "CancelTab",
-            },
+          const res = await API.post("copyInpaymentCancel/", {
+            permits: [permitId],
+            user: currentUsername,
           });
+
+          if (res.data?.SUCCESS) {
+            if (clearSelection) clearSelection();
+            if (setSelectedPermits) setSelectedPermits([]);
+            const copiedPermits = res.data.copiedPermits || [];
+
+            if (copiedPermits.length === 1) {
+              sessionStorage.removeItem("currentPermit");
+              const newHeaderRes = await API.get(
+                "/getCommonHeaderByPermitId/",
+                {
+                  params: { PermitId: copiedPermits[0] },
+                },
+              );
+              navigate(`/inpayment/edit/${copiedPermits[0]}`, {
+                state: {
+                  permitData: newHeaderRes.data,
+                  openTab: "CancelTab",
+                },
+              });
+            } else {
+              alert(
+                `${copiedPermits.length} permit(s) copied for cancel successfully`,
+              );
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(res.data?.error || "Cancel copy failed");
+          }
         } catch (err) {
-          console.error("Amend navigation error:", err);
-          alert("Failed to load permit data for amending. Please try again.");
+          console.error("Cancel copy/navigation error:", err);
+          alert("Failed to copy permit for canceling. Please try again.");
         }
       }
+
       if (label === "REFUND") {
+        const userData = JSON.parse(localStorage.getItem("user"));
+        const currentUsername = userData?.username;
+        if (!currentUsername) {
+          alert("Session Error: Please login again.");
+          return;
+        }
         if (!selectedPermits.length) {
-          alert("Please select a permit to refund.");
+          alert("Select at least one permit to refund.");
           return;
         }
         if (selectedPermits.length > 1) {
@@ -280,36 +332,38 @@ function ListButtons({
           return;
         }
 
-        const permitId = selectedPermits[0];
+        const res = await API.post("copyInpaymentRefund/", {
+          permits: selectedPermits,
+          user: currentUsername,
+        });
 
-        try {
-          const headerRes = await API.get("/getCommonHeaderByPermitId/", {
-            params: { PermitId: permitId },
-          });
-          const headerData = headerRes.data;
-
-          if (
-            headerData.Status !== "APR" &&
-            headerData.prmtStatus !== "RFD" &&
-            headerData.prmtStatus !== "RFD"
-          ) {
-            alert(
-              `Only REFUNDED permits can be refunded.\nCurrent status: ${headerData.Status || headerData.prmtStatus}`,
-            );
-            return;
-          }
-
-          // if (setSelectedPermits) setSelectedPermits([]);
+        if (res.data?.SUCCESS) {
           if (clearSelection) clearSelection();
-          navigate(`/inpayment/edit/${permitId}`, {
-            state: {
-              permitData: headerData,
-              openTab: "RefundTab",
-            },
-          });
-        } catch (err) {
-          console.error("Refund navigation error:", err);
-          alert("Failed to load permit data for refunding. Please try again.");
+          if (setSelectedPermits) setSelectedPermits([]);
+          const copiedPermits = res.data.copiedPermits || [];
+
+          if (copiedPermits.length === 1) {
+            try {
+              sessionStorage.removeItem("currentPermit");
+              const headerRes = await API.get("/getCommonHeaderByPermitId/", {
+                params: { PermitId: copiedPermits[0] },
+              });
+              navigate(`/inpayment/edit/${copiedPermits[0]}`, {
+                state: {
+                  permitData: headerRes.data,
+                  openTab: "RefundTab",
+                },
+              });
+            } catch (err) {
+              console.error("Failed to load refund copy:", err);
+              if (refreshTable) refreshTable();
+            }
+          } else {
+            alert(`${copiedPermits.length} permit(s) copied successfully`);
+            if (refreshTable) refreshTable();
+          }
+        } else {
+          alert(res.data?.error || "Refund copy failed");
         }
       }
     } catch (error) {
@@ -338,10 +392,17 @@ function ListButtons({
         {buttons.map((label) => (
           <li key={label}>
             <button
-              className="navbar-btn"
+              className={`navbar-btn ${label === "SUBMIT" ? "navbar-btn-submit" : ""}`}
               onClick={() => handleClick(label)}
               disabled={label !== "NEW" && btnState && !btnState[label]} // ✅ ADD
               style={{
+                backgroundColor:
+                  label === "SUBMIT"
+                    ? label !== "NEW" && btnState && !btnState[label]
+                      ? "#8fbf8f" // muted green when disabled
+                      : "#2f01fd" // solid green when enabled
+                    : undefined,
+                color: label === "SUBMIT" ? "#fff" : undefined,
                 opacity:
                   label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1, // ✅ ADD
                 cursor:

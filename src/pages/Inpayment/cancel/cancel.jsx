@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import API from "../../../api/api";
 import { UserContext } from "../../../userContex/userContex";
 import { FaTrash } from "react-icons/fa";
+import { CircleLoader } from "react-spinners";
 
-function Cancel({ setActiveTab,isViewMode }) {
+function Cancel({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -81,6 +82,7 @@ function Cancel({ setActiveTab,isViewMode }) {
   const [showReasonError, setShowReasonError] = useState(false);
   const [showDescError, setShowDescError] = useState(false);
   const [showCancelTypeError, setShowCancelTypeError] = useState(false);
+  const [showDeclarationError, setShowDeclarationError] = useState(false);
 
   useEffect(() => {
     const fetchDropdowns = async () => {
@@ -179,6 +181,53 @@ function Cancel({ setActiveTab,isViewMode }) {
     return val;
   };
 
+  // const handleAttach = async () => {
+  //   if (!selectedFile || !docType) {
+  //     alert("Please select file and document type");
+  //     return;
+  //   }
+  //   try {
+  //     const MSGID = "IPTDEC";
+  //     const PermitId = permitDetails?.PermitId;
+  //     const UserName = (user?.username || "").toUpperCase();
+  //     let fileName = selectedFile.name.split(".")[0];
+  //     fileName = fileName.replaceAll(" ", "_").replaceAll("-", "_");
+  //     fileName = fileName + MSGID + UserName;
+  //     const formData = new FormData();
+  //     formData.append("file", selectedFile);
+  //     formData.append("Sno", (uploadedFiles?.length || 0) + 1);
+  //     formData.append("Name", fileName);
+  //     formData.append("ContentType", selectedFile.type);
+  //     formData.append("DocumentType", docType);
+  //     formData.append("PaymentId", MSGID);
+  //     formData.append("Size", `${Math.round(selectedFile.size / 1024)} KB`);
+  //     formData.append("PermitId", PermitId);
+  //     formData.append("Type", "CNL");
+  //     formData.append("TouchUser", UserName);
+  //     formData.append("TouchTime", new Date().toISOString());
+  //     const response = await API.post("/postFileTable/", formData, {
+  //       headers: { "Content-Type": "multipart/form-data" },
+  //     });
+  //     const files = response?.data?.Records || [];
+  //     setUploadedFiles(files);
+  //     setSelectedFile(null);
+  //     setDocType("");
+  //   } catch (err) {
+  //     console.error("UPLOAD ERROR:", err);
+  //   }
+  // };
+
+  // const handleDelete = async (sno) => {
+  //   try {
+  //     const PermitId = permitDetails?.PermitId;
+  //     const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+  //     setUploadedFiles(res.data.Records);
+  //     alert("File Deleted Successfully");
+  //   } catch (err) {
+  //     console.error("DELETE ERROR:", err);
+  //   }
+  // };
+
   const handleAttach = async () => {
     if (!selectedFile || !docType) {
       alert("Please select file and document type");
@@ -203,28 +252,52 @@ function Cancel({ setActiveTab,isViewMode }) {
       formData.append("Type", "CNL");
       formData.append("TouchUser", UserName);
       formData.append("TouchTime", new Date().toISOString());
+
+      // Save to CommonFileTable
       const response = await API.post("/postFileTable/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Mirror save to InFileTable (inpayment) — needs a fresh FormData
+      const inFormData = new FormData();
+      formData.forEach((value, key) => inFormData.append(key, value));
+      await API.post("inpayment/postInFileTable/", inFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       const files = response?.data?.Records || [];
       setUploadedFiles(files);
       setSelectedFile(null);
       setDocType("");
     } catch (err) {
-      console.error("UPLOAD ERROR:", err);
+      console.error("UPLOAD ERROR:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error uploading file! Check console for details.",
+      );
     }
   };
 
   const handleDelete = async (sno) => {
     try {
       const PermitId = permitDetails?.PermitId;
+
       const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+
+      await API.delete(`inpayment/deleteInFile/${PermitId}/${sno}/`);
+
       setUploadedFiles(res.data.Records);
       alert("File Deleted Successfully");
     } catch (err) {
-      console.error("DELETE ERROR:", err);
+      console.error("DELETE ERROR:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "Error deleting file! Check console for details.",
+      );
     }
   };
+
+  
 
   const validate = () => {
     let valid = true;
@@ -269,7 +342,7 @@ function Cancel({ setActiveTab,isViewMode }) {
     const touchTime = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     const cancelPayload = {
-      Permitno: permitId,
+      Permitno: permitDetails?.PermitNumber,
       UpdateIndicator: updateIndicator,
       ReplacementPermitno: replacementPermitNumber,
       ReasonForCancel: reasonForCancel,
@@ -298,7 +371,7 @@ function Cancel({ setActiveTab,isViewMode }) {
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode || "",
       InwardCarrierAgentCode: inwardCode || "",
       FreightForwarderCode: freightForwarderCode || "",
@@ -320,7 +393,10 @@ function Cancel({ setActiveTab,isViewMode }) {
       RecepitLocName: receiptLocationDescription || "",
       TotalOuterPack: totalOuterPackValue || "",
       TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
       TotalGrossWeightUOM: cleanSelect(grossUOM),
       BlanketStartDate: formatDate(blanketStartDate),
       GrossReference: summaryCrossReference || "",
@@ -346,20 +422,40 @@ function Cancel({ setActiveTab,isViewMode }) {
     };
 
     try {
+      // Save cancel record first
       await API.post("/postCancelPermit/", cancelPayload);
+      // Then save/update header
       await API.post("/postCommonHeaderTable/", headerPayload);
+
+      // Mirror header into InHeaderTbl (same pattern as Amend's doSavePermit)
+      const inHeaderPayload = {
+        ...headerPayload,
+        ReleaseLocName: releaseLocationDescription || "",
+      };
+      delete inHeaderPayload.ResLoaName;
+
+      try {
+        await API.post("inpayment/postInHeaderTable/", inHeaderPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        setSaveMessage(
+          "Warning: Cancel was saved but failed to mirror to InHeaderTbl. " +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        setSaving(false);
+        return;
+      }
+
       setSaveMessage("Permit cancelled successfully.");
-      navigate("/inpayment");
+      setTimeout(() => navigate("/inpayment"), 1000);
     } catch (err) {
       console.error("Cancel save error:", err);
       setSaveMessage(
         err?.response?.data?.error || "Failed to save. Please try again.",
       );
-    } finally {
       setSaving(false);
     }
   };
-
   return (
     <div className="col-12">
       {/* UPDATE INFORMATION */}
@@ -629,6 +725,36 @@ function Cancel({ setActiveTab,isViewMode }) {
         )}
       </div>
       <br />
+
+      {saving && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={saving} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

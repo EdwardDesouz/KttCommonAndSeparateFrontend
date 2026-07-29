@@ -900,14 +900,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       setShowDischargePortDropdown(false);
       return;
     }
- const filtered = dischargePortSuggestions.filter((i) => {
-  const [PortCode, PortName] = i.split(":");
-  const search = val.toLowerCase();
-  return (
-    PortCode.toLowerCase().startsWith(search) ||
-    PortName.toLowerCase().startsWith(search)
-  );
-});
+    const filtered = dischargePortSuggestions.filter((i) => {
+      const [PortCode, PortName] = i.split(":");
+      const search = val.toLowerCase();
+      return (
+        PortCode.toLowerCase().startsWith(search) ||
+        PortName.toLowerCase().startsWith(search)
+      );
+    });
     setFilteredDischargePortSuggestions(filtered.slice(0, 100));
     setShowDischargePortDropdown(filtered.length > 0);
   };
@@ -933,7 +933,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       handleDischargePortSelect(
         filteredDischargePortSuggestions[highlightedDischargePortIndex],
       );
-        setShowDischargePortDropdown(false);
+      setShowDischargePortDropdown(false);
     }
   };
 
@@ -955,13 +955,13 @@ function Cargo({ setActiveTab, isViewMode }) {
         setShowDischargePortDropdown(false);
         return;
       }
-const selected = dischargePortSuggestions
-  .map((i) => i.split(":"))
-  .find(
-    ([PortCode, PortName]) =>
-      PortCode.toLowerCase() === dischargePortCode.toLowerCase() ||
-      PortName.toLowerCase() === dischargePortCode.toLowerCase()
-  );
+      const selected = dischargePortSuggestions
+        .map((i) => i.split(":"))
+        .find(
+          ([PortCode, PortName]) =>
+            PortCode.toLowerCase() === dischargePortCode.toLowerCase() ||
+            PortName.toLowerCase() === dischargePortCode.toLowerCase(),
+        );
       if (selected) {
         const [PortCode, PortName, Country] = selected;
         setDischargePort({ PortCode, PortName, Country });
@@ -1481,7 +1481,11 @@ const selected = dischargePortSuggestions
         RecepitLocName: receiptLocationDescription || "",
         TotalOuterPack: totalOuterPackValue || "",
         TotalOuterPackUOM: totalOuterPackName || "",
-        TotalGrossWeight: totalGrossWeight || "",
+        // TotalGrossWeight: totalGrossWeight || "",
+        TotalGrossWeight:
+          permitGrossWeight !== "" && permitGrossWeight !== undefined
+            ? permitGrossWeight
+            : totalGrossWeight || "",
         TotalGrossWeightUOM: grossUOM || "",
         BlanketStartDate: formatDate(blanketStartDate) || null,
 
@@ -1696,12 +1700,12 @@ const selected = dischargePortSuggestions
                       value={departureDate}
                       setValue={(val) => {
                         setDepartureDate(val);
-                        if (val) setShowDepartureDateError(false);
+                        // if (val) setShowDepartureDateError(false);
                       }}
                     />
-                    {showDepartureDateError && (
+                    {/* {showDepartureDateError && (
                       <span className="ErrorColor">FILL DEPARTURE DATE</span>
-                    )}
+                    )} */}
                   </div>
                   {/* )} */}
 
@@ -1795,15 +1799,22 @@ const selected = dischargePortSuggestions
                           }
                         >
                           <option value="">--Select--</option>
-  {finalDestinationCountry &&
-    !countryList.find((c) => c.CountryCode === finalDestinationCountry) && (
-      <option value={finalDestinationCountry}>{finalDestinationCountry}</option>
-  )}
-  {countryList.map((country) => (
-    <option key={country.CountryCode} value={country.CountryCode}>
-      {country.CountryCode}:{country.Description}
-    </option>
-  ))}
+                          {finalDestinationCountry &&
+                            !countryList.find(
+                              (c) => c.CountryCode === finalDestinationCountry,
+                            ) && (
+                              <option value={finalDestinationCountry}>
+                                {finalDestinationCountry}
+                              </option>
+                            )}
+                          {countryList.map((country) => (
+                            <option
+                              key={country.CountryCode}
+                              value={country.CountryCode}
+                            >
+                              {country.CountryCode}:{country.Description}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>

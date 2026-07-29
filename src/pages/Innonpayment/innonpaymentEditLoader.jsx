@@ -283,36 +283,64 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       // We reuse the inpaymentnew/ endpoint because it runs the JOIN
       // query across ManageUser + SequencePool + DeclarantCompany,
       // which gives us MailBoxId, DeclarantName, DeclarantTel, CRUEI etc.
-      const touchUser = d.TouchUser || "";
-      if (touchUser) {
+      // const touchUser = d.TouchUser || "";
+      // if (touchUser) {
+      //   try {
+      //     const declarantRes = await API.get(
+      //       `/innonpaymentnew/?user=${touchUser}`,
+      //     );
+      //     const dec = declarantRes.data;
+      //     // We update ONLY the declarant fields.
+      //     // PermitId, JobId, MsgId, RefId stay from Step 1 — we do NOT
+      //     // overwrite them with the new permit IDs that inpaymentnew/ generates.
+      //     updatePermitDetails({
+      //       PermitId: permitId,
+      //       JobId: d.JobId || "",
+      //       MsgId: d.MSGId || "",
+      //       RefId: d.Refid || "",
+      //       MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
+      //       TradeNetMailboxID:
+      //         dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+      //       DeclarantName: dec.DeclarantName || "",
+      //       DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
+      //       DeclarantTel: dec.DeclarantTel || "",
+      //       CRUEI: dec.CRUEI || "",
+      //       Code: dec.Code || "",
+      //       name: dec.name || "",
+      //       name1: dec.name1 || "",
+      //       PermitNumber: d.PermitNumber || "",
+      //       prmtStatus: d.prmtStatus || "NEW",
+      //       SeqPool: dec.SeqPool || "",
+      //       StartSequence: dec.StartSequence || "",
+      //       AccountId: dec.AccountId || "",
+      //     });
+      //   } catch (err) {
+      //     console.error("Failed to fetch declarant details in edit mode:", err);
+      //   }
+      // }
+      const mailboxId = d.TradeNetMailboxID || "";
+      if (mailboxId) {
         try {
           const declarantRes = await API.get(
-            `/innonpaymentnew/?user=${touchUser}`,
+            `/getDeclarantByMailbox/?MailboxId=${mailboxId}`,
           );
           const dec = declarantRes.data;
-          // We update ONLY the declarant fields.
-          // PermitId, JobId, MsgId, RefId stay from Step 1 — we do NOT
-          // overwrite them with the new permit IDs that inpaymentnew/ generates.
           updatePermitDetails({
             PermitId: permitId,
             JobId: d.JobId || "",
             MsgId: d.MSGId || "",
             RefId: d.Refid || "",
-            MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
-            TradeNetMailboxID:
-              dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+            MailBoxId: mailboxId,
+            TradeNetMailboxID: mailboxId,
             DeclarantName: dec.DeclarantName || "",
             DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
             DeclarantTel: dec.DeclarantTel || "",
             CRUEI: dec.CRUEI || "",
             Code: dec.Code || "",
-            name: dec.name || "",
-            name1: dec.name1 || "",
+            name: dec.Name || "",
+            name1: dec.Name1 || "",
             PermitNumber: d.PermitNumber || "",
             prmtStatus: d.prmtStatus || "NEW",
-            SeqPool: dec.SeqPool || "",
-            StartSequence: dec.StartSequence || "",
-            AccountId: dec.AccountId || "",
           });
         } catch (err) {
           console.error("Failed to fetch declarant details in edit mode:", err);
@@ -470,15 +498,18 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
         setShowInwardMode(true);
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+        setShowInHawbInward(true);
       } else if (transportValue === "3 : Road") {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+         setShowInHawbInward(true);
         setShowInwardMode(true);
       } else if (transportValue === "4 : Air") {
         setShowFlightNumber(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
         setShowInwardMode(true);
+           setShowInHawbInward(true);
       } else if (
         transportValue === "5 : Mail" ||
         transportValue === "6 : Multi-model(Not in use)" ||
@@ -788,8 +819,21 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       setReceiptLocationDescription(d.RecepitLocName || "");
       setTotalOuterPackValue(d.TotalOuterPack || "");
       setTotalOuterPackName(d.TotalOuterPackUOM || "");
-      setTotalGrossWeight(d.TotalGrossWeight || "");
-      setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      // setTotalGrossWeight(d.TotalGrossWeight || "");
+      // setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      const savedGrossWeight = d.TotalGrossWeight || "";
+      const savedGrossUOM = d.TotalGrossWeightUOM || "--Select--";
+
+      let displayGrossWeight = savedGrossWeight;
+      if (savedGrossUOM === "TNE" && savedGrossWeight !== "") {
+        const num = Number(savedGrossWeight);
+        if (!isNaN(num)) {
+          displayGrossWeight = String(num * 1000);
+        }
+      }
+
+      setTotalGrossWeight(displayGrossWeight);
+      setGrossUOM(savedGrossUOM);
       setBlanketStartDate(formatApiDate(d.BlanketStartDate));
       setExhibitionStartDate(formatApiDate(d.ExhibitionSDate));
       setExhibitionEndDate(formatApiDate(d.ExhibitionEDate));

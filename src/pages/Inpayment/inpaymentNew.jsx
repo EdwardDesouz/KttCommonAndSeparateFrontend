@@ -17,7 +17,6 @@ import InpaymentEditLoader from "./inpaymentEditLoader";
 import { useInpayment } from "./context/inpaymentContext";
 import API from "../../api/api";
 
-
 // ── Inner component has access to both location AND context ──────────────────
 function InpaymentNewInner({ permitId, isEditMode, isViewMode }) {
   const navigate = useNavigate();
@@ -33,10 +32,10 @@ function InpaymentNewInner({ permitId, isEditMode, isViewMode }) {
       setActiveTab(location.state.openTab);
     }
   }, [permitDetails?.prmtStatus]);
-
-  const isAmd = permitDetails?.prmtStatus === "AMD";
-  const isRfd = permitDetails?.prmtStatus === "RFD";
-  const isCnl = permitDetails?.prmtStatus === "CNL";
+  const prmtStatus = (permitDetails?.prmtStatus || "").trim().toUpperCase();
+  const isAmd = prmtStatus === "AMD";
+  const isRfd = prmtStatus === "RFD";
+  const isCnl = prmtStatus === "CNL";
 
   const tabs = [
     { id: "HeaderTab", label: "HEADER" },
@@ -79,34 +78,36 @@ function InpaymentNewInner({ permitId, isEditMode, isViewMode }) {
     setExchangeRateError("");
   };
 
-const handleExchangeRateDateChange = async (e) => {
-  const value = e.target.value;
-  setExchangeRateDate(value);
-  setExchangeRates([]);
-  setExchangeRateError("");
+  const handleExchangeRateDateChange = async (e) => {
+    const value = e.target.value;
+    setExchangeRateDate(value);
+    setExchangeRates([]);
+    setExchangeRateError("");
 
-  if (!value) return;
+    if (!value) return;
 
-  setExchangeRateLoading(true);
-  try {
-    const response = await API.get(
-      `/getExchangeRateByDate/?date=${value}&base=SGD`,
-    );
-    const records = response?.data?.Records || [];
+    setExchangeRateLoading(true);
+    try {
+      const response = await API.get(`/getExchangeRateByDate/?date=${value}`);
+      const records = response?.data?.Records || [];
 
-    if (!records.length) {
-      setExchangeRateError("No exchange rate data found for this date.");
-      return;
+      if (!records.length) {
+        setExchangeRateError("No exchange rate data found for this date.");
+        return;
+      }
+
+      setExchangeRates(records);
+    } catch (err) {
+      console.error("Error fetching exchange rate:", err);
+      const backendMessage = err?.response?.data?.error;
+      setExchangeRateError(
+        backendMessage || "Failed to fetch exchange rate for this date.",
+      );
+    } finally {
+      setExchangeRateLoading(false);
     }
+  };
 
-    setExchangeRates(records);
-  } catch (err) {
-    console.error("Error fetching exchange rate:", err);
-    setExchangeRateError("Failed to fetch exchange rate for this date.");
-  } finally {
-    setExchangeRateLoading(false);
-  }
-};
   return (
     <>
       <InpaymentEditLoader
@@ -122,17 +123,19 @@ const handleExchangeRateDateChange = async (e) => {
             style={{ backgroundColor: "white", padding: "10px" }}
           >
             <div className="d-flex gap-2 flex-wrap">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  id={tab.id}
-                  className={`NewBtns ${activeTab === tab.id ? "HeadTabStyleChange" : ""} ${tab.hidden ? "hidden" : ""}`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              {tabs
+                .filter((tab) => !tab.hidden)
+                .map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    id={tab.id}
+                    className={`NewBtns ${activeTab === tab.id ? "HeadTabStyleChange" : ""}`}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
             </div>
 
             <div className="d-flex gap-2 flex-wrap ms-auto">
@@ -171,7 +174,11 @@ const handleExchangeRateDateChange = async (e) => {
 
         <div className={`tab-content ${isViewMode ? "view-mode" : ""}`}>
           {activeTab === "HeaderTab" && (
-            <Header setActiveTab={setActiveTab} isViewMode={isViewMode} />
+            <Header
+              setActiveTab={setActiveTab}
+              isViewMode={isViewMode}
+              isEditMode={isEditMode}
+            />
           )}
           {activeTab === "PartyTab" && (
             <Party setActiveTab={setActiveTab} isViewMode={isViewMode} />
@@ -307,7 +314,7 @@ const handleExchangeRateDateChange = async (e) => {
                     <thead>
                       <tr>
                         <th>CURRENCY</th>
-                        <th>RATE (1 SGD =)</th>
+                        <th>RATE</th>
                       </tr>
                     </thead>
                     <tbody>

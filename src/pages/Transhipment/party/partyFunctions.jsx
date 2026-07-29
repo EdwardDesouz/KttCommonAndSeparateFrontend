@@ -140,45 +140,153 @@ export function SearchPopup({ title, data = [], onClose, onSelect, columns }) {
 /* ===========================
    Fetch Popup Data
 =========================== */
+// export const fetchPopupData = async (type, setPopupData, setLoading) => {
+//   setLoading(true);
+//   try {
+//     let response;
+//     switch (type) {
+//       case "importer":
+//         response = await API.get("/getCommonImporterTableInfo/");
+//         break;
+//       case "handlingAgent":
+//         response = await API.get("/getCommonHandlingAgentTableInfo/");
+//         break;
+//       case "inward":
+//         response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
+//         break;
+//       case "freightForwarder":
+//         response = await API.get("/getCommonFreightForwarderTable/");
+//         break;
+//       case "claimantparty":
+//         response = await API.get("/getCommonClaimantPartyTable/");
+//         break;
+//       case "consignee":
+//         response = await API.get("/getCommonConsigneeTableInfo/");
+//         break;
+//       case "exporter":
+//         response = await API.get("/getCommonExporterTableInfo/");
+//         break;
+//       case "outward":
+//         response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
+//         break;
+//       case "endUser":
+//         response = await API.get("/getCommonEndUserTableInfo/");
+//         break;
+//       case "manufacturer":
+//         response = await API.get("/getCommonManufacturerTableInfo/");
+//         break;
+//       default:
+//         response = { data: [] };
+//     }
+//     setPopupData(response.data);
+//   } catch (err) {
+//     console.error("Failed to fetch popup data", err);
+//     setPopupData([]);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
 export const fetchPopupData = async (type, setPopupData, setLoading) => {
   setLoading(true);
   try {
-    let response;
+    // Types with no Transhipment-specific table — Common only.
+    const COMMON_ONLY_URLS = {
+      claimantparty: "/getCommonClaimantPartyTable/",
+      exporter: "/getCommonExporterTableInfo/",
+      manufacturer: "/getCommonManufacturerTableInfo/",
+    };
+
+    if (COMMON_ONLY_URLS[type]) {
+      try {
+        const res = await API.get(COMMON_ONLY_URLS[type]);
+        setPopupData(res.data || []);
+      } catch (err) {
+        console.error(`Failed to fetch Common ${type} data`, err);
+        setPopupData([]);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    let commonUrl, transUrl, keyField;
+
     switch (type) {
       case "importer":
-        response = await API.get("/getCommonImporterTableInfo/");
+        commonUrl = "/getCommonImporterTableInfo/";
+        transUrl = "transhipment/getTransImporterTableInfo/";
+        keyField = "Code";
         break;
       case "handlingAgent":
-        response = await API.get("/getCommonHandlingAgentTableInfo/");
+        commonUrl = "/getCommonHandlingAgentTableInfo/";
+        transUrl = "transhipment/getTransHandlingAgentTableInfo/";
+        keyField = "Code";
         break;
       case "inward":
-        response = await API.get("/getCommonInwardCarrierAgentTableInfo/");
-        break;
-      case "freightForwarder":
-        response = await API.get("/getCommonFreightForwarderTable/");
-        break;
-      case "claimantparty":
-        response = await API.get("/getCommonClaimantPartyTable/");
-        break;
-      case "consignee":
-        response = await API.get("/getCommonConsigneeTableInfo/");
-        break;
-      case "exporter":
-        response = await API.get("/getCommonExporterTableInfo/");
+        commonUrl = "/getCommonInwardCarrierAgentTableInfo/";
+        transUrl = "transhipment/getTransInwardCarrierAgentTableInfo/";
+        keyField = "Code";
         break;
       case "outward":
-        response = await API.get("/getCommonOutwardCarrierAgentTableInfo/");
+        commonUrl = "/getCommonOutwardCarrierAgentTableInfo/";
+        transUrl = "transhipment/getTransOutwardCarrierAgentTableInfo/";
+        keyField = "Code";
+        break;
+      case "freightForwarder":
+        commonUrl = "/getCommonFreightForwarderTable/";
+        transUrl = "transhipment/getTransFreightForwarderTableInfo/";
+        keyField = "Code";
+        break;
+      case "consignee":
+        commonUrl = "/getCommonConsigneeTableInfo/";
+        transUrl = "transhipment/getTransConsigneeTableInfo/";
+        keyField = "ConsigneeCode";
         break;
       case "endUser":
-        response = await API.get("/getCommonEndUserTableInfo/");
-        break;
-      case "manufacturer":
-        response = await API.get("/getCommonManufacturerTableInfo/");
+        commonUrl = "/getCommonEndUserTableInfo/";
+        transUrl = "transhipment/getTransEndUserTableInfo/";
+        keyField = "EndUserCode";
         break;
       default:
-        response = { data: [] };
+        setPopupData([]);
+        setLoading(false);
+        return;
     }
-    setPopupData(response.data);
+
+    // Fetch both tables in parallel; don't let one failing kill the other
+    const [commonResult, transResult] = await Promise.allSettled([
+      API.get(commonUrl),
+      API.get(transUrl),
+    ]);
+
+    const commonData =
+      commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
+    const transData =
+      transResult.status === "fulfilled" ? transResult.value.data || [] : [];
+
+    if (commonResult.status === "rejected") {
+      console.error(`Failed to fetch Common ${type} data`, commonResult.reason);
+    }
+    if (transResult.status === "rejected") {
+      console.error(`Failed to fetch Transhipment ${type} data`, transResult.reason);
+    }
+
+    // Merge, de-duping by code (case-insensitive), Common takes priority on conflicts
+    const merged = [...commonData];
+    const seenCodes = new Set(
+      commonData.map((item) => String(item[keyField] || "").toLowerCase()),
+    );
+
+    for (const item of transData) {
+      const code = String(item[keyField] || "").toLowerCase();
+      if (!seenCodes.has(code)) {
+        merged.push(item);
+        seenCodes.add(code);
+      }
+    }
+
+    setPopupData(merged);
   } catch (err) {
     console.error("Failed to fetch popup data", err);
     setPopupData([]);

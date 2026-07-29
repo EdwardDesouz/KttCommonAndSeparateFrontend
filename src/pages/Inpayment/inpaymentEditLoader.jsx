@@ -94,6 +94,8 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
     setSummaryCustomerRemarks,
     setSummaryDate,
     setSummaryTime,
+    setSummaryImporterCruei,
+    setSummaryImporterName,
     setInvoiceTable,
     setItemTable,
     setEditingSNo,
@@ -190,36 +192,67 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
       // We reuse the inpaymentnew/ endpoint because it runs the JOIN
       // query across ManageUser + SequencePool + DeclarantCompany,
       // which gives us MailBoxId, DeclarantName, DeclarantTel, CRUEI etc.
-      const touchUser = d.TouchUser || "";
-      if (touchUser) {
+      // const touchUser = d.TouchUser || "";
+      // if (touchUser) {
+      //   try {
+      //     const declarantRes = await API.get(
+      //       `/inpaymentnew/?user=${touchUser}`,
+      //     );
+      //     const dec = declarantRes.data;
+      //     // We update ONLY the declarant fields.
+      //     // PermitId, JobId, MsgId, RefId stay from Step 1 — we do NOT
+      //     // overwrite them with the new permit IDs that inpaymentnew/ generates.
+      //     updatePermitDetails({
+      //       PermitId: permitId,
+      //       JobId: d.JobId || "",
+      //       MsgId: d.MSGId || "",
+      //       RefId: d.Refid || "",
+      //       MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
+      //       TradeNetMailboxID:
+      //         dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+      //       DeclarantName: dec.DeclarantName || "",
+      //       DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
+      //       DeclarantTel: dec.DeclarantTel || "",
+      //       CRUEI: dec.CRUEI || "",
+      //       Code: dec.Code || "",
+      //       name: dec.name || "",
+      //       name1: dec.name1 || "",
+      //       PermitNumber: d.PermitNumber || "",
+      //       prmtStatus: d.prmtStatus || "NEW",
+      //       SeqPool: dec.SeqPool || "",
+      //       StartSequence: dec.StartSequence || "",
+      //       AccountId: dec.AccountId || "",
+      //     });
+      //   } catch (err) {
+      //     console.error("Failed to fetch declarant details in edit mode:", err);
+      //   }
+      // }
+      // ── Step 2: Fetch declarant company details using TradeNetMailboxID ─
+      // TradeNetMailboxID is stored directly on the permit header, so this
+      // is stable regardless of who last touched the permit (unlike TouchUser).
+      const mailboxId = d.TradeNetMailboxID || "";
+      if (mailboxId) {
         try {
           const declarantRes = await API.get(
-            `/inpaymentnew/?user=${touchUser}`,
+            `/getDeclarantByMailbox/?MailboxId=${mailboxId}`,
           );
           const dec = declarantRes.data;
-          // We update ONLY the declarant fields.
-          // PermitId, JobId, MsgId, RefId stay from Step 1 — we do NOT
-          // overwrite them with the new permit IDs that inpaymentnew/ generates.
           updatePermitDetails({
             PermitId: permitId,
             JobId: d.JobId || "",
             MsgId: d.MSGId || "",
             RefId: d.Refid || "",
-            MailBoxId: dec.MailBoxId || d.TradeNetMailboxID || "",
-            TradeNetMailboxID:
-              dec.TradeNetMailboxID || d.TradeNetMailboxID || "",
+            MailBoxId: mailboxId,
+            TradeNetMailboxID: mailboxId,
             DeclarantName: dec.DeclarantName || "",
             DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
             DeclarantTel: dec.DeclarantTel || "",
             CRUEI: dec.CRUEI || "",
             Code: dec.Code || "",
-            name: dec.name || "",
-            name1: dec.name1 || "",
+            name: dec.Name || "",
+            name1: dec.Name1 || "",
             PermitNumber: d.PermitNumber || "",
             prmtStatus: d.prmtStatus || "NEW",
-            SeqPool: dec.SeqPool || "",
-            StartSequence: dec.StartSequence || "",
-            AccountId: dec.AccountId || "",
           });
         } catch (err) {
           console.error("Failed to fetch declarant details in edit mode:", err);
@@ -365,6 +398,7 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
       setClaimantCode(claimantCode);
 
       // Fetch Importer full details
+      // Fetch Importer full details
       if (importerCode) {
         try {
           const importerRes = await API.get("/getCommonImporterTableInfo/");
@@ -376,6 +410,10 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
             setImporterCruei(matched.CRUEI || "");
             setImporterName(matched.Name || "");
             setImporterName1(matched.Name1 || "");
+            // Summary tab validation/display idha use pannuthu —
+            // Party tab visit pannama idhu direct-a set aaganum
+            setSummaryImporterCruei(matched.CRUEI || "");
+            setSummaryImporterName(matched.Name || "");
           }
         } catch (err) {
           console.error("Failed to fetch importer details:", err);
@@ -489,8 +527,21 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
       setReceiptLocationDescription(d.RecepitLocName || "");
       setTotalOuterPackValue(d.TotalOuterPack || "");
       setTotalOuterPackName(d.TotalOuterPackUOM || "");
-      setTotalGrossWeight(d.TotalGrossWeight || "");
-      setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      // setTotalGrossWeight(d.TotalGrossWeight || "");
+      // setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
+      const savedGrossWeight = d.TotalGrossWeight || "";
+      const savedGrossUOM = d.TotalGrossWeightUOM || "--Select--";
+
+      let displayGrossWeight = savedGrossWeight;
+      if (savedGrossUOM === "TNE" && savedGrossWeight !== "") {
+        const num = Number(savedGrossWeight);
+        if (!isNaN(num)) {
+          displayGrossWeight = String(num * 1000);
+        }
+      }
+
+      setTotalGrossWeight(displayGrossWeight);
+      setGrossUOM(savedGrossUOM);
 
       // Blanket Date — convert from YYYY-MM-DDT... to DD/MM/YYYY
       const rawBlanketDate = d.BlanketStartDate || "";
@@ -509,8 +560,8 @@ function InpaymentEditLoader({ permitId, isEditMode }) {
       setSummaryDate(d.MRDate || "");
       setSummaryTime(d.MRTime || "");
       setCnBChecked(d.Cnb === "Y");
-      setSummaryApprovedBy(d.gstVerified||"");
-      setSummaryCustomerRemarks(d.CustomerRemarks||"");
+      setSummaryApprovedBy(d.gstVerified || "");
+      setSummaryCustomerRemarks(d.CustomerRemarks || "");
 
       // Fetch Invoice data by PermitId
       try {

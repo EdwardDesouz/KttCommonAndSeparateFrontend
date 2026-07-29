@@ -26,7 +26,6 @@ function Cpc({ setActiveTab, isViewMode }) {
     setCwcRows,
     schemeRows,
     setSchemeRows,
-
     // additional requirements for save as draft functions
     decType,
     prevPermitNo,

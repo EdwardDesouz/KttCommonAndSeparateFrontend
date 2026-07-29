@@ -3,13 +3,13 @@ import { useOut } from "../context/outContext";
 import API from "../../../api/api";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../../userContex/userContex";
+import { CircleLoader } from "react-spinners";
 
-function Amend({ setActiveTab,isViewMode }) {
+function Amend({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   const {
     permitDetails,
-
     // Header
     decType,
     prevPermitNo,
@@ -18,12 +18,21 @@ function Amend({ setActiveTab,isViewMode }) {
     setShowPermit,
     cargo,
     transportMode,
+    outTransportMode, // ⬅ missing
+    coType, // ⬅ missing
     declFor,
     bgInd,
     supplyInd,
     refDocs,
     Licence,
     Recipients,
+    certificateType1, // ⬅ missing
+    certificateCopy1, // ⬅ missing
+    certificateType2, // ⬅ missing
+    certificateCopy2, // ⬅ missing
+    currencyCode, // ⬅ missing
+    additionalCertificateDetails, // ⬅ missing
+    transportDetailsHeader, // ⬅ missing
     showDeclarationTypeError,
     setShowDeclarationTypeError,
     showCargoPackTypeError,
@@ -32,6 +41,9 @@ function Amend({ setActiveTab,isViewMode }) {
     setShowDeclaringForError,
     setShowInwardTransportError,
     showInwardTransportError,
+    showOutwardTransportError,
+    setShowOutwardTransportError, // ⬅ missing
+
     // Party
     importerCode,
     showImporterCrueiError,
@@ -45,6 +57,14 @@ function Amend({ setActiveTab,isViewMode }) {
     setShowInwardNameError,
     freightForwarderCode,
     claimantCode,
+    endUserCode, // ⬅ missing
+    manufacturerCode, // ⬅ missing
+    exporterCode, // ⬅ missing
+    exporterCruei, // ⬅ missing (used in render, not payload)
+    exporterName, // ⬅ missing
+    outwardCode, // ⬅ missing
+    congineeCode, // ⬅ missing
+
     // Cargo
     cargoHawb,
     arrivalDate,
@@ -83,7 +103,34 @@ function Amend({ setActiveTab,isViewMode }) {
     showGrossUOMError,
     setShowGrossUOMError,
     blanketStartDate,
+    exhibitionStartDate,
+    exhibitionEndDate, // ⬅ missing
     containers,
+
+    storageCode, // ⬅ missing
+    dischargePortCode, // ⬅ missing
+    finalDestinationCountry, // ⬅ missing
+    departureDate, // ⬅ missing
+    outVoyageNumber,
+    outVesselName,
+    outObl, // ⬅ missing
+    vesselType,
+    vesselNetRegisterTonnage,
+    vesselNationality, // ⬅ missing
+    towingVesselId,
+    towingVesselName, // ⬅ missing
+    nextPortCode,
+    lastPortCode, // ⬅ missing
+    outConveyanceNumber,
+    outTransportDetails, // ⬅ missing
+    outFlightNumber,
+    outAirCraftRegNumber,
+    outMawbNumber, // ⬅ missing
+    outCargoHawb, // ⬅ missing (used in header + display)
+    outSeaStore, // ⬅ missing
+
+    // visibility flags for optional transport fields
+    showTransportDetails, // ⬅ missing (used to gate TransportId)
 
     // Invoice & Item tables
     invoiceTable,
@@ -112,6 +159,7 @@ function Amend({ setActiveTab,isViewMode }) {
     setSummaryTime,
     summaryDeclaringFor,
     setSummaryDeclaringFor,
+
     // CPC
     showAeo,
     showCwc,
@@ -269,7 +317,7 @@ function Amend({ setActiveTab,isViewMode }) {
 
     // ── Amend payload ────────────────────────────────────────────────────
     const amendPayload = {
-      Permitno: permitId,
+      Permitno: (permitNumber || permitDetails?.PermitNumber || "").trim(),
       AmendmentCount: amendCount,
       UpdateIndicator: updateIndicator,
       ReplacementPermitno: replacementPermitNumber,
@@ -283,7 +331,7 @@ function Amend({ setActiveTab,isViewMode }) {
       MSGId: msgId,
     };
 
-    // ── Header payload (only fields needed for amend update) ────────────
+    // ── Header payload (unchanged from your current version) ────────────
     const headerPayload = {
       Refid: permitDetails?.RefId || "",
       JobId: permitDetails?.JobId || "",
@@ -292,28 +340,41 @@ function Amend({ setActiveTab,isViewMode }) {
       TradeNetMailboxID:
         permitDetails?.MailBoxId || permitDetails?.TradeNetMailboxID || "",
       MessageType: "OUTDEC",
-      DeclarationType: cleanSelect(decType),
+      DeclarationType: decType || "",
       PreviousPermit: prevPermitNo || "",
-      CargoPackType: cleanSelect(cargo),
-      InwardTransportMode: cleanSelect(transportMode),
-      BGIndicator: cleanSelect(bgInd),
+      CargoPackType: cargo || "",
+      InwardTransportMode: transportMode || "",
+      OutwardTransportMode: outTransportMode || "",
+      COType: coType || "",
+      BGIndicator: bgInd || "",
       SupplyIndicator: supplyInd ? "Y" : "N",
       ReferenceDocuments: refDocs ? "Y" : "N",
       License: Licence || "",
       Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
+      CerDetailtype1: certificateType1 || "",
+      CerDetailCopies1: certificateCopy1 || "",
+      CerDetailtype2: certificateType2 || "",
+      CerDetailCopies2: certificateCopy2 || "",
+      CurrencyCode: currencyCode || "",
+      TransDtl: transportDetailsHeader || "",
+      AddCerDtl: additionalCertificateDetails || "",
+      DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode || "",
+      ExporterCompanyCode: exporterCode || "",
       InwardCarrierAgentCode: inwardCode || "",
+      OutwardCarrierAgentCode: outwardCode || "",
+      CONSIGNEECode: congineeCode || "",
       FreightForwarderCode: freightForwarderCode || "",
       ClaimantPartyCode: claimantCode || "",
-      HBL: cargoHawb || "",
-      ArrivalDate: formatDate(arrivalDate),
+      EndUserCode: endUserCode || "",
+      Manufacturer: manufacturerCode || "",
+      ArrivalDate: formatDate(arrivalDate) || null,
       LoadingPortCode: loadingPortCode || "",
       VoyageNumber: voyageNumber || "",
       VesselName: vesselName || "",
       OceanBillofLadingNo: obl || "",
       ConveyanceRefNo: conveyanceNumber || "",
-      TransportId: transportDetails || "",
+      TransportId: showTransportDetails ? transportDetails || "" : "",
       FlightNO: flightNumber || "",
       AircraftRegNo: airCraftRegNumber || "",
       MasterAirwayBill: mawbNumber || "",
@@ -321,14 +382,44 @@ function Amend({ setActiveTab,isViewMode }) {
       ResLoaName: releaseLocationDescription || "",
       RecepitLocation: receiptCode || "",
       RecepitLocName: receiptLocationDescription || "",
+      StorageLocation: storageCode || "",
+      BlanketStartDate: formatDate(blanketStartDate) || null,
+      ExhibitionSDate: formatDate(exhibitionStartDate) || null,
+      ExhibitionEDate: formatDate(exhibitionEndDate) || null,
+      DepartureDate: formatDate(departureDate) || null,
+      DischargePort: dischargePortCode || "",
+      FinalDestinationCountry: finalDestinationCountry || "",
+      OutVoyageNumber: outVoyageNumber || "",
+      OutVesselName: outVesselName || "",
+      OutOceanBillofLadingNo: outObl || "",
+      VesselType: vesselType || "",
+      VesselNetRegTon: vesselNetRegisterTonnage || "",
+      VesselNationality: vesselNationality || "",
+      TowingVesselID: towingVesselId || "",
+      TowingVesselName: towingVesselName || "",
+      NextPort: nextPortCode || "",
+      LastPort: lastPortCode || "",
+      OutConveyanceRefNo: outConveyanceNumber || "",
+      OutTransportId: outTransportDetails || "",
+      OutFlightNO: outFlightNumber || "",
+      OutAircraftRegNo: outAirCraftRegNumber || "",
+      OutMasterAirwayBill: outMawbNumber || "",
       TotalOuterPack: totalOuterPackValue || "",
-      TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
-      TotalGrossWeightUOM: cleanSelect(grossUOM),
-      BlanketStartDate: formatDate(blanketStartDate),
+      TotalOuterPackUOM: totalOuterPackName || "",
+      // TotalGrossWeight: totalGrossWeight || "",
+      TotalGrossWeight:
+        permitGrossWeight !== "" && permitGrossWeight !== undefined
+          ? permitGrossWeight
+          : totalGrossWeight || "",
+      TotalGrossWeightUOM: grossUOM || "",
+      ReleaseLocaName: "",
+      INHAWB: cargoHawb || "",
+      outHAWB: outCargoHawb || "",
+      seastore: outSeaStore ? "Y" : "N",
       GrossReference: summaryCrossReference || "",
       TradeRemarks: summaryRemarks || "",
       InternalRemarks: summaryInternalReamarks || "",
+      CustomerRemarks: "",
       DeclareIndicator: declarationChecked ? "Y" : "N",
       NumberOfItems: toDecimal(itemTable.length),
       TotalCIFFOBValue: toDecimal(totalItemCifValue),
@@ -343,19 +434,36 @@ function Amend({ setActiveTab,isViewMode }) {
       PermitNumber: permitDetails?.PermitNumber || "",
       prmtStatus: "AMD",
       Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
-      MRDate: formatDate(summaryDate),
+      DeclarningFor: declFor || "--Select--",
+      MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
     };
 
     try {
-      // Save amend record first
-      await API.post("/postAmendTable/", amendPayload);
-      // Then save/update header
+      // Save amend record first — postOutAmendTable already mirrors
+      // CommonAmend -> OutAmend server-side (see PostOutAmendTable.out_table),
+      // same as PostInnonAmendTable mirrors into InnonAmend.
+      await API.post("/postOutAmendTable/", amendPayload);
+
+      // Then save/update the canonical header
       await API.post("/postCommonHeaderTable/", headerPayload);
 
+      // Mirror header into OutHeaderTbl (same pattern as InNonPayment's
+      // Summary/Amend doSavePermit mirroring into InnonHeaderTbl)
+      try {
+        await API.post("out/postOutHeaderTable/", headerPayload);
+      } catch (mirrorErr) {
+        console.error("Mirror header save failed", mirrorErr);
+        setSaveMessage(
+          "Warning: Amend was saved but failed to mirror to OutHeaderTbl. " +
+            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+        );
+        setSaving(false);
+        return;
+      }
+
       setSaveMessage("Permit saved successfully.");
-      setTimeout(() => navigate("/innonpayment"), 1000);
+      setTimeout(() => navigate("/out"), 1000);
     } catch (err) {
       console.error("Amend save error:", err);
       setSaveMessage(
@@ -388,11 +496,7 @@ function Amend({ setActiveTab,isViewMode }) {
           />
         </div>
         <div className="col-3">
-          <input
-            className="inputStyle"
-            value={updateIndicator}
-            onChange={(e) => setUpdateIndicator(e.target.value)}
-          />
+          <input className="inputStyle" value="AME" disabled />
         </div>
         <div className="col-3">
           <input
@@ -521,31 +625,60 @@ function Amend({ setActiveTab,isViewMode }) {
         </div>
       )}
 
-<div className="mt-4 d-flex justify-content-center gap-3">
-  <button
-    className="NextpageBtns view-nav-btn"
-    onClick={() => setActiveTab("SummaryTab")}
-  >
-    PREVIOUS
-  </button>
-  {isViewMode ? (
-    <button
-      className="NextpageBtns view-nav-btn"
-      onClick={() => window.close()}
-    >
-      CLOSE
-    </button>
-  ) : (
-    <button
-      className="NextpageBtns"
-      onClick={handleSavePermit}
-      disabled={saving}
-    >
-      {saving ? "SAVING..." : "SAVE PERMIT"}
-    </button>
-  )}
-</div>
+      <div className="mt-4 d-flex justify-content-center gap-3">
+        <button
+          className="NextpageBtns view-nav-btn"
+          onClick={() => setActiveTab("SummaryTab")}
+        >
+          PREVIOUS
+        </button>
+        {isViewMode ? (
+          <button
+            className="NextpageBtns view-nav-btn"
+            onClick={() => window.close()}
+          >
+            CLOSE
+          </button>
+        ) : (
+          <button
+            className="NextpageBtns"
+            onClick={handleSavePermit}
+            disabled={saving}
+          >
+            {saving ? "SAVING..." : "SAVE PERMIT"}
+          </button>
+        )}
+      </div>
       <br />
+      {saving && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(255,255,255,0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <CircleLoader size={60} color="#35e00b" loading={saving} />
+          <div
+            style={{
+              marginTop: "16px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              color: "#165f03",
+            }}
+          >
+            SAVING PERMIT...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

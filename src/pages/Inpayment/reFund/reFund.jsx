@@ -471,7 +471,8 @@ function Refund({ setActiveTab,isViewMode }) {
     ]);
   };
 
-  // ── SAVE PERMIT ───────────────────────────────────────────────────
+ 
+// ── SAVE PERMIT ───────────────────────────────────────────────────
   const handleSavePermit = async () => {
     if (!validate()) return;
     setSaving(true);
@@ -516,71 +517,10 @@ function Refund({ setActiveTab,isViewMode }) {
       MSGId: msgId,
     };
 
-    const headerPayload = {
-      Refid: permitDetails?.RefId || "",
-      JobId: permitDetails?.JobId || "",
-      MSGId: msgId,
-      PermitId: permitId,
-      TradeNetMailboxID:
-        permitDetails?.MailBoxId || permitDetails?.TradeNetMailboxID || "",
-      MessageType: "IPTDEC",
-      DeclarationType: cleanSelect(decType),
-      PreviousPermit: prevPermitNo || "",
-      CargoPackType: cleanSelect(cargo),
-      InwardTransportMode: cleanSelect(transportMode),
-      BGIndicator: cleanSelect(bgInd),
-      SupplyIndicator: supplyInd ? "Y" : "N",
-      ReferenceDocuments: refDocs ? "Y" : "N",
-      License: Licence || "",
-      Recipient: Recipients || "",
-      DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
-      ImporterCompanyCode: importerCode || "",
-      InwardCarrierAgentCode: inwardCode || "",
-      FreightForwarderCode: freightForwarderCode || "",
-      ClaimantPartyCode: claimantCode || "",
-      HBL: cargoHawb || "",
-      ArrivalDate: formatDate(arrivalDate),
-      LoadingPortCode: loadingPortCode || "",
-      VoyageNumber: voyageNumber || "",
-      VesselName: vesselName || "",
-      OceanBillofLadingNo: obl || "",
-      ConveyanceRefNo: conveyanceNumber || "",
-      TransportId: transportDetails || "",
-      FlightNO: flightNumber || "",
-      AircraftRegNo: airCraftRegNumber || "",
-      MasterAirwayBill: mawbNumber || "",
-      ReleaseLocation: releaseCode || "",
-      ResLoaName: releaseLocationDescription || "",
-      RecepitLocation: receiptCode || "",
-      RecepitLocName: receiptLocationDescription || "",
-      TotalOuterPack: totalOuterPackValue || "",
-      TotalOuterPackUOM: cleanSelect(totalOuterPackName),
-      TotalGrossWeight: totalGrossWeight || "",
-      TotalGrossWeightUOM: cleanSelect(grossUOM),
-      BlanketStartDate: formatDate(blanketStartDate),
-      GrossReference: summaryCrossReference || "",
-      TradeRemarks: summaryRemarks || "",
-      InternalRemarks: summaryInternalReamarks || "",
-      DeclareIndicator: declarationChecked ? "Y" : "N",
-      NumberOfItems: toDecimal(itemTable.length),
-      TotalCIFFOBValue: toDecimal(totalItemCifValue),
-      TotalGSTTaxAmt: toDecimal(totalItemGstAmount),
-      TotalExDutyAmt: toDecimal(sumOfExciseDutyAmount),
-      TotalCusDutyAmt: toDecimal(sumOfCustomsDutyAmount),
-      TotalODutyAmt: toDecimal(sumOfOtherTaxAmount),
-      TotalAmtPay: toDecimal(totalItemGstAmount),
-      Status: "NEW",
-      TouchUser: touchUser,
-      TouchTime: touchTime,
-      PermitNumber: permitNumber || permitDetails?.PermitNumber || "",
-      prmtStatus: "RFD",
-      Cnb: cnBChecked ? "Y" : "N",
-      DeclarningFor: declFor || "",
-      MRDate: formatDate(summaryDate),
-      MRTime: summaryTime || "",
-    };
-
     try {
+      // ── Refund record (also flips CommonHeaderTbl/InHeaderTbl to
+      //    prmtStatus='RFD', Status='NEW' server-side — no header
+      //    payload needed from here) ─────────────────────────────
       await API.post("/postRefundPermit/", refundPayload);
       await API.post("/postRefundValSummary/", refundValSummaryPayload);
 
@@ -606,7 +546,6 @@ function Refund({ setActiveTab,isViewMode }) {
         }
       }
 
-      await API.post("/postCommonHeaderTable/", headerPayload);
       setSaveMessage("Refund permit saved successfully.");
       setTimeout(() => navigate("/inpayment"), 1000);
     } catch (err) {

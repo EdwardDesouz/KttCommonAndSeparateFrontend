@@ -330,7 +330,7 @@ function Transhipment() {
     { header: "", accessor: "checkbox" },
     { header: "DELETE", accessor: "delete" },
     { header: "EDIT", accessor: "edit" },
-    { header: "VIEW", accessor: "view" },
+    // { header: "VIEW", accessor: "view" },
     { header: "JOB ID", accessor: "JobId" },
     { header: "MSG ID", accessor: "MSGId" },
     { header: "DECDATE", accessor: "DECDATE" },
@@ -362,8 +362,8 @@ function Transhipment() {
     "TransmitId",
   ];
 
-  const actionColumns = ["checkbox", "delete", "edit", "view"];
-
+  // const actionColumns = ["checkbox", "delete", "edit", "view"];
+  const actionColumns = ["checkbox", "delete", "edit"];
   const showColumnsOptions = columns
     .filter((col) => !actionColumns.includes(col.accessor))
     .map((col) => ({ accessor: col.accessor, header: col.header }));
@@ -465,6 +465,9 @@ function Transhipment() {
   const handleDelete = async (permitId) => {
     try {
       await API.get("/deletePermit/", {
+        params: { PermitId: permitId },
+      });
+      await API.get("/transhipment/deleteTransPermit/", {
         params: { PermitId: permitId },
       });
       fetchTableData(showAll);
@@ -623,6 +626,7 @@ function Transhipment() {
                     window.location.assign(
                       `${API.defaults.baseURL}downloadData/?data=${data}`,
                     );
+                    clearSelection();
                   }}
                 >
                   DOWNLOAD DATA
@@ -700,6 +704,7 @@ function Transhipment() {
                         "_blank",
                       );
                     });
+                    clearSelection();
                   }}
                 >
                   PRINT CCP
@@ -722,12 +727,13 @@ function Transhipment() {
                     window.location.assign(
                       `${API.defaults.baseURL}printStatus/${permitId}/`,
                     );
+                    clearSelection();
                   }}
                 >
                   PRINT STATUS
                 </button>
               </li>
-              <li>
+              {/* <li>
                 <button
                   className="btn2"
                   disabled={!btnState.GSTEXCEL}
@@ -748,10 +754,10 @@ function Transhipment() {
                 >
                   GST EXCEL
                 </button>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <button className="btn2">VDP GST</button>
-              </li>
+              </li> */}
               <li>
                 <button
                   className="btn2"
@@ -1096,11 +1102,44 @@ function Transhipment() {
                                       />
                                     </td>
                                   );
-                                case "view":
+                                // case "view":
+                                //   return (
+                                //     <td key={col.accessor}>
+                                //       <FaEye
+                                //         style={{ cursor: "pointer" }}
+                                //         onClick={async () => {
+                                //           try {
+                                //             await API.get(
+                                //               "/getCommonHeaderByPermitId/",
+                                //               {
+                                //                 params: {
+                                //                   PermitId: row.PermitId,
+                                //                 },
+                                //               },
+                                //             );
+                                //             window.open(
+                                //               `/transhipment/view/${row.PermitId}`,
+                                //               "_blank",
+                                //             );
+                                //           } catch (error) {
+                                //             console.error(
+                                //               "Error fetching permit data:",
+                                //               error,
+                                //             );
+                                //           }
+                                //         }}
+                                //       />
+                                //     </td>
+                                //   );
+
+                                case "MSGId":
                                   return (
                                     <td key={col.accessor}>
-                                      <FaEye
-                                        style={{ cursor: "pointer" }}
+                                      <span
+                                        style={{
+                                          cursor: "pointer",
+                                          color: "#0720ff",
+                                        }}
                                         onClick={async () => {
                                           try {
                                             await API.get(
@@ -1122,7 +1161,9 @@ function Transhipment() {
                                             );
                                           }
                                         }}
-                                      />
+                                      >
+                                        {row.MSGId}
+                                      </span>
                                     </td>
                                   );
                                 default:
