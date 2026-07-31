@@ -567,10 +567,12 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
         setShowTransportDetails(true);
         setShowInWardDetails(true);
       } else if (transportValue === "3 : Road") {
+        setShowInwardMode(true);
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
         setShowInWardDetails(true);
       } else if (transportValue === "4 : Air") {
+        setShowInwardMode(true);
         setShowFlightNumber(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
@@ -584,6 +586,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
         setShowInWardDetails(true);
+        setShowInwardMode(true);
       } else if (transportValue === "N : Not Required") {
         setShowInWardDetails(false);
         setShowNotRequired(false);

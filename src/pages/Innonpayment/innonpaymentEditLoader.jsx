@@ -127,6 +127,8 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
     setShowLoadingPort,
     setShowOutVoyage,
     setShowOutVesselName,
+    showSeaStore,
+    setShowSeaStore,
     setShowOutObl,
     setShowOutHblHawb,
     setShowOutFlightNumber,
@@ -502,14 +504,14 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       } else if (transportValue === "3 : Road") {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
-         setShowInHawbInward(true);
+        setShowInHawbInward(true);
         setShowInwardMode(true);
       } else if (transportValue === "4 : Air") {
         setShowFlightNumber(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
         setShowInwardMode(true);
-           setShowInHawbInward(true);
+        setShowInHawbInward(true);
       } else if (
         transportValue === "5 : Mail" ||
         transportValue === "6 : Multi-model(Not in use)" ||
@@ -545,6 +547,8 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
       setShowTowingVesselName(false);
       setShowNextPort(false);
       setShowLastPort(false);
+      setShowSeaStore(false);
+
       setOutHblHawbLabel("HAWB/HBL");
 
       if (
@@ -566,6 +570,7 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
           setShowTowingVesselName(true);
           setShowNextPort(true);
           setShowLastPort(true);
+          setShowSeaStore(true);
           setOutHblHawbLabel("HBL");
         } else if (
           outTransportValue === "2 : Rail" ||

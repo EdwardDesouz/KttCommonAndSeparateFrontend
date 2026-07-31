@@ -65,7 +65,11 @@ export const OutProvider = ({ children }) => {
   const [originCriterionCode1, setOriginCriterionCode1] = useState("");
   const [originCriterionCode2, setOriginCriterionCode2] = useState("");
   const [originCriterionCode3, setOriginCriterionCode3] = useState("");
- const originCeritficateDetails = [originCriterionCode1, originCriterionCode2, originCriterionCode3]
+  const originCeritficateDetails = [
+    originCriterionCode1,
+    originCriterionCode2,
+    originCriterionCode3,
+  ]
     .filter((val) => val && val.trim() !== "")
     .join(",");
   const [hsCodeCer, setHsCodeCer] = useState("");
@@ -311,7 +315,8 @@ export const OutProvider = ({ children }) => {
   const [outCargoHawbList, setOutCargoHawbList] = useState([]);
   const [arrivalDate, setArrivalDate] = useState("");
   const [showArriavalDateError, setShowArrivalDateError] = useState(false);
-  const [showCargoBlanketStartDate,setShowCargoBlanketStartDate]=useState(false);
+  const [showCargoBlanketStartDate, setShowCargoBlanketStartDate] =
+    useState(false);
   const [blanketStartDate, setBlanketStartDate] = useState("");
   const [voyageNumber, setVoyageNumber] = useState("");
   const [vesselName, setVesselName] = useState("");
@@ -420,7 +425,7 @@ export const OutProvider = ({ children }) => {
   const [hawbList, setHawbList] = useState([]);
   const [showOutItemHawbHbl, setShowOutItemHawbHbl] = useState(true);
   const [itemTable, setItemTable] = useState([]);
-    const[makingLot,setMakingLot]=useState([]);
+  const [makingLot, setMakingLot] = useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [outHawb, setOutHawb] = useState("");
@@ -482,7 +487,7 @@ export const OutProvider = ({ children }) => {
   const [showItemCasc, setShowItemCasc] = useState(false);
   const [itemCascChecked, setItemCascChecked] = useState(false);
   const [showShippingMarks, setShowShippingMarks] = useState(false);
-   const [showLotId, setShowLotId] = useState(false);
+  const [showLotId, setShowLotId] = useState(false);
   const [showUnitPriceVal, setShowUnitPriceVal] = useState(false);
   const defaultItemCasc = [
     {
@@ -508,7 +513,7 @@ export const OutProvider = ({ children }) => {
     },
   ];
   const [itemCasc, setItemCasc] = useState(defaultItemCasc);
-   const [currentLot, setCurrentLot] = useState("");
+  const [currentLot, setCurrentLot] = useState("");
   const [making, setMaking] = useState("");
   const [previousLot, setPreviousLot] = useState("");
   const [shippingMarks1, setShippingMarks1] = useState("");
@@ -1019,6 +1024,7 @@ export const OutProvider = ({ children }) => {
         departureDate,
         setDepartureDate,
         showDepartureDateError,
+        setShowDepartureDateError,
         nextPortCode,
         setNextPortCode,
         nextPortName,
@@ -1027,6 +1033,8 @@ export const OutProvider = ({ children }) => {
         setLastPortCode,
         lastPortName,
         setLastPortName,
+        showSeaStore,
+        setShowSeaStore,
         exhibitionStartDate,
         setExhibitionStartDate,
         exhibitionEndDate,
@@ -1131,7 +1139,7 @@ export const OutProvider = ({ children }) => {
         setShowOutItemHawbHbl,
         itemTable,
         setItemTable,
-                makingLot,
+        makingLot,
         setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
@@ -1251,14 +1259,14 @@ export const OutProvider = ({ children }) => {
         setItemCascChecked,
         showShippingMarks,
         setShowShippingMarks,
-               showLotId,
+        showLotId,
         setShowLotId,
         showUnitPriceVal,
         setShowUnitPriceVal,
         itemCasc,
         setItemCasc,
         defaultItemCasc,
-                currentLot,
+        currentLot,
         setCurrentLot,
         making,
         setMaking,

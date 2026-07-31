@@ -342,19 +342,19 @@ function Out() {
     { header: "EXPORTER", accessor: "EXPORTER" },
     { header: "HAWB", accessor: "HAWB" },
     { header: "MAWB/OBL", accessor: "MAWBOBL" },
-    { header: "POD", accessor: "POL" },
-    { header: "COTYPE", accessor: "POL" },
-    { header: "CERT TYPE", accessor: "POL" },
-    { header: "CERT NO", accessor: "POL" },
+    { header: "POD", accessor: "POD" },
+    { header: "COTYPE", accessor: "COTYPE" },
+    { header: "CERT TYPE", accessor: "CERTTYPE" },
+    { header: "CERT NO", accessor: "CERTNO" },
     { header: "MSG TYPE", accessor: "MSGTYPE" },
     { header: "TPT", accessor: "TPT" },
     { header: "PRE PMT", accessor: "PREPMT" },
     { header: "XREF", accessor: "XREF" },
     { header: "INTREM", accessor: "INTREM" },
     { header: "MESSAGE", accessor: "MSG" },
+    { header: "REL", accessor: "REL" },
+    { header: "RCL", accessor: "RCL" },
     { header: "STATUS", accessor: "Status" },
-    { header: "REL", accessor: "POL" },
-    { header: "RCL", accessor: "POL" },
   ];
 
   const defaultHiddenColumns = [
@@ -1100,15 +1100,36 @@ function Out() {
                                       />
                                     </td>
                                   );
-                                case "edit":
+                                case "edit": {
+                                  const isEditable = [
+                                    "NEW",
+                                    "DRF",
+                                    "SAVEASDRF",
+                                    "DISCONNECT",
+                                    "WFA",
+                                  ].includes((row.Status || "").toUpperCase());
                                   return (
                                     <td key={col.accessor}>
                                       <FaEdit
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => editPermit(row.PermitId)}
+                                        style={{
+                                          cursor: isEditable
+                                            ? "pointer"
+                                            : "not-allowed",
+                                          color: isEditable
+                                            ? undefined
+                                            : "#ccc",
+                                          pointerEvents: isEditable
+                                            ? "auto"
+                                            : "none",
+                                        }}
+                                        onClick={() => {
+                                          if (isEditable)
+                                            editPermit(row.PermitId);
+                                        }}
                                       />
                                     </td>
                                   );
+                                }
                                 // case "view":
                                 //   return (
                                 //     <td key={col.accessor}>

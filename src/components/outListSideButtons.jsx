@@ -394,17 +394,18 @@ function ListButtons({
             <button
               className={`navbar-btn ${label === "SUBMIT" ? "navbar-btn-submit" : ""}`}
               onClick={() => handleClick(label)}
-              disabled={label !== "NEW" && btnState && !btnState[label]} // ✅ ADD
+              disabled={label !== "NEW" && btnState && !btnState[label]} 
               style={{
                 backgroundColor:
                   label === "SUBMIT"
                     ? label !== "NEW" && btnState && !btnState[label]
-                      ? "#8fbf8f" // muted green when disabled
-                      : "#2f01fd" // solid green when enabled
+                      ? "#8fbf8f"
+                      : "#2f01fd" 
                     : undefined,
                 color: label === "SUBMIT" ? "#fff" : undefined,
+                fontWeight: "bold",
                 opacity:
-                  label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1, // ✅ ADD
+                  label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1,
                 cursor:
                   label !== "NEW" && btnState && !btnState[label]
                     ? "not-allowed"

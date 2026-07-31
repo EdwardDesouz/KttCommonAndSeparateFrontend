@@ -225,6 +225,8 @@ function OutEditLoader({ permitId, isEditMode }) {
     setCargoOutwardTransportMode,
     setSummaryImporterCruei,
     setSummaryImporterName,
+    showSeaStore,
+    setShowSeaStore,
 
     // Summary
     setSummaryCrossReference,
@@ -369,35 +371,34 @@ function OutEditLoader({ permitId, isEditMode }) {
       //     console.error("Failed to fetch declarant details in edit mode:", err);
       //   }
       // }
-const mailboxId = d.TradeNetMailboxID || "";
-if (mailboxId) {
-  try {
-    const declarantRes = await API.get(
-      `/getDeclarantByMailbox/?MailboxId=${mailboxId}`,
-    );
-    const dec = declarantRes.data;
-    updatePermitDetails({
-      PermitId: permitId,
-      JobId: d.JobId || "",
-      MsgId: d.MSGId || "",
-      RefId: d.Refid || "",
-      MailBoxId: mailboxId,
-      TradeNetMailboxID: mailboxId,
-      DeclarantName: dec.DeclarantName || "",
-      DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
-      DeclarantTel: dec.DeclarantTel || "",
-      CRUEI: dec.CRUEI || "",
-      Code: dec.Code || "",
-      name: dec.Name || "",
-      name1: dec.Name1 || "",
-      PermitNumber: d.PermitNumber || "",
-      prmtStatus: d.prmtStatus || "NEW",
-    });
-  } catch (err) {
-    console.error("Failed to fetch declarant details in edit mode:", err);
-  }
-}
-
+      const mailboxId = d.TradeNetMailboxID || "";
+      if (mailboxId) {
+        try {
+          const declarantRes = await API.get(
+            `/getDeclarantByMailbox/?MailboxId=${mailboxId}`,
+          );
+          const dec = declarantRes.data;
+          updatePermitDetails({
+            PermitId: permitId,
+            JobId: d.JobId || "",
+            MsgId: d.MSGId || "",
+            RefId: d.Refid || "",
+            MailBoxId: mailboxId,
+            TradeNetMailboxID: mailboxId,
+            DeclarantName: dec.DeclarantName || "",
+            DeclarantCode: dec.DeclarantCode || d.DeclarantCompanyCode || "",
+            DeclarantTel: dec.DeclarantTel || "",
+            CRUEI: dec.CRUEI || "",
+            Code: dec.Code || "",
+            name: dec.Name || "",
+            name1: dec.Name1 || "",
+            PermitNumber: d.PermitNumber || "",
+            prmtStatus: d.prmtStatus || "NEW",
+          });
+        } catch (err) {
+          console.error("Failed to fetch declarant details in edit mode:", err);
+        }
+      }
 
       // ── Header Tab ──────────────────────────────────────────────
       const decTypeValue = d.DeclarationType || "";
@@ -566,8 +567,10 @@ if (mailboxId) {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
         setShowInWardDetails(true);
+        setShowInwardMode(true);
       } else if (transportValue === "4 : Air") {
         setShowFlightNumber(true);
+        setShowInwardMode(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
         setShowInWardDetails(true);
@@ -609,6 +612,7 @@ if (mailboxId) {
       setShowTowingVesselName(false);
       setShowNextPort(false);
       setShowLastPort(false);
+      setShowSeaStore(false);
       setOutHblHawbLabel("HAWB/HBL");
 
       if (
@@ -632,6 +636,7 @@ if (mailboxId) {
           setShowLastPort(true);
           setOutHblHawbLabel("HBL");
           setShowOutwardCarrier(true);
+          setShowSeaStore(true);
         } else if (
           outTransportValue === "2 : Rail" ||
           outTransportValue === "3 : Road" ||
@@ -986,18 +991,18 @@ if (mailboxId) {
       // setTotalGrossWeight(d.TotalGrossWeight || "");
       // setGrossUOM(d.TotalGrossWeightUOM || "--Select--");
       const savedGrossWeight = d.TotalGrossWeight || "";
-const savedGrossUOM = d.TotalGrossWeightUOM || "--Select--";
+      const savedGrossUOM = d.TotalGrossWeightUOM || "--Select--";
 
-let displayGrossWeight = savedGrossWeight;
-if (savedGrossUOM === "TNE" && savedGrossWeight !== "") {
-  const num = Number(savedGrossWeight);
-  if (!isNaN(num)) {
-    displayGrossWeight = String(num * 1000);
-  }
-}
+      let displayGrossWeight = savedGrossWeight;
+      if (savedGrossUOM === "TNE" && savedGrossWeight !== "") {
+        const num = Number(savedGrossWeight);
+        if (!isNaN(num)) {
+          displayGrossWeight = String(num * 1000);
+        }
+      }
 
-setTotalGrossWeight(displayGrossWeight);
-setGrossUOM(savedGrossUOM);
+      setTotalGrossWeight(displayGrossWeight);
+      setGrossUOM(savedGrossUOM);
       setBlanketStartDate(formatApiDate(d.BlanketStartDate));
       setExhibitionStartDate(formatApiDate(d.ExhibitionSDate));
       setExhibitionEndDate(formatApiDate(d.ExhibitionEDate));

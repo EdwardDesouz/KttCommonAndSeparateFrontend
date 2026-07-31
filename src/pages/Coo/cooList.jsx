@@ -337,19 +337,20 @@ function Coo() {
     { header: "DECTYPE", accessor: "DECTYPE" },
     { header: "CREATE", accessor: "CREATE_USER" },
     { header: "DECID", accessor: "DECID" },
-    { header: "ETA", accessor: "ETA" },
+    { header: "ETD", accessor: "ETD" },
     { header: "PERMITNO", accessor: "PERMITNO" },
     { header: "EXPORTER", accessor: "EXPORTER" },
-    { header: "HAWB", accessor: "HAWB" },
-    { header: "MAWB/OBL", accessor: "MAWBOBL" },
-    { header: "POL", accessor: "POL" },
+    // { header: "HAWB", accessor: "HAWB" },
+    // { header: "MAWB/OBL", accessor: "MAWBOBL" },
+    { header: "POD", accessor: "POD" },
+    { header: "COTYPE", accessor: "CoType" },
+    { header: "CERT TYPE", accessor: "CerDetailtype1" },
     { header: "MSGTYPE", accessor: "MSGTYPE" },
     { header: "TPT", accessor: "TPT" },
     { header: "PREPMT", accessor: "PREPMT" },
     { header: "XREF", accessor: "XREF" },
     { header: "INTREM", accessor: "INTREM" },
     { header: "MESSAGE", accessor: "MSG" },
-    { header: "GSTAMT", accessor: "GSTAMT" },
     { header: "STATUS", accessor: "Status" },
   ];
 
@@ -1094,15 +1095,36 @@ function Coo() {
                                       />
                                     </td>
                                   );
-                                case "edit":
+                                case "edit": {
+                                  const isEditable = [
+                                    "NEW",
+                                    "DRF",
+                                    "SAVEASDRF",
+                                    "DISCONNECT",
+                                    "WFA",
+                                  ].includes((row.Status || "").toUpperCase());
                                   return (
                                     <td key={col.accessor}>
                                       <FaEdit
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => editPermit(row.PermitId)}
+                                        style={{
+                                          cursor: isEditable
+                                            ? "pointer"
+                                            : "not-allowed",
+                                          color: isEditable
+                                            ? undefined
+                                            : "#ccc",
+                                          pointerEvents: isEditable
+                                            ? "auto"
+                                            : "none",
+                                        }}
+                                        onClick={() => {
+                                          if (isEditable)
+                                            editPermit(row.PermitId);
+                                        }}
                                       />
                                     </td>
                                   );
+                                }
                                 // case "view":
                                 //   return (
                                 //     <td key={col.accessor}>

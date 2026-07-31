@@ -525,24 +525,24 @@ function Item({ setActiveTab, isViewMode }) {
   // const [showShippingMarks, setShowShippingMarks] = useState(false);
 
   // ------------------ Toggle Functions ------------------
+  const clearPackingFields = () => {
+    setOuterPackQuantity("0.00");
+    setOuterPackQuantityUom("");
+    setInPackQuantity("0.00");
+    setInPackQuantityUom("");
+    setInnerPackQuantity("0.00");
+    setInnerPackQuantityUom("");
+    setImmostPackQuantity("0.00");
+    setImmostPackQuantityUom("");
+  };
+
   const togglePacking = (checked) => {
     setPackingChecked(checked);
     setShowPacking(checked);
     if (!checked) {
-      setPackingDetails({
-        outerPackQty: 0,
-        outerPackUOM: "",
-        inPackQty: 0,
-        inPackUOM: "",
-        innerPackQty: 0,
-        innerPackUOM: "",
-        inmostPackQty: 0,
-        inmostPackUOM: "",
-      });
+      clearPackingFields();
     } else {
-      setTimeout(() => {
-        outerPackQtyRef.current?.focus();
-      }, 0);
+      setTimeout(() => outerPackQtyRef.current?.focus(), 0);
     }
   };
 
@@ -1441,8 +1441,8 @@ function Item({ setActiveTab, isViewMode }) {
   // }, []);
   // ------------------Invoice Calculations -------------
   useEffect(() => {
-    itemAlchoholCalculationFunction();
     dutiableQtyFunction();
+    itemAlchoholCalculationFunction();
   }, [
     totalDuitableQuantity,
     alcoholPercentage,
@@ -1500,6 +1500,11 @@ function Item({ setActiveTab, isViewMode }) {
     setTotalInvoiceCharge(invoiceCharge.toFixed(2));
     const total2 = TotalLineAmd + invoiceCharge;
     setCifFob(total2.toFixed(2));
+
+    if (hsCode.startsWith("87")) {
+      const vehicleExcise = (total2 * Number(exciseDutyRate)) / 100;
+      setExciseDutyAmount(vehicleExcise.toFixed(2));
+    }
   };
 
   // ------------------Total DutiableQuantity Function -------------
@@ -1747,13 +1752,14 @@ function Item({ setActiveTab, isViewMode }) {
       setCustomsDutyRate(0);
       setCustomsDutyUom("--Select--");
       setCustomsDutyAmount(0);
-    } else if (
-      value == "PRI : if goods exported qualify for overseas preferential rates"
-    ) {
-      setCustomsDutyRate(0);
-      setCustomsDutyUom();
-      setCustomsDutyAmount(0.0);
     }
+    // else if (
+    //   value == "PRI : if goods exported qualify for overseas preferential rates"
+    // ) {
+    //   setCustomsDutyRate(0);
+    //   setCustomsDutyUom();
+    //   setCustomsDutyAmount(0.0);
+    // }
     dutiableQtyFunction();
   };
   // ----------------------- Last Selling Price Function ---------------------------
@@ -2513,6 +2519,7 @@ function Item({ setActiveTab, isViewMode }) {
     // ---------------- PACKING ----------------
     setPackingChecked(false);
     setShowPacking(false);
+    clearPackingFields();
     // ---------------- DUTY ----------------
     setPreferentialCode("");
     setGstRateValue(9);
@@ -4688,6 +4695,7 @@ function Item({ setActiveTab, isViewMode }) {
                     placeholder="0.00"
                     className="inputStyle"
                     value={totalInvoiceCharge}
+                    onChange={(e) => setTotalInvoiceCharge(e.target.value)}
                   />
                 </div>
               </div>

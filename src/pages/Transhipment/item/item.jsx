@@ -487,27 +487,26 @@ function Item({ setActiveTab, isViewMode }) {
   const [activeRowIndex, setActiveRowIndex] = useState(null);
 
   // ------------------ Toggle Functions ------------------
+  const clearPackingFields = () => {
+    setOuterPackQuantity("0.00");
+    setOuterPackQuantityUom("");
+    setInPackQuantity("0.00");
+    setInPackQuantityUom("");
+    setInnerPackQuantity("0.00");
+    setInnerPackQuantityUom("");
+    setImmostPackQuantity("0.00");
+    setImmostPackQuantityUom("");
+  };
+
   const togglePacking = (checked) => {
     setPackingChecked(checked);
     setShowPacking(checked);
     if (!checked) {
-      setPackingDetails({
-        outerPackQty: 0,
-        outerPackUOM: "",
-        inPackQty: 0,
-        inPackUOM: "",
-        innerPackQty: 0,
-        innerPackUOM: "",
-        inmostPackQty: 0,
-        inmostPackUOM: "",
-      });
+      clearPackingFields();
     } else {
-      setTimeout(() => {
-        outerPackQtyRef.current?.focus();
-      }, 0);
+      setTimeout(() => outerPackQtyRef.current?.focus(), 0);
     }
   };
-
   const toggleItemCasc = (checked) => {
     setItemCascChecked(checked);
     setShowItemCasc(checked);
@@ -2489,6 +2488,7 @@ function Item({ setActiveTab, isViewMode }) {
     // ---------------- PACKING ----------------
     setPackingChecked(false);
     setShowPacking(false);
+    clearPackingFields();
     // ---------------- DUTY ----------------
     setPreferentialCode("");
     setGstRateValue(9);

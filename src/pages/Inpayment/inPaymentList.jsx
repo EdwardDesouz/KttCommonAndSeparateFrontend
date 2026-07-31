@@ -1070,10 +1070,8 @@ function Inpayment() {
                                     "DRF",
                                     "SAVEASDRF",
                                     "DISCONNECT",
-                                    "WFA"
-                                  ].includes(
-                                    (row.Status || "").toUpperCase(),
-                                  );
+                                    "WFA",
+                                  ].includes((row.Status || "").toUpperCase());
                                   return (
                                     <td key={col.accessor}>
                                       <FaEdit

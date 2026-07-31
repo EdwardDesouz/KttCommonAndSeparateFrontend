@@ -7,7 +7,7 @@ import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import { getFieldConfig } from "../../config/accountFieldConfig";
 
-function Header({ setActiveTab, isViewMode,isEditMode }) {
+function Header({ setActiveTab, isViewMode, isEditMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   // Saved Options States
@@ -92,7 +92,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
     setGrossUOM,
     totalOuterPackName,
     setTotalOuterPackName,
-    
+
     certificateList,
     setCertificateList,
     currency,
@@ -222,6 +222,8 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
     showOutwardTransportError,
     setShowOutwardTransportError,
 
+    showSeaStore,
+    setShowSeaStore,
     showOutVoyage,
     setShowOutVoyage,
     outVoyageNumber,
@@ -318,7 +320,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
   } = useOut();
 
   useEffect(() => {
-     if (isEditMode) return; 
+    if (isEditMode) return;
     if (!permitDetails?.PermitId) {
       const stored = sessionStorage.getItem("currentPermit");
       if (stored) {
@@ -577,10 +579,12 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
       setShowTransportDetails(true);
       setShowInWardDetails(true);
     } else if (value === "3 : Road") {
+      setShowInwardMode(true);
       setShowconveyanceNumber(true);
       setShowTransportDetails(true);
       setShowInWardDetails(true);
     } else if (value === "4 : Air") {
+      setShowInwardMode(true);
       setShowFlightNumber(true);
       setShowAirCraftRegNumber(true);
       setShowMawbNumber(true);
@@ -677,6 +681,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
     setShowTowingVesselName(false);
     setShowNextPort(false);
     setShowLastPort(false);
+    setShowSeaStore(false);
     // setShowExhibition(false);
 
     // RESET all outward field values
@@ -722,6 +727,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
       setShowLastPort(true);
       setOutHblHawbLabel("HBL");
       setShowOutwardCarrier(true);
+      setShowSeaStore(true);
       setGrossUOM("TNE");
       if (cargo === "9: Containerized") {
         setTotalOuterPackName("UNT");
@@ -822,7 +828,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
   //   }
   // };
 
-    const handleAttach = async () => {
+  const handleAttach = async () => {
     if (!selectedFile || !documentType) {
       alert("Please select file and document type");
       return;
@@ -847,8 +853,8 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
       formData.append("Type", "NEW");
       formData.append("TouchUser", UserName);
       formData.append("TouchTime", new Date().toISOString());
-    
-     // Save to CommonFileTable
+
+      // Save to CommonFileTable
       const response = await API.post("/postFileTable/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -874,9 +880,6 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
     }
   };
 
-
-
-
   // const handleDelete = async (sno) => {
   //   try {
   //     const PermitId = permitDetails?.PermitId;
@@ -888,36 +891,36 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
   //   }
   // };
 
-    const handleDelete = async (sno) => {
-      const PermitId = permitDetails?.PermitId;
-      let commonDeleted = false;
-  
-      try {
-        const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
-        commonDeleted = true;
-        setUploadedFiles(res.data.Records);
-  
-        await API.delete(`out/deleteOutFile/${PermitId}/${sno}/`);
-        console.log("Deleted from OutFile as well");
-  
-        alert("File Deleted Successfully");
-      } catch (err) {
-        console.error("DELETE ERROR:", err);
-  
-        if (commonDeleted) {
-          alert(
-            `Warning: File SNo ${sno} was deleted from the Common table but FAILED to delete from OutFile. ` +
-              `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-              `Error: ${err.response?.data?.error || err.message}`,
-          );
-        } else {
-          alert(
-            err.response?.data?.error ||
-              "Failed to delete file, check console for details",
-          );
-        }
+  const handleDelete = async (sno) => {
+    const PermitId = permitDetails?.PermitId;
+    let commonDeleted = false;
+
+    try {
+      const res = await API.delete(`/deleteFile/${PermitId}/${sno}/`);
+      commonDeleted = true;
+      setUploadedFiles(res.data.Records);
+
+      await API.delete(`out/deleteOutFile/${PermitId}/${sno}/`);
+      console.log("Deleted from OutFile as well");
+
+      alert("File Deleted Successfully");
+    } catch (err) {
+      console.error("DELETE ERROR:", err);
+
+      if (commonDeleted) {
+        alert(
+          `Warning: File SNo ${sno} was deleted from the Common table but FAILED to delete from OutFile. ` +
+            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+            `Error: ${err.response?.data?.error || err.message}`,
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            "Failed to delete file, check console for details",
+        );
       }
-    };
+    }
+  };
 
   // =====================SAVE AS DRAFT MODEL================
   // ===================== STATES =====================

@@ -873,7 +873,7 @@ function Invoice({ setActiveTab, isViewMode }) {
       SNo: editingSNo || serialNumber,
       InvoiceNo: invoiceNumber.toUpperCase(),
       InvoiceDate: formatDate(invoiceDate),
-      TermType: termTypeSelected.toUpperCase(),
+      TermType: termTypeSelected,
       AdValoremIndicator: "False",
       PreDutyRateIndicator: preDutyRateIndicator || "False",
       SupplierImporterRelationship: supplierRelationship || "--Select--",

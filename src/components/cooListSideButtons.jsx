@@ -164,7 +164,7 @@ function ListButtons({
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-                      if (clearSelection) clearSelection();
+            if (clearSelection) clearSelection();
             if (refreshTable) refreshTable();
           } else {
             // Multiple permits → backend returns JSON
@@ -172,7 +172,7 @@ function ListButtons({
             const json = JSON.parse(text);
             if (json.SUCCESS) {
               alert(`${json.message}`);
-                      if (clearSelection) clearSelection();
+              if (clearSelection) clearSelection();
               if (refreshTable) refreshTable();
             } else {
               alert(json.error || "Submission failed");
@@ -319,16 +319,7 @@ function ListButtons({
     }
   };
 
-  const buttons = [
-    "NEW",
-    "SUBMIT",
-    // "PRINTGST",
-    // "PRINTREFUND",
-    "COPY",
-    // "REFUND",
-    // "AMEND",
-    // "CANCEL",
-  ];
+  const buttons = ["NEW", "SUBMIT", "COPY"];
 
   return (
     <nav className="navbar">
@@ -338,17 +329,18 @@ function ListButtons({
             <button
               className={`navbar-btn ${label === "SUBMIT" ? "navbar-btn-submit" : ""}`}
               onClick={() => handleClick(label)}
-              disabled={label !== "NEW" && btnState && !btnState[label]} // ✅ ADD
+              disabled={label !== "NEW" && btnState && !btnState[label]}
               style={{
                 backgroundColor:
                   label === "SUBMIT"
                     ? label !== "NEW" && btnState && !btnState[label]
-                      ? "#8fbf8f" // muted green when disabled
-                      : "#2f01fd" // solid green when enabled
+                      ? "#8fbf8f"
+                      : "#2f01fd"
                     : undefined,
                 color: label === "SUBMIT" ? "#fff" : undefined,
+                fontWeight: "bold",
                 opacity:
-                  label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1, // ✅ ADD
+                  label !== "NEW" && btnState && !btnState[label] ? 0.4 : 1,
                 cursor:
                   label !== "NEW" && btnState && !btnState[label]
                     ? "not-allowed"

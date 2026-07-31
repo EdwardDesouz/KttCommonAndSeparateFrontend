@@ -521,24 +521,24 @@ function Item({ setActiveTab, isViewMode }) {
   // const [showShippingMarks, setShowShippingMarks] = useState(false);
 
   // ------------------ Toggle Functions ------------------
+  const clearPackingFields = () => {
+    setOuterPackQuantity("0.00");
+    setOuterPackQuantityUom("");
+    setInPackQuantity("0.00");
+    setInPackQuantityUom("");
+    setInnerPackQuantity("0.00");
+    setInnerPackQuantityUom("");
+    setImmostPackQuantity("0.00");
+    setImmostPackQuantityUom("");
+  };
+
   const togglePacking = (checked) => {
     setPackingChecked(checked);
     setShowPacking(checked);
     if (!checked) {
-      setPackingDetails({
-        outerPackQty: 0,
-        outerPackUOM: "",
-        inPackQty: 0,
-        inPackUOM: "",
-        innerPackQty: 0,
-        innerPackUOM: "",
-        inmostPackQty: 0,
-        inmostPackUOM: "",
-      });
+      clearPackingFields();
     } else {
-      setTimeout(() => {
-        outerPackQtyRef.current?.focus();
-      }, 0);
+      setTimeout(() => outerPackQtyRef.current?.focus(), 0);
     }
   };
 
@@ -1432,8 +1432,8 @@ function Item({ setActiveTab, isViewMode }) {
   // }, []);
   // ------------------Invoice Calculations -------------
   useEffect(() => {
-    itemAlchoholCalculationFunction();
     dutiableQtyFunction();
+    itemAlchoholCalculationFunction();
   }, [
     totalDuitableQuantity,
     alcoholPercentage,
@@ -1488,9 +1488,15 @@ function Item({ setActiveTab, isViewMode }) {
     const InvoiceAmd = totalAmd / TotInvoiceAmd;
     const TotalLineAmd = icurrinput * itotalAmount;
     const invoiceCharge = InvoiceAmd * TotalLineAmd;
+
     setTotalInvoiceCharge(invoiceCharge.toFixed(2));
     const total2 = TotalLineAmd + invoiceCharge;
     setCifFob(total2.toFixed(2));
+
+    if (hsCode.startsWith("87")) {
+      const vehicleExcise = (total2 * Number(exciseDutyRate)) / 100;
+      setExciseDutyAmount(vehicleExcise.toFixed(2));
+    }
   };
 
   // ------------------Total DutiableQuantity Function -------------
@@ -1536,12 +1542,11 @@ function Item({ setActiveTab, isViewMode }) {
     if (T1 > 0 && T2 > 0 && T3 > 0) {
       exciseValue = T1 * T2 * (T3 / 100);
       T7 = T1 * T2 * (T4 / 100);
-
       setExciseDutyAmount(exciseValue.toFixed(2));
       setCustomsDutyAmount(T7.toFixed(2));
     } else {
-      setExciseDutyAmount("0.00");
-      setCustomsDutyAmount("0.00");
+      exciseValue = parseFloat(exciseDutyAmount) || 0; // preserve existing value for GST calc below
+      T7 = parseFloat(customsDutyAmount) || 0;
     }
     if (decType !== "GST : GST (Including Duty Exemption)") {
       T6 = (exciseValue + T5 + T7) * gstperval;
@@ -1735,16 +1740,17 @@ function Item({ setActiveTab, isViewMode }) {
     console.log("PreferentialCode:", value);
 
     if (value == "PRF : if goods are imported under preferential duty rates") {
-      setCustomsDutyRate(0);
+      setCustomsDutyRate("0.00");
       setCustomsDutyUom("--Select--");
-      setCustomsDutyAmount(0);
-    } else if (
-      value == "PRI : if goods exported qualify for overseas preferential rates"
-    ) {
-      setCustomsDutyRate(0);
-      setCustomsDutyUom();
-      setCustomsDutyAmount(0.0);
-    }
+      setCustomsDutyAmount("0.00");
+    } 
+    // else if (
+    //   value == "PRI : if goods exported qualify for overseas preferential rates"
+    // ) {
+    //   setCustomsDutyRate(0);
+    //   setCustomsDutyUom();
+    //   setCustomsDutyAmount(0.0);
+    // }
     dutiableQtyFunction();
   };
   // ----------------------- Last Selling Price Function ---------------------------
@@ -2603,6 +2609,7 @@ function Item({ setActiveTab, isViewMode }) {
     // ---------------- PACKING ----------------
     setPackingChecked(false);
     setShowPacking(false);
+    clearPackingFields();
     // ---------------- DUTY ----------------
     setPreferentialCode("");
     setGstRateValue(9);
@@ -4918,6 +4925,7 @@ function Item({ setActiveTab, isViewMode }) {
                     placeholder="0.00"
                     className="inputStyle"
                     value={totalInvoiceCharge}
+                    onChange={(e) => setTotalInvoiceCharge(e.target.value)}
                   />
                 </div>
               </div>

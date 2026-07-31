@@ -227,7 +227,7 @@ export const InnonpaymentProvider = ({ children }) => {
   const [finalDestinationCountry, setFinalDestinationCountry] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [showDepartureDateError, setShowDepartureDateError] = useState(false);
-  const [seaStore, setSeaStore] = useState(false);
+  // const [seaStore, setShowSeaStore] = useState(false);
   // Outward transport-specific fields:
   const [outVoyageNumber, setOutVoyageNumber] = useState("");
   const [outVesselName, setOutVesselName] = useState("");
@@ -1089,6 +1089,8 @@ export const InnonpaymentProvider = ({ children }) => {
         setShowDischargePort,
         showFinalDestination,
         setShowFinalDestination,
+        showSeaStore,
+        setShowSeaStore,
         vesselType,
         setVesselType,
         showOutVesselName,

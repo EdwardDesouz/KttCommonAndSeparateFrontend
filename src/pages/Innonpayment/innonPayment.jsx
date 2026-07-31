@@ -1098,15 +1098,36 @@ function Inpayment() {
                                       />
                                     </td>
                                   );
-                                case "edit":
+                                case "edit": {
+                                  const isEditable = [
+                                    "NEW",
+                                    "DRF",
+                                    "SAVEASDRF",
+                                    "DISCONNECT",
+                                    "WFA",
+                                  ].includes((row.Status || "").toUpperCase());
                                   return (
                                     <td key={col.accessor}>
                                       <FaEdit
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => editPermit(row.PermitId)}
+                                        style={{
+                                          cursor: isEditable
+                                            ? "pointer"
+                                            : "not-allowed",
+                                          color: isEditable
+                                            ? undefined
+                                            : "#ccc",
+                                          pointerEvents: isEditable
+                                            ? "auto"
+                                            : "none",
+                                        }}
+                                        onClick={() => {
+                                          if (isEditable)
+                                            editPermit(row.PermitId);
+                                        }}
                                       />
                                     </td>
                                   );
+                                }
                                 // case "view":
                                 //   return (
                                 //     <td key={col.accessor}>

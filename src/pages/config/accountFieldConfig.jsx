@@ -5,9 +5,12 @@ export const ACCOUNT_FIELD_CONFIG = {
   CARGO: {
     showDeclaringFor: false,
   },
-  // SGL: {
-  //   showDeclaringFor: false,
-  // },
+  LINEHAUL: {
+    showDeclaringFor: false,
+  },
+  LOGWIN: {
+    showDeclaringFor: false,
+  },
   DEFAULT: {
     showDeclaringFor: true,
   },

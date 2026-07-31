@@ -1364,7 +1364,7 @@ function Summary({ setActiveTab, isViewMode }) {
         MSGId: permitDetails?.MsgId || "",
         TradeNetMailboxID:
           permitDetails?.TradeNetMailboxID || permitDetails?.MailBoxId || "",
-        MessageType: "TNPDEC",
+        MessageType: "COODEC",
         DeclarationType: decType || "",
         PreviousPermit: prevPermitNo || "",
         CargoPackType: cargo || "",

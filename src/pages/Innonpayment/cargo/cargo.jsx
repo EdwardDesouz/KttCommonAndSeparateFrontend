@@ -145,6 +145,8 @@ function Cargo({ setActiveTab, isViewMode }) {
     departureDate,
     setDepartureDate,
     showDepartureDateError,
+    showSeaStore,
+    setShowSeaStore,
     nextPortCode,
     setNextPortCode,
     nextPortName,
@@ -2670,28 +2672,33 @@ function Cargo({ setActiveTab, isViewMode }) {
                   {/* )} */}
 
                   {/* SEA STORE */}
-                  {/* {showSeaStore && ( */}
-                  <div className="row align-items-center compact-row">
-                    <label className="col-sm-4 col-form-label">SEA STORE</label>
-                    <div className="col-sm-7 form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        id="OutSeaStore"
-                        checked={outSeaStore}
-                        onChange={handleSeaStoreFunction}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <label className="form-check-label" htmlFor="OutSeaStore">
+                  {showSeaStore && (
+                    <div className="row align-items-center compact-row">
+                      <label className="col-sm-4 col-form-label">
                         SEA STORE
                       </label>
+                      <div className="col-sm-7 form-check">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="OutSeaStore"
+                          checked={outSeaStore}
+                          onChange={handleSeaStoreFunction}
+                          style={{
+                            width: "16px",
+                            height: "16px",
+                            cursor: "pointer",
+                          }}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="OutSeaStore"
+                        >
+                          SEA STORE
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                  {/* )} */}
+                  )}
 
                   {/* FLIGHT NUMBER */}
                   {showOutFlightNumber && (

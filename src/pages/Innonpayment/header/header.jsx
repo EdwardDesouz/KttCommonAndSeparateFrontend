@@ -7,7 +7,7 @@ import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import { useDebounceAutoSave } from "../../../autoSave/useDebounceAutoSave";
 import { getFieldConfig } from "../../config/accountFieldConfig";
 
-function Header({ setActiveTab, isViewMode,isEditMode}) {
+function Header({ setActiveTab, isViewMode, isEditMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
   // Saved Options States
@@ -110,6 +110,8 @@ function Header({ setActiveTab, isViewMode,isEditMode}) {
     setShowOutWardDetails,
     showExhibition,
     setShowExhibition,
+    showSeaStore,
+    setShowSeaStore,
     showExhibitionStartDate,
     setShowExhibitionStartDate,
     showExhibitionEndDate,
@@ -268,7 +270,7 @@ function Header({ setActiveTab, isViewMode,isEditMode}) {
   } = useInnonpayment();
 
   useEffect(() => {
-     if (isEditMode) return;
+    if (isEditMode) return;
     if (!permitDetails?.PermitId) {
       const stored = sessionStorage.getItem("currentPermit");
       if (stored) {
@@ -592,7 +594,7 @@ function Header({ setActiveTab, isViewMode,isEditMode}) {
 
     if (value === "--Select--" || value === "") {
       setShowOutwardTransportError(true);
-       setShowOutWardDetails(false);
+      setShowOutWardDetails(false);
       setCargoOutwardTransportMode("");
       // Clear fields on --Select--
       setDischargePortCode("");
@@ -657,7 +659,7 @@ function Header({ setActiveTab, isViewMode,isEditMode}) {
     setShowNextPort(false);
     setShowLastPort(false);
     setShowExhibition(false);
-
+    setShowSeaStore(false);
     // RESET all outward field values
     setOutVoyageNumber("");
     setOutVesselName("");
@@ -698,6 +700,7 @@ function Header({ setActiveTab, isViewMode,isEditMode}) {
       setShowTowingVesselName(true);
       setShowNextPort(true);
       setShowLastPort(true);
+      setShowSeaStore(true);
       setOutHblHawbLabel("HBL");
     } else if (
       value === "2 : Rail" ||
