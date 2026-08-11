@@ -140,6 +140,11 @@ function Summary({ setActiveTab, isViewMode }) {
     showFlightNumber,
     showAirCraftRegNumber,
     showMawbNumber,
+
+    gstCharge,
+    setGstCharge,
+    gstTotal,
+    setGstTotal,
     // prepareCpcData,
   } = useInpayment();
 
@@ -210,6 +215,12 @@ function Summary({ setActiveTab, isViewMode }) {
     (sum, item) => sum + (parseFloat(item.GSTAmount) || 0),
     0,
   );
+
+
+  const totalInvoiceGstAmount = invoiceTable.reduce(
+  (sum, inv) => sum + (parseFloat(inv.GSTSUMAmount) || 0),
+  0,
+);
 
   const sumOfExciseDutyAmount = itemTable.reduce(
     (sum, item) => sum + (parseFloat(item.ExciseDutyAmount) || 0),
@@ -1011,27 +1022,27 @@ function Summary({ setActiveTab, isViewMode }) {
       License: Licence || "",
       Recipient: Recipients || "",
       DeclarantCompanyCode: permitDetails?.Code || "",
-      ImporterCompanyCode: importerCode || "",
-      InwardCarrierAgentCode: inwardCode || "",
-      FreightForwarderCode: freightForwarderCode || "",
-      ClaimantPartyCode: claimantCode || "",
+      ImporterCompanyCode: importerCode.toUpperCase() || "",
+      InwardCarrierAgentCode: inwardCode.toUpperCase() || "",
+      FreightForwarderCode: freightForwarderCode.toUpperCase() || "",
+      ClaimantPartyCode: claimantCode.toUpperCase() || "",
       HBL: cargoHawb.toUpperCase() || "",
       ArrivalDate: formatDate(arrivalDate) || null,
-      LoadingPortCode: loadingPortCode || "",
-      VoyageNumber: voyageNumber || "",
-      VesselName: vesselName || "",
-      OceanBillofLadingNo: obl || "",
-      ConveyanceRefNo: conveyanceNumber || "",
-      TransportId: transportDetails || "",
-      FlightNO: flightNumber || "",
-      AircraftRegNo: airCraftRegNumber || "",
-      MasterAirwayBill: mawbNumber || "",
-      ReleaseLocation: releaseCode || "",
-      ResLoaName: releaseLocationDescription || "",
-      RecepitLocation: receiptCode || "",
-      RecepitLocName: receiptLocationDescription || "",
-      TotalOuterPack: totalOuterPackValue || "",
-      TotalOuterPackUOM: totalOuterPackName || "",
+      LoadingPortCode: loadingPortCode.toUpperCase() || "",
+      VoyageNumber: voyageNumber.toUpperCase() || "",
+      VesselName: vesselName.toUpperCase() || "",
+      OceanBillofLadingNo: obl.toUpperCase() || "",
+      ConveyanceRefNo: conveyanceNumber.toUpperCase() || "",
+      TransportId: transportDetails.toUpperCase() || "",
+      FlightNO: flightNumber.toUpperCase() || "",
+      AircraftRegNo: airCraftRegNumber.toUpperCase() || "",
+      MasterAirwayBill: mawbNumber.toUpperCase() || "",
+      ReleaseLocation: releaseCode.toUpperCase() || "",
+      ResLoaName: releaseLocationDescription.toUpperCase() || "",
+      RecepitLocation: receiptCode.toUpperCase() || "",
+      RecepitLocName: receiptLocationDescription.toUpperCase() || "",
+      TotalOuterPack: totalOuterPackValue.toUpperCase() || "",
+      TotalOuterPackUOM: totalOuterPackName.toUpperCase() || "",
       // TotalGrossWeight: totalGrossWeight || "",
       TotalGrossWeight:
         permitGrossWeight !== "" && permitGrossWeight !== undefined
@@ -1531,7 +1542,7 @@ function Summary({ setActiveTab, isViewMode }) {
         </div>
       )}
 
-      <div className="col-12">
+      <div className="col-12 mt-1">
         {/* ── NO OF INVOICES ROW ──────────────────────────────────────── */}
         <div className="row align-items-center compact-row">
           <div className="col-1">NO OF INVOICES</div>
@@ -1708,6 +1719,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={summaryApprovedBy}
+              tabIndex={1}
               onChange={(e) => setSummaryApprovedBy(e.target.value)}
             />
           </div>
@@ -1716,6 +1728,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
+              tabIndex={2}
               value={summaryCustomerRemarks}
               onChange={(e) => setSummaryCustomerRemarks(e.target.value)}
             />
@@ -1729,6 +1742,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <button
               type="button"
               className="ButtonClick SaveContainer"
+              tabIndex={3}
               onClick={showPermitFunction}
             >
               PREV PERMIT NUMBER
@@ -1739,6 +1753,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showExRate}
+              tabIndex={4}
             >
               EX. RATE
             </button>
@@ -1749,6 +1764,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={formatRemark}
+              tabIndex={5}
               onChange={(e) => setFormatRemark(e.target.value)}
             />
           </div>
@@ -1757,6 +1773,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={summaryConfigBtnFunction}
+              tabIndex={6}
             >
               CONFIG
             </button>
@@ -1766,6 +1783,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
+              tabIndex={7}
               value={summaryCrossReference}
               onChange={(e) => setSummaryCrossReference(e.target.value)}
             />
@@ -1778,6 +1796,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <textarea
               className="form-control summary-remarks-textarea"
               value={summaryRemarks}
+              tabIndex={8}
               onChange={(e) => setSummaryRemarks(e.target.value)}
             />
           </div>
@@ -1801,6 +1820,7 @@ function Summary({ setActiveTab, isViewMode }) {
               className="form-control"
               value={summaryInternalReamarks}
               onChange={(e) => setSummaryInternalRemarks(e.target.value)}
+              tabIndex={9}
             />
           </div>
           {/* <div className="col-sm-3">
@@ -1821,8 +1841,8 @@ function Summary({ setActiveTab, isViewMode }) {
               <select
                 className="Dropdown HighLight mandatory"
                 value={summaryDeclaringFor}
+                tabIndex={10}
                 onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-                tabIndex="5"
               >
                 <option value="">--Select--</option>
                 {summaryDeclaringFor &&
@@ -1850,7 +1870,7 @@ function Summary({ setActiveTab, isViewMode }) {
 
         {/* ── DECLARATION SUMMARY HEADER ───────────────────────────────── */}
         <div className="row align-items-center compact-row mt-1">
-          <div className="col-sm-8 border-bottom pb-1 full-width-title">
+          <div className="col-sm-8 border-bottom pb-1 full-width-title mt-1">
             DECLARATION SUMMARY
           </div>
         </div>
@@ -1862,14 +1882,14 @@ function Summary({ setActiveTab, isViewMode }) {
               <div className="row">
                 <div className="col-6">IMPORTER</div>
                 <div className="col-6">
-                  {summaryImporterCruei}-{summaryImporterName}
+                  {summaryImporterCruei.toUpperCase()}-{summaryImporterName.toUpperCase()}
                 </div>
               </div>
             </div>
             <div className="col-6">
               <div className="row">
                 <div className="col-6">HAWB/HBL</div>
-                <div className="col-6">{cargoHawb}</div>
+                <div className="col-6">{cargoHawb.toUpperCase()}</div>
               </div>
             </div>
           </div>
@@ -1879,7 +1899,7 @@ function Summary({ setActiveTab, isViewMode }) {
                 <div className="col-6">MAWB/OBL</div>
                 <div className="col-6">
                   {" "}
-                  {showMawbNumber ? mawbNumber : showOblNumber ? obl : ""}
+                  {(showMawbNumber ? mawbNumber : showOblNumber ? obl : "").toUpperCase()}
                 </div>
               </div>
             </div>
@@ -1904,7 +1924,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL ITEM GST</div>
-                <div className="col-6">{totalItemGstAmount}</div>
+                <div className="col-6">{money(totalItemGstAmount)}</div>
               </div>
             </div>
           </div>
@@ -1924,7 +1944,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL INVOICE GST</div>
-                <div className="col-6">{totalItemGstAmount}</div>
+                <div className="col-6">{money(totalInvoiceGstAmount)}</div>
               </div>
             </div>
           </div>
@@ -1939,6 +1959,7 @@ function Summary({ setActiveTab, isViewMode }) {
                   type="checkbox"
                   className="form-check-input"
                   checked={declarationChecked}
+                  tabIndex={11}
                   onChange={(e) => setDeclarationChecked(e.target.checked)}
                 />
               </div>
@@ -1985,10 +2006,9 @@ function Summary({ setActiveTab, isViewMode }) {
             </button>
           )}
         </div> */}
-      <div className="mt-3 d-flex justify-content-center gap-3">
+      <div className="d-flex justify-content-center gap-3 mt-1">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2058,6 +2078,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <button
             className="NextpageBtns"
             onClick={handleSavePermit}
+            tabIndex={12}
             disabled={isSavingPermit}
           >
             {isSavingPermit ? "SAVING..." : "SAVE"}

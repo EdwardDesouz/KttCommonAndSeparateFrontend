@@ -1874,6 +1874,7 @@ const money = (val) => {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showPermitFunction}
+              tabIndex={1}
             >
               PREV PERMIT NUMBER
             </button>
@@ -1883,6 +1884,7 @@ const money = (val) => {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showExRate}
+              tabIndex={2}
             >
               EX. RATE
             </button>
@@ -1893,6 +1895,7 @@ const money = (val) => {
               type="text"
               className="form-control"
               value={formatRemark}
+              tabIndex={3}
               onChange={(e) => setFormatRemark(e.target.value)}
             />
           </div>
@@ -1901,6 +1904,7 @@ const money = (val) => {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={summaryConfigBtnFunction}
+              tabIndex={4}
             >
               CONFIG
             </button>
@@ -1911,6 +1915,7 @@ const money = (val) => {
               type="text"
               className="form-control"
               value={summaryCrossReference}
+              tabIndex={5}
               onChange={(e) => setSummaryCrossReference(e.target.value)}
             />
           </div>
@@ -1922,6 +1927,7 @@ const money = (val) => {
             <textarea
               className="form-control summary-remarks-textarea"
               value={summaryRemarks}
+              tabIndex={6}
               onChange={(e) => setSummaryRemarks(e.target.value)}
             />
           </div>
@@ -1944,6 +1950,7 @@ const money = (val) => {
               type="text"
               className="form-control"
               value={summaryInternalReamarks}
+              tabIndex={7}
               onChange={(e) => setSummaryInternalRemarks(e.target.value)}
             />
           </div>
@@ -1965,8 +1972,9 @@ const money = (val) => {
               <select
                 className="Dropdown HighLight mandatory"
                 value={summaryDeclaringFor}
+                tabIndex={8}
                 onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-                tabIndex="5"
+            
               >
                 <option value="">--Select--</option>
                 {summaryDeclaringFor &&
@@ -2101,6 +2109,7 @@ const money = (val) => {
                   type="checkbox"
                   className="form-check-input"
                   checked={declarationChecked}
+                  tabIndex={9}
                   onChange={(e) => setDeclarationChecked(e.target.checked)}
                 />
               </div>
@@ -2150,7 +2159,7 @@ const money = (val) => {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+         
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2217,7 +2226,7 @@ const money = (val) => {
             NEXT
           </button>
         ) : (
-          <button className="NextpageBtns" onClick={handleSavePermit}>
+          <button className="NextpageBtns" tabIndex={10} onClick={handleSavePermit}>
             SAVE
           </button>
         )}

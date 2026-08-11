@@ -1313,7 +1313,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
             <input
               type="text"
               className="form-control"
-              tabIndex="2"
+              tabIndex={1}
               value={prevPermitNo}
               onChange={(e) => setPrevPermitNo(e.target.value)}
             />
@@ -1334,7 +1334,8 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               className="Dropdown HighLight mandatory"
               value={outTransportMode}
               onChange={OutwardTransportModeChange}
-              tabIndex={4}
+              tabIndex={2}
+              
             >
               <option value="">--Select--</option>
               {outTransportMode &&
@@ -1362,7 +1363,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
 
         {/* DECLARING FOR */}
         {fieldConfig.showDeclaringFor && (
-          <div className="row align-items-center compact-row">
+          <div className="row align-items-center compact-row mt-1">
             <label className="col-sm-4 col-form-label">DECLARING FOR</label>
             <div className="col-sm-8">
               <select
@@ -1372,7 +1373,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   setDeclFor(e.target.value);
                   if (e.target.value) setShowDeclaringForError(false);
                 }}
-                tabIndex="5"
+             tabIndex={3}
               >
                 <option value="">--Select--</option>
                 {declFor && !declaringFor.find((d) => d.Name === declFor) && (
@@ -1401,7 +1402,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               className="form-check-input"
               checked={overrideEx}
               onChange={(e) => setOverrideEx(e.target.checked)}
-              tabIndex="7"
+             tabIndex={4}
             />
           </div>
         </div>
@@ -1414,12 +1415,91 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               type="checkbox"
               className="form-check-input"
               id="ReferenceDocuments"
-              tabIndex="9"
+            tabIndex={5}
               checked={refDocs}
               onChange={(e) => setRefDocs(e.target.checked)}
             />
           </div>
         </div>
+                {/* -----------------------------------------------------DisableClass------------------------------------------------------- */}
+        {/* LICENSE SECTION */}
+        {refDocs && (
+          <fieldset>
+            <div className="row mt-1 col-13">
+              <h5 className="border-bottom pb-2 full-width-title">
+                LICENSE
+              </h5>
+
+              {/* Licence 1 + 2 */}
+              <div className="row mt-1">
+                <div className="col-5 mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Licence 1"
+                    tabIndex={8}
+                    value={licence1}
+                    onChange={(e) => setLicence1(e.target.value)}
+                  />
+                </div>
+
+                <div className="col-1"></div>
+
+                <div className="col-5 mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Licence 2"
+                    value={licence2}
+                    tabIndex={9}
+                    onChange={(e) => setLicence2(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Licence 3 + 4 */}
+              <div className="row mt-1">
+                <div className="col-5 mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Licence 3"
+                    tabIndex={10}
+                    value={licence3}
+                    onChange={(e) => setLicence3(e.target.value)}
+                  />
+                </div>
+
+                <div className="col-1"></div>
+
+                <div className="col-5 mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Licence 4"
+                    tabIndex={11}
+                    value={licence4}
+                    onChange={(e) => setLicence4(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Licence 5 */}
+              <div className="row mt-1">
+                <div className="col-5 mb-2">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Licence 5"
+                    value={licence5}
+                    tabIndex={12}
+                    onChange={(e) => setLicence5(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        )}
 
         {/*------------------------------------------------------------ DisableClass------------------------------------------------ */}
         <div className="row align-items-center compact-row DisableClass">
@@ -1493,80 +1573,30 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
             <input className="form-control" id="ShowEdit" />
           </div>
         </div>
-        {/* -----------------------------------------------------DisableClass------------------------------------------------------- */}
-        {/* LICENSE SECTION */}
-        {refDocs && (
-          <fieldset>
-            <div className="row mt-4 col-12">
-              <h5 className="mt-3 border-bottom pb-2 full-width-title">
-                LICENSE
-              </h5>
 
-              {/* Licence 1 + 2 */}
-              <div className="row g-2">
-                <div className="col-5 mb-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Licence 1"
-                    value={licence1}
-                    onChange={(e) => setLicence1(e.target.value)}
-                  />
-                </div>
+              
+        <div className="row align-items-center compact-row mt-4">
+          <label className="col-sm-4 col-form-label"></label>
+          <div className="col-sm-8 form-check">
+ 
+          </div>
+        </div>
+               
+        <div className="row align-items-center compact-row">
+          <label className="col-sm-4 col-form-label"></label>
+          <div className="col-sm-8 form-check">
+ 
+          </div>
+        </div>
+                       
+        <div className="row align-items-center compact-row">
+          <label className="col-sm-4 col-form-label"></label>
 
-                <div className="col-1"></div>
+   
+        </div>
+        
 
-                <div className="col-5 mb-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Licence 2"
-                    value={licence2}
-                    onChange={(e) => setLicence2(e.target.value)}
-                  />
-                </div>
-              </div>
 
-              {/* Licence 3 + 4 */}
-              <div className="row g-2">
-                <div className="col-5 mb-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Licence 3"
-                    value={licence3}
-                    onChange={(e) => setLicence3(e.target.value)}
-                  />
-                </div>
-
-                <div className="col-1"></div>
-
-                <div className="col-5 mb-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Licence 4"
-                    value={licence4}
-                    onChange={(e) => setLicence4(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Licence 5 */}
-              <div className="row g-2">
-                <div className="col-5 mb-2">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Licence 5"
-                    value={licence5}
-                    onChange={(e) => setLicence5(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </fieldset>
-        )}
       </div>
 
       {/* RIGHT COLUMN */}
@@ -1642,7 +1672,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
         </div>
 
         {/* ADDITIONAL RECIPIENTS */}
-        <h6 className="full-width-title">ADDITIONAL RECIPIENTS</h6>
+        {/* <h6 className="full-width-title">ADDITIONAL RECIPIENTS</h6>
 
         <div className="row align-items-center mb-2">
           <label className="col-sm-4 col-form-label">RECIPIENTS 1</label>
@@ -1651,6 +1681,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients1}
+              tabIndex={5}
               onChange={(e) => setRecipients1(e.target.value)}
             />
           </div>
@@ -1662,6 +1693,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients2}
+              tabIndex={6}
               onChange={(e) => setRecipients2(e.target.value)}
             />
           </div>
@@ -1673,10 +1705,11 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients3}
+              tabIndex={7}
               onChange={(e) => setRecipients3(e.target.value)}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* EMPTY SPACE USING BOOTSTRAP */}
         <div className="py-"></div>
@@ -1684,7 +1717,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
         {/* ATTACHMENT DOCUMENT */}
         {refDocs && (
           <fieldset>
-            <div className="mt-1">
+            <div className="mt-5">
               <h5 className="border-bottom pb-2 full-width-title">
                 ATTACHMENT DOCUMENT
               </h5>
@@ -1695,6 +1728,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                     className="Dropdown HighLight"
                     value={documentType}
                     onChange={handleDocTypeChange}
+                    tabIndex={14}
                   >
                     <option value="">--Select--</option>
                     {documentType &&
@@ -1714,11 +1748,12 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                     type="file"
                     className="NextpageBtns"
                     onChange={handleFileChange}
+                    tabIndex={15}
                   />
                 </div>
 
                 <div className="col-2">
-                  <button className="NextpageBtns" onClick={handleAttach}>
+                  <button className="NextpageBtns" tabIndex={16} onClick={handleAttach}>
                     ATTACH
                   </button>
                 </div>
@@ -1782,25 +1817,26 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
         )}
       </div>
 
-      <div className="col-12">
+      <div className="col-12 mt-1">
         <div className="row align-items-center compact-row">
           <div className="col-sm-8 border-bottom pb-1 full-width-title">
             CERTIFICATE OF ORIGIN
           </div>
         </div>
         <div className="row align-items-center compact-row" id="CoTypeShowHide">
-          <div className="row mt-3">
+          <div className="row mt-1">
             <div className="col-4">
               <div className="row">
                 <div className="col-3">CO TYPE</div>
               </div>
-              <div className="row mt-2">
+              <div className="row mt-1">
                 <div className="col-11">
                   <select
                     className="Dropdown HighLight mandatory"
+                    tabIndex={17}
                     value={coType}
                     onChange={CoTypeChange}
-                    tabIndex={4}
+                   
                   >
                     <option value="">--Select--</option>
                     {coType && !coTypeList.find((c) => c.Name === coType) && (
@@ -1814,15 +1850,16 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   </select>
                 </div>
               </div>
-              <div className="row mt-3"></div>
+              <div className="row mt-1"></div>
               <div className="row">
                 <div className="col-12">CERTIFICATE TYPE 1</div>
               </div>
-              <div className="row mt-2">
+              <div className="row mt-1">
                 <div className="col-12">
                   <select
                     className="Dropdown CoTypeEmptySelect"
                     id="CertificateType1"
+                    tabIndex={18}
                     style={{ width: "90%" }}
                     value={certificateType1}
                     // onChange={(e) => setCertficateType1(e.target.value)}
@@ -1846,14 +1883,15 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                 </div>
               </div>
 
-              <div className="row mt-4">
+              <div className="row mt-1">
                 <div className="col-12">CERTIFICATE TYPE 2</div>
               </div>
-              <div className="row mt-2">
+              <div className="row mt-1">
                 <div className="col-12">
                   <select
                     className="Dropdown CoTypeEmptySelect"
                     id="CertificateType2"
+                    tabIndex={20}
                     style={{ width: "90%" }}
                     value={certificateType2}
                     onChange={(e) => setCertficateType2(e.target.value)}
@@ -1876,7 +1914,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                 </div>
               </div>
               {showCommonHealth && (
-                <div className="row mt-3">
+                <div className="row mt-1">
                   <div className="col-12">
                     PERCENTAGE OF COMMONWEALTH PREFERENCE CONTENT
                   </div>
@@ -1896,14 +1934,15 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                 </div>
               )}
 
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">CURRENCY CODE</div>
               </div>
-              <div className="row mt-2">
+              <div className="row mt-1">
                 <div className="col-12">
                   <select
                     className="Dropdown CoTypeEmptySelect"
                     id="CurrencyCode"
+                    tabIndex={22}
                     style={{ width: "90%" }}
                     value={currencyCode}
                     onChange={(e) => setCurrencyCode(e.target.value)}
@@ -1924,7 +1963,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               </div>
 
               {showEntryYear && (
-                <div className="row mt-3">
+                <div className="row mt-1">
                   <div className="col-12">ENTRY YEAR</div>
                 </div>
               )}
@@ -1940,12 +1979,12 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                 </div>
               )}
               {showGPS && (
-                <div className="row mt-3">
+                <div className="row mt-1">
                   <div className="col-12">GSP DONOR COUNTRY</div>
                 </div>
               )}
               {showGPS && (
-                <div className="row mt-2">
+                <div className="row mt-1">
                   <div className="col-11">
                     <input
                       type="text"
@@ -1961,10 +2000,11 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               <div className="row">
                 <div className="col-12">COPIES</div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
+                    tabIndex={19}
                     className="inputStyle CoTypeEmpty"
                     id="CerDetailCopies1"
                     value={certificateCopy1}
@@ -1973,13 +2013,14 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                 </div>
               </div>
 
-              <div className="row mt-4">
+              <div className="row mt-1">
                 <div className="col-12">COPIES</div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
+                    tabIndex={21}
                     className="inputStyle CoTypeEmpty"
                     id="CerDetailCopies2"
                     value={certificateCopy2}
@@ -1994,12 +2035,13 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               <div className="row">
                 <div className="col-12">ADDITIONAL CERTIFICATE DETAILS</div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={23}
                     id="AddCerDtl1"
                     value={additionalCertificateDetails1}
                     onChange={(e) =>
@@ -2008,12 +2050,13 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={24}
                     id="AddCerDtl2"
                     value={additionalCertificateDetails2}
                     onChange={(e) =>
@@ -2022,12 +2065,13 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={25}
                     id="AddCerDtl3"
                     value={additionalCertificateDetails3}
                     onChange={(e) =>
@@ -2036,12 +2080,13 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={26}
                     id="AddCerDtl4"
                     value={additionalCertificateDetails4}
                     onChange={(e) =>
@@ -2050,12 +2095,13 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={27}
                     id="AddCerDtl5"
                     value={additionalCertificateDetails5}
                     onChange={(e) =>
@@ -2070,60 +2116,65 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
               <div className="row">
                 <div className="col-12">TRANSPORT DETAILS</div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={28}
                     id="TransDtl1"
                     value={transportDetails1}
                     onChange={(e) => setTransportDetails1(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={29}
                     id="TransDtl2"
                     value={transportDetails2}
                     onChange={(e) => setTransportDetails2(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={30}
                     id="TransDtl3"
                     value={transportDetails3}
                     onChange={(e) => setTransportDetails3(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={31}
                     id="TransDtl4"
                     value={transportDetails4}
                     onChange={(e) => setTransportDetails4(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-1">
                 <div className="col-12">
                   <input
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     style={{ width: "70%" }}
+                    tabIndex={32}
                     id="TransDtl5"
                     value={transportDetails5}
                     onChange={(e) => setTransportDetails5(e.target.value)}
@@ -2316,7 +2367,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={33}
           id="HeaderSaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2324,7 +2375,7 @@ function Header({ setActiveTab, isViewMode,isEditMode }) {
         </button>
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="18"
+    tabIndex={34}
           id="HeaderNext"
           onClick={() => setActiveTab("PartyTab")}
         >

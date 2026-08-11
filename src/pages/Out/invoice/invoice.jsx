@@ -429,15 +429,20 @@ function Invoice({ setActiveTab, isViewMode }) {
         const normCommon = commonData.map(normalize);
         const normOut = outData.map(normalize);
 
-        const merged = [...normCommon];
-        const seenCodes = new Set(normCommon.map((i) => i.Code.toLowerCase()));
-        for (const item of normOut) {
-          const code = item.Code.toLowerCase();
-          if (!seenCodes.has(code)) {
-            merged.push(item);
-            seenCodes.add(code);
-          }
+        // De-dupe by lowercased Code across BOTH sources (and within each
+        // source too) using a Map, so a code repeated anywhere never ends
+        // up twice in the merged list — fixes the duplicate React key
+        // warning (e.g. "DAL" appearing twice).
+        const byCode = new Map();
+        for (const item of normCommon) {
+          const key = item.Code.toLowerCase();
+          if (key && !byCode.has(key)) byCode.set(key, item);
         }
+        for (const item of normOut) {
+          const key = item.Code.toLowerCase();
+          if (key && !byCode.has(key)) byCode.set(key, item);
+        }
+        const merged = Array.from(byCode.values());
 
         const list = merged.map(
           (i) =>
@@ -652,9 +657,10 @@ function Invoice({ setActiveTab, isViewMode }) {
     fetchCurrency();
   }, []);
 
-    const handleInvoiceNumberChange = (e) => {
+  const handleInvoiceNumberChange = (e) => {
     const value = e.target.value;
-    const isValid = /^[a-zA-Z0-9]*$/.test(value);
+    // Allow typing freely — only restrict character set (no invalid symbols at all)
+    const isValid = /^[a-zA-Z0-9\-/:]*$/.test(value);
     if (isValid) {
       setInvoiceNumber(value);
     }
@@ -990,19 +996,62 @@ function Invoice({ setActiveTab, isViewMode }) {
       ChkOtherInv: invoiceInsurance || "No",
     };
     let commonSaved = false;
+    //   setIsInvoiceSaving(true);
+    //   try {
+    //     // Step 1: Save to CommonInvoiceDtl
+    //     const commonResponse = await API.post("/postInvoiceTable/", payload);
+    //     commonSaved = true;
+    //     console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+
+    //     // Step 2: Save to InvoiceDtl (inpayment)
+    //     const outResponse = await API.post("out/postOutInvoiceTable/", payload);
+    //     console.log("Saved to InvoiceDtl:", outResponse.data);
+
+    //     if (commonResponse.data?.Records) {
+    //       setInvoiceTable(commonResponse.data.Records);
+    //     } else {
+    //       setInvoiceTable((prev) => {
+    //         if (editingSNo) {
+    //           return prev.map((inv) => (inv.SNo === editingSNo ? payload : inv));
+    //         }
+    //         return [...prev, payload];
+    //       });
+    //     }
+
+    //     setEditingSNo(null);
+    //     setSerialNumber((prev) => Number(prev) + 1);
+    //     resetInvoiceForm();
+    //   } catch (error) {
+    //     console.error("Failed to save invoice:", error);
+    //     if (commonSaved) {
+    //       alert(
+    //         `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
+    //           `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+    //           `Error: ${error.response?.data?.error || error.message}`,
+    //       );
+    //     } else if (error.response?.status === 400) {
+    //       alert(
+    //         error.response.data?.error ||
+    //           error.response.data?.Result ||
+    //           "Failed to save invoice",
+    //       );
+    //     } else {
+    //       alert("Failed to save invoice, check console for details");
+    //     }
+    //   } finally {
+    //     setIsInvoiceSaving(false);
+    //   }
+    // };
+
     setIsInvoiceSaving(true);
     try {
-      // Step 1: Save to CommonInvoiceDtl
-      const commonResponse = await API.post("/postInvoiceTable/", payload);
-      commonSaved = true;
-      console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+      // Single call — backend saves to CommonInvoiceDtl AND mirrors to
+      // OutInvoiceDtl in one transaction, so there's no "saved to one
+      // table but not the other" risk.
+      const response = await API.post("out/postOutInvoiceTable/", payload);
 
-      // Step 2: Save to InvoiceDtl (inpayment)
-      const outResponse = await API.post("out/postOutInvoiceTable/", payload);
-      console.log("Saved to InvoiceDtl:", outResponse.data);
-
-      if (commonResponse.data?.Records) {
-        setInvoiceTable(commonResponse.data.Records);
+      if (response.data?.Records) {
+        setInvoiceTable(response.data.Records);
       } else {
         setInvoiceTable((prev) => {
           if (editingSNo) {
@@ -1012,18 +1061,17 @@ function Invoice({ setActiveTab, isViewMode }) {
         });
       }
 
+      // Surface a non-blocking warning if the mirror write failed server-side
+      if (response.data?.Warning) {
+        alert(response.data.Warning);
+      }
+
       setEditingSNo(null);
       setSerialNumber((prev) => Number(prev) + 1);
       resetInvoiceForm();
     } catch (error) {
       console.error("Failed to save invoice:", error);
-      if (commonSaved) {
-        alert(
-          `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
-        );
-      } else if (error.response?.status === 400) {
+      if (error.response?.status === 400) {
         alert(
           error.response.data?.error ||
             error.response.data?.Result ||
@@ -1166,23 +1214,31 @@ function Invoice({ setActiveTab, isViewMode }) {
       setSupplierManuFacturerName1(name1);
     }
 
-    // Importer — use invoice-specific states
-    setInvoiceExporterCode(invoice.ImportPartyCode);
+    // EXPORTER — use invoice-specific states
+    const importCode = invoice.ImportPartyCode || invoice.ExportPartyCode || "";
+    setInvoiceExporterCode(importCode);
+
     const importerData = exporterSuggestions
       .map((i) => i.split(":"))
-      .find(([code]) => code === invoice.ImportPartyCode);
+      .find(([code]) => code.toLowerCase() === importCode.toLowerCase());
+
     if (importerData) {
       const [code, cruei, name, name1] = importerData;
       setExporter({ Code: code, CRUEI: cruei, Name: name, Name1: name1 });
       setInvoiceExporterCruei(cruei);
       setInvoiceExporterName(name);
       setInvoiceExporterName1(name1);
+    } else {
+      setExporter(null);
+      setInvoiceExporterCruei("");
+      setInvoiceExporterName("");
+      setInvoiceExporterName1("");
     }
-
     const findInvoiceFormattedRate = (currencyName) => {
       const found = currency.find((c) => c.Currency === currencyName);
       return found ? found.CurrencyRate : invoice.TIExRate;
     };
+    
 
     setInvoiceCurrency(invoice.TICurrency);
     // setInvoiceExRate(invoice.TIExRate);
@@ -1212,6 +1268,24 @@ function Invoice({ setActiveTab, isViewMode }) {
     setGstTotal(invoice.GSTSUMAmount);
     setInvoiceInsurance(invoice.ChkOtherInv);
   };
+
+
+    // comma separator
+
+const fmtComma = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  if (isNaN(num)) return (0).toFixed(decimals);
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+};
+
+//------------------------Decimal helper------------------------
+const fmt = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+};
 
   // ======================== RESET INVOICE ========================
   const resetInvoiceForm = () => {
@@ -1496,33 +1570,33 @@ function Invoice({ setActiveTab, isViewMode }) {
   //   enabled: !isViewMode,
   //   delay: 2000,
   // });
-  
-// if this permit id's data already exists
+
+  // if this permit id's data already exists
 
   // ======================== LOAD EXISTING INVOICES ON PAGE (RE)ENTRY ========================
-const invoiceFetchedRef = useRef(false);
+  const invoiceFetchedRef = useRef(false);
 
-useEffect(() => {
-  const fetchExistingInvoices = async () => {
-    if (!permitDetails?.PermitId) return;
-    if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
-    invoiceFetchedRef.current = true;
+  useEffect(() => {
+    const fetchExistingInvoices = async () => {
+      if (!permitDetails?.PermitId) return;
+      if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
+      invoiceFetchedRef.current = true;
 
-    try {
-      const response = await API.get(
-        `/getInvoiceByPermitId/${permitDetails.PermitId}/`
-      );
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        setInvoiceTable(response.data);
-        setSerialNumber(response.data.length + 1);
+      try {
+        const response = await API.get(
+          `/getInvoiceByPermitId/${permitDetails.PermitId}/`,
+        );
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setInvoiceTable(response.data);
+          setSerialNumber(response.data.length + 1);
+        }
+      } catch (err) {
+        console.error("Failed to load existing invoices for this permit", err);
       }
-    } catch (err) {
-      console.error("Failed to load existing invoices for this permit", err);
-    }
-  };
+    };
 
-  fetchExistingInvoices();
-}, [permitDetails?.PermitId]);
+    fetchExistingInvoices();
+  }, [permitDetails?.PermitId]);
 
   // ======================== UI ========================
   return (
@@ -1530,29 +1604,34 @@ useEffect(() => {
       <div className="col-12">
         {/* EXPORTER ROW */}
         <div className="row align-items-center compact-row mt-3">
-          <label className="col-sm-2 col-form-label">EXPORTER</label>
+          <label className="col-sm-1 col-form-label">EXPORTER</label>
           <div className="col-sm-1 icon-contaniner">
             <FaSearch
               className="me-4"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("exporter")}
+              tabIndex={1}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveExporter}
+              tabIndex={2}
+            />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={exporterCodeRef}
               id="exporterCode"
               className="form-control"
               placeholder="CODE"
-              tabIndex={5}
               value={invoiceExporterCode}
               onChange={handleExporterChange}
               onKeyDown={handleExporterKeyDown}
               onBlur={handleFocusOut}
+              tabIndex={3}
               onFocus={() => setExporterError(false)}
             />
-            {invoiceExporterCode.trim() === "" && exporterCodeError && (
+            {(invoiceExporterCode || "").trim() === "" && exporterCodeError && (
               <span className="ErrColor">FILL Exporter</span>
             )}
             {showExporterDropdown && filteredExporterSuggestions.length > 0 && (
@@ -1589,7 +1668,7 @@ useEffect(() => {
               id="exporterCruei"
               className="form-control mandatory"
               placeholder="CRUEI"
-              tabIndex={6}
+              tabIndex={4}
               value={exporter?.CRUEI || invoiceExporterCruei || ""}
               onChange={(e) => setInvoiceExporterCruei(e.target.value)}
             />
@@ -1599,24 +1678,24 @@ useEffect(() => {
               id="exporterName"
               className="form-control mandatory"
               placeholder="NAME"
-              tabIndex={7}
+              tabIndex={5}
               value={exporter?.Name || invoiceExporterName || ""}
               onChange={(e) => setInvoiceExporterName(e.target.value)}
             />
           </div>
-          <div className="col-sm-2">
+          <div className="col-sm-1">
             <input
               id="exporterName1"
               className="form-control"
               placeholder="NAME1"
-              tabIndex={8}
+              tabIndex={6}
               value={exporter?.Name1 || invoiceExporterName1 || ""}
               onChange={(e) => setInvoiceExporterName1(e.target.value)}
             />
           </div>
           <div className="col-sm-1">
             <button
-              tabIndex={9}
+              tabIndex={7}
               type="button"
               className="ButtonClick SaveContainer"
               onClick={copyExporter}
@@ -1648,30 +1727,18 @@ useEffect(() => {
           <div className="col-sm-1">INVOICE DATE</div>
           <div className="col-sm-3">
             <DateField
-              tabIndex={10}
+              tabIndex={8}
               value={invoiceDate}
               setValue={setInvoiceDate}
             />
-            {invoiceDate.trim() === "" && invoiceDateError && (
+            {(invoiceDate || "").trim() === "" && invoiceDateError && (
               <span className="ErrColor">FILL Invoice Date</span>
             )}
           </div>
-          {/* <div className="col-sm-1 form-check">
-            <input
-              type="checkbox"
-              tabIndex={11}
-              className="form-check-input"
-              checked={adValoremIndicator === "True"}
-              onChange={(e) =>
-                setAdValoremIndicator(e.target.checked ? "True" : "False")
-              }
-            />
-          </div>
-          <div className="col-sm-1">AD VALOREM INDICATOR</div> */}
+
           <div className="col-sm-3 form-check">
             <input
               type="checkbox"
-              tabIndex={12}
               className="form-check-input"
               checked={preDutyRateIndicator === "True"}
               onChange={(e) =>
@@ -1687,12 +1754,12 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               type="text"
-              tabIndex={13}
+              tabIndex={9}
               className="form-control"
               value={invoiceNumber}
               onChange={handleInvoiceNumberChange}
             />
-            {invoiceNumber.trim() === "" && invoiceNumberError && (
+            {(invoiceNumber || "").trim() === "" && invoiceNumberError && (
               <span className="ErrColor">FILL Real Invoice Number</span>
             )}
           </div>
@@ -1700,7 +1767,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <select
               className="Dropdown HighLight"
-              tabIndex={14}
+              tabIndex={10}
               value={termTypeSelected}
               onChange={(e) => setTermTypeSelected(e.target.value)}
             >
@@ -1720,7 +1787,6 @@ useEffect(() => {
           <div className="col-sm-2">
             <select
               className="form-control"
-              tabIndex={15}
               value={supplierRelationship}
               onChange={(e) => setSupplierRelationship(e.target.value)}
             >
@@ -1744,7 +1810,7 @@ useEffect(() => {
       </div>
 
       {/* CALCULATION TABLE */}
-      <div className="col-12 mt-3">
+      <div className="col-12 mt-1">
         <div className="table-responsive">
           <table id="InvoiceCalculationTable">
             <thead>
@@ -1767,6 +1833,7 @@ useEffect(() => {
                     className="Dropdown HighLight"
                     style={{ width: "90%" }}
                     value={invoiceCurrency}
+                    tabIndex={11}
                     onChange={(e) =>
                       handleCurrencyChange(e.target.value, "invoice")
                     }
@@ -1784,9 +1851,10 @@ useEffect(() => {
                       </option>
                     ))}
                   </select>
-                  {invoiceCurrency.trim() === "" && invoiceCurrencyError && (
-                    <span className="ErrColor">FILL Currency</span>
-                  )}
+                  {(invoiceCurrency || "").trim() === "" &&
+                    invoiceCurrencyError && (
+                      <span className="ErrColor">FILL Currency</span>
+                    )}
                 </td>
                 <td>
                   <input
@@ -1802,6 +1870,7 @@ useEffect(() => {
                     type="text"
                     value={invoiceAmount}
                     className="inputStyle"
+                    tabIndex={12}
                     onChange={(e) =>
                       handleAmountChange(e.target.value, "invoice")
                     }
@@ -1816,225 +1885,13 @@ useEffect(() => {
                 <td>
                   <input
                     type="text"
-                    value={invoiceDollar}
+                    value={fmtComma(invoiceDollar)}
                     placeholder="0.00"
                     className="inputStyle"
                     disabled
                   />
                 </td>
               </tr>
-
-              {/* OTHER VALUE */}
-              {/* <tr>
-                <td>OTHER VALUE</td>
-                <td>
-                  <input
-                    type="text"
-                    className="inputStyle"
-                    placeholder="0.00"
-                    disabled
-                  />
-                </td>
-                <td>
-                  <select
-                    className="Dropdown"
-                    style={{ width: "90%" }}
-                    value={otherValueCurrency}
-                    onChange={(e) =>
-                      handleCurrencyChange(e.target.value, "other")
-                    }
-                  >
-                    <option value="">--Select--</option>
-                    {currency.map((cur) => (
-                      <option key={cur.Currency} value={cur.Currency}>
-                        {cur.Currency}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    value={otherValueExRate}
-                    className="inputStyle"
-                    disabled
-                    placeholder="0.00"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    value={otherValueAmount}
-                    className="inputStyle"
-                    onChange={(e) =>
-                      handleAmountChange(e.target.value, "other")
-                    }
-                    placeholder="0.00"
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    value={otherValueDollar}
-                    className="inputStyle"
-                    disabled
-                    placeholder="0.00"
-                  />
-                </td>
-              </tr> */}
-
-              {/* FREIGHT VALUE */}
-              {/* {showFreightRow && (
-                <tr>
-                  <td className="nowrap-cell form-check">
-                    <label className="inline-label">
-                      FREIGHT VALUE (INCL. OTHER VALUE)
-                      <input
-                        type="checkbox"
-                        className="form-check-input ms-2"
-                        checked={freightChargesEnabled}
-                        onChange={(e) => {
-                          setFreightChargesEnabled(e.target.checked);
-                          if (!e.target.checked) setFreightValueCharges("");
-                        }}
-                      />
-                    </label>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={freightValueCharges}
-                      className="inputStyle"
-                      placeholder="0.00"
-                      disabled={!freightChargesEnabled}
-                      onChange={(e) => setFreightValueCharges(e.target.value)}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      className="Dropdown"
-                      style={{ width: "90%" }}
-                      value={freightValueCurrency}
-                      onChange={(e) =>
-                        handleCurrencyChange(e.target.value, "freight")
-                      }
-                    >
-                      <option value="">--Select--</option>
-                      {currency.map((cur) => (
-                        <option key={cur.Currency} value={cur.Currency}>
-                          {cur.Currency}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={freightValueExRate}
-                      className="inputStyle"
-                      disabled
-                      placeholder="0.00"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={freightValueAmount}
-                      disabled={freightValueCharges > 0}
-                      onChange={(e) =>
-                        handleAmountChange(e.target.value, "freight")
-                      }
-                      className="inputStyle"
-                      placeholder="0.00"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={freightValueDollar}
-                      className="inputStyle"
-                      disabled
-                      placeholder="0.00"
-                    />
-                  </td>
-                </tr>
-              )} */}
-
-              {/* INSURANCE VALUE */}
-              {/* {showInsuranceRow && (
-                <tr>
-                  <td className="nowrap-cell form-check">
-                    <label className="inline-label">
-                      INSURANCE VALUE (INCL. FREIGHT VALUE)
-                      <input
-                        type="checkbox"
-                        className="ms-2 form-check-input"
-                        checked={insuranceChargesEnabled}
-                        onChange={(e) => {
-                          setInsuranceChargesEnabled(e.target.checked);
-                          if (!e.target.checked) setInsuranceCharges(""); // reset on uncheck
-                        }}
-                      />
-                    </label>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      placeholder="0.00"
-                      className="inputStyle"
-                      value={insuranceCharges}
-                      disabled={!insuranceChargesEnabled}
-                      onChange={(e) => setInsuranceCharges(e.target.value)}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      className="Dropdown"
-                      style={{ width: "90%" }}
-                      value={insuranceValueCurrency}
-                      onChange={(e) =>
-                        handleCurrencyChange(e.target.value, "insurance")
-                      }
-                    >
-                      <option value="">--Select--</option>
-                      {currency.map((cur) => (
-                        <option key={cur.Currency} value={cur.Currency}>
-                          {cur.Currency}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={insuranceValueExRate}
-                      className="inputStyle"
-                      disabled
-                      placeholder="0.00"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={insuranceValueAmount}
-                      className="inputStyle"
-                      placeholder="0.00"
-                      onChange={(e) =>
-                        setInsuranceValueAmount(e.target.value, "insurance")
-                      }
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      value={insuranceValueDollar}
-                      className="inputStyle"
-                      disabled
-                      placeholder="0.00"
-                    />
-                  </td>
-                </tr>
-              )} */}
 
               {/* CIF TOTAL */}
               <tr className="InvoiceTotalRow">
@@ -2077,11 +1934,11 @@ useEffect(() => {
       </div>
 
       {/* NAVIGATION */}
-      <div className="col-12">
+      <div className="col-12 mt-1">
         <div className="mt-3 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
+            tabIndex={13}
             id="PartySaveDraft"
             onClick={handleSaveAsDraftClick}
           >
@@ -2090,6 +1947,7 @@ useEffect(() => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
+            tabIndex={14}
           >
             PREVIOUS
           </button>
@@ -2097,6 +1955,7 @@ useEffect(() => {
             className="NextpageBtns"
             onClick={saveInvoice}
             disabled={isInvoiceSaving}
+            tabIndex={15}
           >
             {isInvoiceSaving ? "SAVING..." : "ADD INVOICE"}
           </button>
@@ -2106,13 +1965,14 @@ useEffect(() => {
             </button>
           )}
           <button
+            tabIndex={16}
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("ItemTab")}
           >
             NEXT
           </button>
         </div>
-     
+
         {isInvoiceSaving && (
           <div
             style={{
@@ -2158,7 +2018,11 @@ useEffect(() => {
               zIndex: 2000,
             }}
           >
-            <CircleLoader size={60} color="#c0392b" loading={isInvoiceDeleting} />
+            <CircleLoader
+              size={60}
+              color="#c0392b"
+              loading={isInvoiceDeleting}
+            />
             <div
               style={{
                 marginTop: "16px",
@@ -2352,7 +2216,7 @@ useEffect(() => {
       </div>
 
       {/* INVOICE TABLE */}
-      <div className="col-12 mt-4">
+      <div className="col-12 mt-1">
         <div className="table-responsive">
           <table
             id="InvoiceTable"
@@ -2405,11 +2269,9 @@ useEffect(() => {
                     <td>{inv.SNo}</td>
                     <td>{inv.InvoiceNo}</td>
                     <td>{inv.InvoiceDate}</td>
-                    {/* <td>{inv.TermType}</td> */}
                     <td>{inv.TICurrency}</td>
-                    <td>{inv.TIAmount}</td>
-                    <td>{inv.CIFSUMAmount}</td>
-                    {/* <td>{inv.GSTSUMAmount}</td> */}
+                    <td>{fmt(inv.TIAmount)}</td>
+                    <td>{fmt(inv.CIFSUMAmount)}</td>
                   </tr>
                 ))
               )}

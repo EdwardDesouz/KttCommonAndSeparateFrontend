@@ -576,6 +576,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Aeo"
+              tabIndex={1}
               checked={showAeo}
               onChange={toggleCheckbox(setShowAeo)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -593,6 +594,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Cwc"
+              tabIndex={2}
               checked={showCwc}
               onChange={toggleCheckbox(setShowCwc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -610,6 +612,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="SeaStore"
+              tabIndex={3}
               checked={showSeaStoreCpc}
               onChange={toggleCheckbox(setShowSeaStoreCpc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -627,6 +630,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Cnb"
+              tabIndex={4}
               checked={cnBChecked}
               onChange={toggleCheckbox(setCnBChecked)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -643,6 +647,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Scheme"
+              tabIndex={5}
               checked={showScheme}
               onChange={toggleCheckbox(setShowScheme)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -661,6 +666,7 @@ function Cpc({ setActiveTab, isViewMode }) {
           <div className="col-sm-1 icon-contaniner">
             <input
               type="checkbox"
+              tabIndex={6}
               id="InternationalPermitExchange"
               checked={showInternationalPermitExchange}
               onChange={toggleCheckbox(setShowInternationalPermitExchange)}
@@ -679,21 +685,23 @@ function Cpc({ setActiveTab, isViewMode }) {
       <div className="mt-4 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
+          tabIndex={7}
         >
           SAVE AS DRAFT
         </button>
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("ItemTab")}
+          tabIndex={8}
         >
           PREVIOUS
         </button>
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("SummaryTab")}
+          tabIndex={9}
         >
           NEXT
         </button>

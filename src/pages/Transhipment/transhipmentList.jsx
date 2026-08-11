@@ -1022,7 +1022,7 @@ function Transhipment() {
                 </ul>
               )}
               <div className="table-responsive">
-                <table id="inpaymentTable">
+                <table id="inpaymentTable" style={{ textTransform: "uppercase" }}>
                   <thead>
                     <tr>
                       <th>
@@ -1044,9 +1044,14 @@ function Transhipment() {
                             (actionColumns.includes(col.accessor) ||
                               visibleColumns.includes(col.accessor)),
                         )
-                        .map((col) => (
-                          <th key={col.accessor}>{col.header}</th>
-                        ))}
+                       .map((col) => (
+    <th
+      key={col.accessor}
+      className={col.accessor === "IMPORTER" ? "col-importer" : undefined}
+    >
+      {col.header}
+    </th>
+  ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -1082,17 +1087,31 @@ function Transhipment() {
                             )
                             .map((col) => {
                               switch (col.accessor) {
-                                case "delete":
+                                case "delete": {
+                                  const isDeletable =
+                                    (row.Status || "").toUpperCase() !== "APR";
                                   return (
                                     <td key={col.accessor}>
                                       <FaTrash
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() =>
-                                          handleDelete(row.PermitId)
-                                        }
+                                        style={{
+                                          cursor: isDeletable
+                                            ? "pointer"
+                                            : "not-allowed",
+                                          color: isDeletable
+                                            ? undefined
+                                            : "#ccc",
+                                          pointerEvents: isDeletable
+                                            ? "auto"
+                                            : "none",
+                                        }}
+                                        onClick={() => {
+                                          if (isDeletable)
+                                            handleDelete(row.PermitId);
+                                        }}
                                       />
                                     </td>
                                   );
+                                }
                                 case "edit": {
                                   const isEditable = [
                                     "NEW",
@@ -1187,12 +1206,15 @@ function Transhipment() {
                                       </span>
                                     </td>
                                   );
-                                default:
-                                  return (
-                                    <td key={col.accessor}>
-                                      {row[col.accessor]}
-                                    </td>
-                                  );
+  default:
+  return (
+    <td
+      key={col.accessor}
+      className={col.accessor === "IMPORTER" ? "col-importer" : undefined}
+    >
+      {row[col.accessor]}
+    </td>
+  );
                               }
                             })}
                         </tr>

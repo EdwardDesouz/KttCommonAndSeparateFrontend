@@ -567,6 +567,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Aeo"
+         tabIndex={1}
               checked={showAeo}
               onChange={toggleCheckbox(setShowAeo)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -584,6 +585,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Cwc"
+              tabIndex={2}
               checked={showCwc}
               onChange={toggleCheckbox(setShowCwc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -601,6 +603,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Cnb"
+              tabIndex={3}
               checked={cnBChecked}
               onChange={toggleCheckbox(setCnBChecked)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -617,6 +620,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Scheme"
+              tabIndex={4}
               checked={showScheme}
               onChange={toggleCheckbox(setShowScheme)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -630,7 +634,7 @@ function Cpc({ setActiveTab, isViewMode }) {
       <div className="mt-4 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={5}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -639,12 +643,14 @@ function Cpc({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("ItemTab")}
+          tabIndex={6}
         >
           PREVIOUS
         </button>
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("SummaryTab")}
+          tabIndex={7}
         >
           NEXT
         </button>

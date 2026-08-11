@@ -619,6 +619,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Aeo"
+              tabIndex={1}
               checked={showAeo}
               onChange={toggleCheckbox(setShowAeo)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -637,6 +638,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="SeaStore"
+              tabIndex={2}
               checked={showSeaStoreCpc}
               onChange={toggleCheckbox(setShowSeaStoreCpc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -654,6 +656,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Sts"
+              tabIndex={3}
               checked={showSts}
               onChange={toggleCheckbox(setShowSts)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -672,6 +675,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Cnb"
+              tabIndex={4}
               checked={cnBChecked}
               onChange={toggleCheckbox(setCnBChecked)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -688,6 +692,7 @@ function Cpc({ setActiveTab, isViewMode }) {
             <input
               type="checkbox"
               id="Scheme"
+              tabIndex={5}
               checked={showScheme}
               onChange={toggleCheckbox(setShowScheme)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -701,7 +706,7 @@ function Cpc({ setActiveTab, isViewMode }) {
       <div className="mt-4 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+      tabIndex={6}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -709,6 +714,7 @@ function Cpc({ setActiveTab, isViewMode }) {
         </button>
         <button
           className="NextpageBtns view-nav-btn"
+          tabIndex={7}
           onClick={() => setActiveTab("ItemTab")}
         >
           PREVIOUS
@@ -716,6 +722,7 @@ function Cpc({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("SummaryTab")}
+          tabIndex={8}
         >
           NEXT
         </button>

@@ -1027,7 +1027,7 @@ function Inpayment() {
                 </ul>
               )}
               <div className="table-responsive">
-                <table id="inpaymentTable">
+                <table id="inpaymentTable" style={{ textTransform: "uppercase" }}>
                   <thead>
                     <tr>
                       <th>
@@ -1087,17 +1087,31 @@ function Inpayment() {
                             )
                             .map((col) => {
                               switch (col.accessor) {
-                                case "delete":
+                                case "delete": {
+                                  const isDeletable =
+                                    (row.Status || "").toUpperCase() !== "APR";
                                   return (
                                     <td key={col.accessor}>
                                       <FaTrash
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() =>
-                                          handleDelete(row.PermitId)
-                                        }
+                                        style={{
+                                          cursor: isDeletable
+                                            ? "pointer"
+                                            : "not-allowed",
+                                          color: isDeletable
+                                            ? undefined
+                                            : "#ccc",
+                                          pointerEvents: isDeletable
+                                            ? "auto"
+                                            : "none",
+                                        }}
+                                        onClick={() => {
+                                          if (isDeletable)
+                                            handleDelete(row.PermitId);
+                                        }}
                                       />
                                     </td>
                                   );
+                                }
                                 case "edit": {
                                   const isEditable = [
                                     "NEW",
@@ -1179,6 +1193,7 @@ function Inpayment() {
                                               `/innonpayment/view/${row.PermitId}`,
                                               "_blank",
                                             );
+                                            navigate(`/innonpayment/view/${row.PermitId}`);
                                           } catch (error) {
                                             console.error(
                                               "Error fetching permit data:",
@@ -1193,7 +1208,14 @@ function Inpayment() {
                                   );
                                 default:
                                   return (
-                                    <td key={col.accessor}>
+                                    <td
+                                      key={col.accessor}
+                                      className={
+                                        col.accessor === "IMPORTER"
+                                          ? "col-importer"
+                                          : undefined
+                                      }
+                                    >
                                       {row[col.accessor]}
                                     </td>
                                   );

@@ -1,5 +1,12 @@
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import { useEffect, useState, useContext, useMemo } from "react";
+import {
+  useEffect,
+  useState,
+  useContext,
+  useMemo,
+  forwardRef,
+  useRef,
+} from "react";
 import API from "../../../api/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -15,12 +22,64 @@ import {
 } from "./cargoFunctions";
 
 // =================== DateField ===================
-export const DateField = ({ value, setValue }) => {
+const CustomDateInput = forwardRef(
+  (
+    {
+      value,
+      onClick,
+      onChange,
+      onBlur,
+      onKeyDown,
+      className,
+      placeholder,
+      tabIndex,
+    },
+    ref,
+  ) => {
+    const localRef = useRef(null);
+
+    useEffect(() => {
+      if (localRef.current && tabIndex !== undefined) {
+        localRef.current.setAttribute("tabindex", tabIndex);
+      }
+    }, [tabIndex]);
+
+    return (
+      <input
+        ref={(node) => {
+          localRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) ref.current = node;
+        }}
+        className={className}
+        value={value}
+        placeholder={placeholder}
+        tabIndex={tabIndex}
+        onClick={onClick}
+        onChange={onChange}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        autoComplete="off"
+      />
+    );
+  },
+);
+
+export const DateField = ({ value, setValue, tabIndex }) => {
   const { error, parseDate, handleBlur, handleKeyDown } = useCargoDate();
+  const dpRef = useRef(null);
+
+  useEffect(() => {
+    const inputEl = dpRef.current?.input;
+    if (inputEl && tabIndex !== undefined) {
+      inputEl.tabIndex = tabIndex;
+    }
+  }, [tabIndex]);
 
   return (
     <div className="col-sm-7">
       <DatePicker
+        ref={dpRef}
         selected={value && value.length === 10 ? parseDate(value) : null}
         onChange={(date) => {
           if (!date) {
@@ -42,13 +101,11 @@ export const DateField = ({ value, setValue }) => {
         showMonthDropdown
         showYearDropdown
         dropdownMode="select"
-        autoComplete="off"
       />
       <input type="hidden" value={value} readOnly />
     </div>
   );
 };
-
 function Cargo({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -1230,9 +1287,9 @@ function Cargo({ setActiveTab, isViewMode }) {
   // ====================== UI======================
 
   return (
-    <div className="row g-2">
+    <div className="row g-2 cargo-compact">
       <div className="col-12">
-        <div className="row">
+        <div className="row g-2">
           {/* LEFT COLUMN */}
           <div className="col-6">
             {/* MESSAGE TYPE */}
@@ -1250,6 +1307,7 @@ function Cargo({ setActiveTab, isViewMode }) {
               <div className="col-sm-2">
                 <input
                   type="text"
+                  tabIndex={1}
                   className="pack-input"
                   value={totalOuterPackValue}
                   onChange={(e) => {
@@ -1268,6 +1326,7 @@ function Cargo({ setActiveTab, isViewMode }) {
               </div>
               <div className="col-sm-5">
                 <select
+                  tabIndex={2}
                   className="pack-select"
                   value={totalOuterPackName}
                   onChange={(e) => {
@@ -1302,13 +1361,14 @@ function Cargo({ setActiveTab, isViewMode }) {
             </div>
 
             {/* TOTAL GROSS WEIGHT */}
-            <div className="row align-items-center compact-row">
+            <div className="row align-items-center compact-row mt-1">
               <label className="col-sm-4 mt-1 col-form-label">
                 TOTAL GROSS WEIGHT
               </label>
               <div className="col-sm-2">
                 <input
                   type="text"
+                  tabIndex={3}
                   className="pack-input"
                   value={totalGrossWeight}
                   onChange={(e) => {
@@ -1328,6 +1388,7 @@ function Cargo({ setActiveTab, isViewMode }) {
               <div className="col-sm-5">
                 <select
                   className="pack-select"
+                  tabIndex={4}
                   value={grossUOM}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -1359,7 +1420,7 @@ function Cargo({ setActiveTab, isViewMode }) {
             )}
 
             {/* PERMIT GROSS WEIGHT */}
-            <div className="row align-items-center compact-row">
+            <div className="row align-items-center compact-row mt-2">
               <label className="col-sm-4 col-form-label">
                 PERMIT GROSS WEIGHT
               </label>
@@ -1398,6 +1459,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                   id="releaseLocationInput"
                   className="form-control"
                   value={releaseCode}
+                  tabIndex={5}
                   onChange={handleReleaseLocationChange}
                   onKeyDown={handleReleaseLocationKeyDown}
                   onBlur={handleReleaseLocationFocusOut}
@@ -1447,6 +1509,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                 <input
                   type="text"
                   className="form-control"
+                  tabIndex={6}
                   value={releaseLocationDescription}
                   onChange={(e) =>
                     setReleaseLocationDescription(e.target.value)
@@ -1471,6 +1534,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                   id="receiptLocationInput"
                   className="form-control"
                   value={receiptCode}
+                  tabIndex={7}
                   onChange={handleReceiptLocationChange}
                   onKeyDown={handleReceiptLocationKeyDown}
                   onBlur={handleReceiptLocationFocusOut}
@@ -1520,6 +1584,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                 <input
                   type="text"
                   id="receiptLocationText"
+                  tabIndex={8}
                   className="form-control"
                   value={receiptLocationDescription}
                   onChange={(e) =>
@@ -1555,7 +1620,7 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* LOADING PORT */}
             {showNotRequired && (
-              <div className="row align-items-center compact-row">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-3 col-form-label">LOADING PORT</label>
                 <div className="col-sm-1 d-flex align-items-center gap-2">
                   <FaSearch
@@ -1569,6 +1634,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                     className="form-control"
                     id="CargoLoadingPort1"
                     value={loadingPortCode}
+                    tabIndex={9}
                     onChange={handleLoadingPortChange}
                     onKeyDown={handleLoadingPortKeyDown}
                     onBlur={handleLoadingPortFocusOut}
@@ -1617,15 +1683,15 @@ function Cargo({ setActiveTab, isViewMode }) {
                     id="CargoLoadingPort2"
                     className="form-control"
                     value={loadingPortName}
+                    tabIndex={10}
                     readOnly
                   />
                 </div>
               </div>
             )}
             {/* HAWB */}
-            {/* HAWB */}
             {showNotRequired && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">
                   {getCargoLabel()}
                 </label>
@@ -1636,6 +1702,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                   <input
                     type="text"
                     id="CargoHbl"
+                    tabIndex={11}
                     className={`form-control ${showHawbDuplicateError ? "is-invalid" : ""}`}
                     value={cargoHawb}
                     onChange={(e) => {
@@ -1653,15 +1720,18 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* ARRIVAL DATE */}
             {showNotRequired && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">ARRIVAL DATE</label>
+
                 <DateField
                   value={arrivalDate}
+                  tabIndex={12}
                   setValue={(val) => {
                     setArrivalDate(val);
                     if (val) setShowArrivalDateError(false);
                   }}
                 />
+
                 {showArriavalDateError && (
                   <span className="ErrorColor">
                     Please select a valid arrival date.
@@ -1671,11 +1741,12 @@ function Cargo({ setActiveTab, isViewMode }) {
             )}
 
             {showVoyageNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">VOYAGE NUMBER</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={13}
                     className="form-control"
                     value={voyageNumber}
                     onChange={(e) => setVoyageNumber(e.target.value)}
@@ -1686,11 +1757,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* VESSEL NAME */}
             {showVesselName && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">VESSEL NAME</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={14}
                     value={vesselName}
                     onChange={(e) => setVesselName(e.target.value)}
                     className="form-control"
@@ -1701,11 +1773,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* FLIGHT NUMBER */}
             {showFlightNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">FLIGHT NUMBER</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={15}
                     value={flightNumber}
                     onChange={(e) => setFlightNumber(e.target.value)}
                     className="form-control"
@@ -1716,12 +1789,13 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* AIRCRAFT REG NO */}
             {showAirCraftRegNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">
                   AIRCRAFT REG NO
                 </label>
                 <div className="col-sm-7">
                   <input
+                    tabIndex={16}
                     type="text"
                     value={airCraftRegNumber}
                     onChange={(e) => setAirCraftRegNumber(e.target.value)}
@@ -1733,11 +1807,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* MAWB */}
             {showMawbNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">MAWB</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={17}
                     value={mawbNumber}
                     onChange={(e) => setMawbNumber(e.target.value)}
                     className="form-control"
@@ -1748,11 +1823,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* OBL */}
             {showOblNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">OBL</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={18}
                     value={obl}
                     onChange={(e) => setObl(e.target.value)}
                     className="form-control"
@@ -1763,7 +1839,7 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* CONVEYANCE NO */}
             {showconveyanceNumber && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mb-1">
                 <label
                   for="CargoConveyanceNo"
                   className="col-sm-4 col-form-label"
@@ -1773,6 +1849,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={19}
                     value={conveyanceNumber}
                     onChange={(e) => setConveyanceNumber(e.target.value)}
                     className="form-control"
@@ -1783,11 +1860,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
             {/* TRANSPORT ID */}
             {showTransportDetails && (
-              <div className="row align-items-center compact-row mb-3">
+              <div className="row align-items-center compact-row mt-1">
                 <label className="col-sm-4 col-form-label">TRANSPORT ID</label>
                 <div className="col-sm-7">
                   <input
                     type="text"
+                    tabIndex={20}
                     value={transportDetails}
                     onChange={(e) => setTransportDetails(e.target.value)}
                     className="form-control"
@@ -1796,17 +1874,17 @@ function Cargo({ setActiveTab, isViewMode }) {
               </div>
             )}
             {/* BLANKET START DATE */}
-            <div className="row align-items-center compact-row mb-3">
+            <div className="row align-items-center compact-row mt-1">
               <label className="col-sm-4 col-form-label">
                 BLANKET START DATE
               </label>
               <DateField
                 value={blanketStartDate}
                 setValue={setBlanketStartDate}
+                tabIndex={21}
               />
             </div>
           </div>
-          {/* VOYAGE NUMBER */}
           <div className="col-6"></div>
         </div>
       </div>
@@ -1814,14 +1892,14 @@ function Cargo({ setActiveTab, isViewMode }) {
       {/* CONTAINER INFO */}
       {showCargoType && (
         <div className="col-12">
-          <div className="row align-items-center compact-row mb-3">
+          <div className="row align-items-center compact-row">
             <div className="col-sm-8 border-bottom pb-1 full-width-title">
               CONTAINER INFO
             </div>
           </div>
 
           {/* Delete Container Button */}
-          <div className="row mt-3 mb-3">
+          {/* <div className="row mt-3 mt-1">
             <div className="col-1"></div>
             <div className="col-2">
               <button
@@ -1833,16 +1911,22 @@ function Cargo({ setActiveTab, isViewMode }) {
                 DELETE CONTAINER
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Container Table */}
-          <div className="row mb-3">
+          <div className="row mt-1">
             <div className="col-11 form-check">
               <table id="ConatinerTable" style={{ width: "100%" }}>
                 <thead>
                   <tr className="fontTable">
                     <th>
                       <input
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          cursor: "pointer",
+                        }}
+                        tabIndex={22}
                         type="checkbox"
                         checked={
                           containers.length > 0 &&
@@ -1875,6 +1959,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <td>
                         <input
                           type="checkbox"
+                          tabIndex={23}
                           checked={container.isChecked || false}
                           onChange={(e) =>
                             setContainers((prev) =>
@@ -1890,6 +1975,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <td>
                         {/* Edit */}
                         <FaEdit
+                          tabIndex={24}
                           className="view-show"
                           style={{ width: "20px", cursor: "pointer" }}
                           onClick={() =>
@@ -1907,11 +1993,13 @@ function Cargo({ setActiveTab, isViewMode }) {
                         <FaTrash
                           style={{ width: "15px", cursor: "pointer" }}
                           onClick={() => deleteContainer(container, index)}
+                          tabIndex={25}
                         />
                       </td>
                       <td>
                         <input
                           type="text"
+                          tabIndex={26}
                           value={index + 1}
                           disabled
                           className="inputStyle"
@@ -1922,6 +2010,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                         <input
                           type="text"
                           className="inputStyle"
+                          tabIndex={27}
                           value={container.number}
                           onChange={(e) =>
                             setContainers((prev) =>
@@ -1937,6 +2026,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </td>
                       <td>
                         <select
+                          tabIndex={28}
                           className="Dropdown HighLighty"
                           value={container.sizeType}
                           onChange={(e) =>
@@ -1970,6 +2060,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <td>
                         <input
                           type="text"
+                          tabIndex={29}
                           className="inputStyle"
                           value={container.weight}
                           onChange={(e) =>
@@ -1987,6 +2078,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <td>
                         <input
                           type="text"
+                          tabIndex={30}
                           className="inputStyle"
                           value={container.seal}
                           onChange={(e) =>
@@ -2005,6 +2097,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                         {!container.isSaved ? (
                           <button
                             type="button"
+                            tabIndex={31}
                             className="ButtonClick SaveContainer"
                             onClick={() => saveContainer(container, index)}
                           >
@@ -2021,6 +2114,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </td>
                       <td>
                         <FaPlus
+                          tabIndex={32}
                           style={{ width: "30px", cursor: "pointer" }}
                           className="AddContainerBtn"
                           onClick={addContainer}
@@ -2038,7 +2132,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={33}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2046,12 +2140,14 @@ function Cargo({ setActiveTab, isViewMode }) {
         </button>
         <button
           className="NextpageBtns view-nav-btn"
+          tabIndex={34}
           onClick={() => setActiveTab("PartyTab")}
         >
           PREVIOUS
         </button>
         <button
           className="NextpageBtns view-nav-btn"
+          tabIndex={35}
           onClick={() => setActiveTab("InvoiceTab")}
         >
           NEXT

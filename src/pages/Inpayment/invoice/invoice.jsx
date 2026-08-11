@@ -258,6 +258,7 @@ function Invoice({ setActiveTab, isViewMode }) {
     setSupplierManuFacturerName1(name1);
     setShowSupplierManuFacturerDropdown(false);
     setSupplierManuFacturerError(false);
+    focusNextSection("supplierManuFacturer");
   };
 
   const handleSupplierManuFacturerFocusOut = () => {
@@ -290,6 +291,7 @@ function Invoice({ setActiveTab, isViewMode }) {
         setSupplierManuFacturerName(name);
         setSupplierManuFacturerName1(name1);
         setSupplierManuFacturerError(false);
+        focusNextSection("supplierManuFacturer");
       } else {
         setSupplierManuFacturer(null);
         setSupplierManuFacturerError(true);
@@ -437,6 +439,7 @@ function Invoice({ setActiveTab, isViewMode }) {
     setInvoiceImporterName1(name1);
     setShowImporterDropdown(false);
     setImporterError(false);
+    focusNextSection("importer");
   };
 
   const handleFocusOut = () => {
@@ -463,6 +466,7 @@ function Invoice({ setActiveTab, isViewMode }) {
         setInvoiceImporterName(name);
         setInvoiceImporterName1(name1);
         setImporterError(false);
+        focusNextSection("importer");
       } else {
         setImporter(null);
         setImporterError(true);
@@ -568,14 +572,24 @@ function Invoice({ setActiveTab, isViewMode }) {
   }, []);
 
   // ========================Invoice Number Value=================
-
   const handleInvoiceNumberChange = (e) => {
     const value = e.target.value;
-    const isValid = /^[a-zA-Z0-9]*$/.test(value);
+    // Allow typing freely — only restrict character set (no invalid symbols at all)
+    const isValid = /^[a-zA-Z0-9\-/:]*$/.test(value);
     if (isValid) {
       setInvoiceNumber(value);
     }
   };
+
+  // const handleInvoiceNumberBlur = () => {
+  //   const trimmed = invoiceNumber.trim();
+  //   const isProperlyFormatted = /^[a-zA-Z0-9]+([-/:][a-zA-Z0-9]+)*$/.test(trimmed);
+  //   if (!isProperlyFormatted && trimmed !== "") {
+  //     setInvoiceNumberError(true);
+  //   } else {
+  //     setInvoiceNumberError(false);
+  //   }
+  // };
 
   // ======================== TERM TYPE CHANGE ========================
   const handleTermChange = (val) => {
@@ -586,8 +600,10 @@ function Invoice({ setActiveTab, isViewMode }) {
     setOtherValueDollar("");
     setFreightValueAmount("");
     setFreightValueDollar("");
+    setFreightValueCharges("");
     setInsuranceValueAmount("");
     setInsuranceValueDollar("");
+    setInsuranceCharges("");
     setFreightChargesEnabled(false);
     setInsuranceChargesEnabled(false);
     setInvoiceCurrency("");
@@ -681,7 +697,87 @@ function Invoice({ setActiveTab, isViewMode }) {
     }
   };
 
-  // ======================== CALCULATIONS ========================
+  // // ======================== CALCULATIONS ========================
+  // useEffect(() => {
+  //   const invAmount = parseFloat(invoiceAmount) || 0;
+  //   const invEx = parseFloat(invoiceExRate) || 0;
+  //   const invDollar = invAmount * invEx;
+
+  //   const othAmount = parseFloat(otherValueAmount) || 0;
+  //   const othEx = parseFloat(otherValueExRate) || 0;
+  //   const othDollar = othAmount * othEx;
+
+  //   const frCharge = parseFloat(freightValueCharges) || 0;
+  //   const frEx = parseFloat(freightValueExRate) || 0;
+  //   let frAmount = parseFloat(freightValueAmount) || 0;
+
+  //   if (frCharge > 0) {
+  //     // const freightBase = invDollar + othDollar;
+  //     const freightBase = invDollar;
+  //     const frDollarCalculated = (freightBase * frCharge) / 100;
+  //     const calculatedAmount = frDollarCalculated / frEx;
+  //     if (freightValueAmount !== calculatedAmount.toFixed(2)) {
+  //       setFreightValueAmount(calculatedAmount.toFixed(2));
+  //     }
+  //     frAmount = calculatedAmount;
+  //   }
+  //   const frDollar = frAmount * frEx;
+
+  //   const charge = parseFloat(insuranceCharges) || 0;
+
+  //   // const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
+  //   // const insAmount = (insuranceBase * charge) / 100;
+  //   // if (insuranceValueAmount !== insAmount.toFixed(2)) {
+  //   //   setInsuranceValueAmount(insAmount.toFixed(2));
+  //   // }
+
+  //   let insAmount;
+
+  //   if (charge === 0) {
+  //     //  Manual entry — keep user typed value, just calculate dollar
+  //     insAmount = parseFloat(insuranceValueAmount) || 0;
+  //   } else {
+  //     // Auto-calculate from base percentage
+  //     const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
+  //     insAmount = (insuranceBase * charge) / 100;
+  //     if (insuranceValueAmount !== insAmount.toFixed(2)) {
+  //       setInsuranceValueAmount(insAmount.toFixed(2));
+  //     }
+  //   }
+
+  //   const insEx = parseFloat(insuranceValueExRate) || 0;
+  //   const insDollar = insAmount * insEx;
+
+  //   setInvoiceDollar(invDollar.toFixed(2));
+  //   setOtherValueDollar(othDollar.toFixed(2));
+  //   setFreightValueDollar(frDollar.toFixed(2));
+  //   setInsuranceValueDollar(insDollar.toFixed(2));
+
+  //   const totalCIF =
+  //     invDollar +
+  //     othDollar +
+  //     (showFreightRow ? frDollar : 0) +
+  //     (showInsuranceRow ? insDollar : 0);
+  //   setCifTotal(totalCIF.toFixed(2));
+
+  //   const gstPercent = parseFloat(gstCharge) || 0;
+  //   setGstTotal((totalCIF * (gstPercent / 100)).toFixed(2));
+  // }, [
+  //   invoiceAmount,
+  //   invoiceExRate,
+  //   otherValueAmount,
+  //   otherValueExRate,
+  //   freightValueAmount,
+  //   freightValueExRate,
+  //   freightValueCharges,
+  //   insuranceCharges,
+  //   insuranceValueAmount,
+  //   insuranceValueExRate,
+  //   gstCharge,
+  //   showFreightRow,
+  //   showInsuranceRow,
+  // ]);
+
   useEffect(() => {
     const invAmount = parseFloat(invoiceAmount) || 0;
     const invEx = parseFloat(invoiceExRate) || 0;
@@ -691,57 +787,58 @@ function Invoice({ setActiveTab, isViewMode }) {
     const othEx = parseFloat(otherValueExRate) || 0;
     const othDollar = othAmount * othEx;
 
-    const frCharge = parseFloat(freightValueCharges) || 0;
-    const frEx = parseFloat(freightValueExRate) || 0;
-    let frAmount = parseFloat(freightValueAmount) || 0;
+    // ✅ FREIGHT — force 0 if row hidden, skip calculation entirely
+    let frAmount = 0;
+    let frDollar = 0;
+    if (showFreightRow) {
+      const frCharge = parseFloat(freightValueCharges) || 0;
+      const frEx = parseFloat(freightValueExRate) || 0;
+      frAmount = parseFloat(freightValueAmount) || 0;
 
-    if (frCharge > 0) {
-      // const freightBase = invDollar + othDollar;
-      const freightBase = invDollar;
-      const frDollarCalculated = (freightBase * frCharge) / 100;
-      const calculatedAmount = frDollarCalculated / frEx;
-      if (freightValueAmount !== calculatedAmount.toFixed(2)) {
-        setFreightValueAmount(calculatedAmount.toFixed(2));
+      if (frCharge > 0) {
+        const freightBase = invDollar;
+        const frDollarCalculated = (freightBase * frCharge) / 100;
+        const calculatedAmount = frDollarCalculated / frEx;
+        if (freightValueAmount !== calculatedAmount.toFixed(2)) {
+          setFreightValueAmount(calculatedAmount.toFixed(2));
+        }
+        frAmount = calculatedAmount;
       }
-      frAmount = calculatedAmount;
-    }
-    const frDollar = frAmount * frEx;
-
-    const charge = parseFloat(insuranceCharges) || 0;
-
-    // const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
-    // const insAmount = (insuranceBase * charge) / 100;
-    // if (insuranceValueAmount !== insAmount.toFixed(2)) {
-    //   setInsuranceValueAmount(insAmount.toFixed(2));
-    // }
-
-    let insAmount;
-
-    if (charge === 0) {
-      //  Manual entry — keep user typed value, just calculate dollar
-      insAmount = parseFloat(insuranceValueAmount) || 0;
-    } else {
-      // Auto-calculate from base percentage
-      const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
-      insAmount = (insuranceBase * charge) / 100;
-      if (insuranceValueAmount !== insAmount.toFixed(2)) {
-        setInsuranceValueAmount(insAmount.toFixed(2));
-      }
+      frDollar = frAmount * frEx;
+    } else if (freightValueAmount !== "" && freightValueAmount !== 0) {
+      // row hidden but stale value sitting in state — clear it
+      setFreightValueAmount(0);
+      setFreightValueDollar(0);
     }
 
-    const insEx = parseFloat(insuranceValueExRate) || 0;
-    const insDollar = insAmount * insEx;
+    // ✅ INSURANCE — force 0 if row hidden, skip calculation entirely
+    let insAmount = 0;
+    let insDollar = 0;
+    if (showInsuranceRow) {
+      const charge = parseFloat(insuranceCharges) || 0;
+      if (charge === 0) {
+        insAmount = parseFloat(insuranceValueAmount) || 0;
+      } else {
+        const insuranceBase = showFreightRow ? invDollar + frDollar : invDollar;
+        insAmount = (insuranceBase * charge) / 100;
+        if (insuranceValueAmount !== insAmount.toFixed(2)) {
+          setInsuranceValueAmount(insAmount.toFixed(2));
+        }
+      }
+      const insEx = parseFloat(insuranceValueExRate) || 0;
+      insDollar = insAmount * insEx;
+    } else if (insuranceValueAmount !== "" && insuranceValueAmount !== 0) {
+      // row hidden but stale value sitting in state — clear it
+      setInsuranceValueAmount(0);
+      setInsuranceValueDollar(0);
+    }
 
     setInvoiceDollar(invDollar.toFixed(2));
     setOtherValueDollar(othDollar.toFixed(2));
     setFreightValueDollar(frDollar.toFixed(2));
     setInsuranceValueDollar(insDollar.toFixed(2));
 
-    const totalCIF =
-      invDollar +
-      othDollar +
-      (showFreightRow ? frDollar : 0) +
-      (showInsuranceRow ? insDollar : 0);
+    const totalCIF = invDollar + othDollar + frDollar + insDollar;
     setCifTotal(totalCIF.toFixed(2));
 
     const gstPercent = parseFloat(gstCharge) || 0;
@@ -888,16 +985,35 @@ function Invoice({ setActiveTab, isViewMode }) {
       OTCExRate: Number(otherValueExRate) || 0,
       OTCAmount: Number(otherValueAmount) || 0,
       OTCSAmount: Number(otherValueDollar) || 0,
-      FCCharge: Number(freightValueCharges) || 0,
-      FCCurrency: freightValueCurrency || "--Select--",
-      FCExRate: Number(freightValueExRate) || 0,
-      FCAmount: Number(freightValueAmount) || 0,
-      FCSAmount: Number(freightValueDollar) || 0,
-      ICCharge: Number(insuranceCharges) || 0,
-      ICCurrency: insuranceValueCurrency,
-      ICExRate: Number(insuranceValueExRate) || 0,
-      ICAmount: Number(insuranceValueAmount) || 0,
-      ICSAmount: Number(insuranceValueDollar) || 0,
+
+      // FCCharge: Number(freightValueCharges) || 0,
+      // FCCurrency: freightValueCurrency || "--Select--",
+      // FCExRate: Number(freightValueExRate) || 0,
+      // FCAmount: Number(freightValueAmount) || 0,
+      // FCSAmount: Number(freightValueDollar) || 0,
+
+      FCCharge: showFreightRow ? Number(freightValueCharges) || 0 : 0,
+      FCCurrency: showFreightRow
+        ? freightValueCurrency || "--Select--"
+        : "--Select--",
+      FCExRate: showFreightRow ? Number(freightValueExRate) || 0 : 0,
+      FCAmount: showFreightRow ? Number(freightValueAmount) || 0 : 0,
+      FCSAmount: showFreightRow ? Number(freightValueDollar) || 0 : 0,
+
+      // ICCharge: Number(insuranceCharges) || 0,
+      // ICCurrency: insuranceValueCurrency,
+      // ICExRate: Number(insuranceValueExRate) || 0,
+      // ICAmount: Number(insuranceValueAmount) || 0,
+      // ICSAmount: Number(insuranceValueDollar) || 0,
+
+      ICCharge: showInsuranceRow ? Number(insuranceCharges) || 0 : 0,
+      ICCurrency: showInsuranceRow
+        ? insuranceValueCurrency || "--Select--"
+        : "--Select--",
+      ICExRate: showInsuranceRow ? Number(insuranceValueExRate) || 0 : 0,
+      ICAmount: showInsuranceRow ? Number(insuranceValueAmount) || 0 : 0,
+      ICSAmount: showInsuranceRow ? Number(insuranceValueDollar) || 0 : 0,
+
       CIFSUMAmount: Number(cifTotal) || 0,
       GSTPercentage: Number(gstCharge) || 0,
       GSTSUMAmount: Number(gstTotal) || 0,
@@ -906,24 +1022,67 @@ function Invoice({ setActiveTab, isViewMode }) {
       TouchTime: new Date().toISOString(),
       ChkOtherInv: invoiceInsurance || "No",
     };
-console.log("payload")
+    console.log("payload");
     let commonSaved = false;
+    // setIsInvoiceSaving(true);
+    //   try {
+    //     // Step 1: Save to CommonInvoiceDtl
+    //     const commonResponse = await API.post("/postInvoiceTable/", payload);
+    //     commonSaved = true;
+    //     console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+
+    //     // Step 2: Save to InvoiceDtl (inpayment)
+    //     const inpaymentResponse = await API.post(
+    //       "inpayment/postInInvoiceTable/",
+    //       payload,
+    //     );
+    //     console.log("Saved to InvoiceDtl:", inpaymentResponse.data);
+
+    //     if (commonResponse.data?.Records) {
+    //       setInvoiceTable(commonResponse.data.Records);
+    //     } else {
+    //       setInvoiceTable((prev) => {
+    //         if (editingSNo) {
+    //           return prev.map((inv) => (inv.SNo === editingSNo ? payload : inv));
+    //         }
+    //         return [...prev, payload];
+    //       });
+    //     }
+
+    //     setEditingSNo(null);
+    //     setSerialNumber((prev) => Number(prev) + 1);
+    //     resetInvoiceForm();
+    //   } catch (err) {
+    //     console.error("Failed to save invoice:", err);
+
+    //     if (commonSaved) {
+    //       alert(
+    //         `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
+    //           `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+    //           `Error: ${err.response?.data?.error || err.message}`,
+    //       );
+    //     } else if (err.response?.status === 400) {
+    //       alert(
+    //         err.response.data?.error ||
+    //           err.response.data?.Result ||
+    //           "Failed to save invoice",
+    //       );
+    //     } else {
+    //       alert("Failed to save invoice, check console for details");
+    //     }
+    //   } finally {
+    //     setIsInvoiceSaving(false);
+    //   }
+    // };
+
     setIsInvoiceSaving(true);
     try {
-      // Step 1: Save to CommonInvoiceDtl
-      const commonResponse = await API.post("/postInvoiceTable/", payload);
-      commonSaved = true;
-      console.log("Saved to CommonInvoiceDtl:", commonResponse.data);
+      // Single call — backend saves to CommonInvoiceDtl AND mirrors to InvoiceDtl
+      // in one transaction, so there's no more "saved to one table but not the other" risk.
+      const response = await API.post("/postInvoiceTable/", payload);
 
-      // Step 2: Save to InvoiceDtl (inpayment)
-      const inpaymentResponse = await API.post(
-        "inpayment/postInInvoiceTable/",
-        payload,
-      );
-      console.log("Saved to InvoiceDtl:", inpaymentResponse.data);
-
-      if (commonResponse.data?.Records) {
-        setInvoiceTable(commonResponse.data.Records);
+      if (response.data?.Records) {
+        setInvoiceTable(response.data.Records);
       } else {
         setInvoiceTable((prev) => {
           if (editingSNo) {
@@ -933,19 +1092,18 @@ console.log("payload")
         });
       }
 
+      // Surface a non-blocking warning if the mirror write failed server-side
+      if (response.data?.Warning) {
+        alert(response.data.Warning);
+      }
+
       setEditingSNo(null);
       setSerialNumber((prev) => Number(prev) + 1);
       resetInvoiceForm();
     } catch (err) {
       console.error("Failed to save invoice:", err);
 
-      if (commonSaved) {
-        alert(
-          `Warning: Invoice "${payload.InvoiceNo}" was saved to CommonInvoiceDtl but FAILED to save to InvoiceDtl. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${err.response?.data?.error || err.message}`,
-        );
-      } else if (err.response?.status === 400) {
+      if (err.response?.status === 400) {
         alert(
           err.response.data?.error ||
             err.response.data?.Result ||
@@ -1152,6 +1310,24 @@ console.log("payload")
     setGstTotal(invoice.GSTSUMAmount);
     setInvoiceInsurance(invoice.ChkOtherInv);
   };
+
+
+  // comma separator
+
+const fmtComma = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  if (isNaN(num)) return (0).toFixed(decimals);
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+};
+
+//------------------------Decimal helper------------------------
+const fmt = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+};
 
   // ======================== RESET INVOICE ========================
   const resetInvoiceForm = () => {
@@ -1438,36 +1614,64 @@ console.log("payload")
   // });
 
   // ======================== LOAD EXISTING INVOICES ON PAGE (RE)ENTRY ========================
-const invoiceFetchedRef = useRef(false);
+  const invoiceFetchedRef = useRef(false);
 
-useEffect(() => {
-  const fetchExistingInvoices = async () => {
-    if (!permitDetails?.PermitId) return;
-    if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
-    invoiceFetchedRef.current = true;
+  useEffect(() => {
+    const fetchExistingInvoices = async () => {
+      if (!permitDetails?.PermitId) return;
+      if (invoiceFetchedRef.current) return; // avoid re-fetch overwriting fresh adds
+      invoiceFetchedRef.current = true;
 
-    try {
-      const response = await API.get(
-        `/getInvoiceByPermitId/${permitDetails.PermitId}/`
-      );
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        setInvoiceTable(response.data);
-        setSerialNumber(response.data.length + 1);
+      try {
+        const response = await API.get(
+          `/getInvoiceByPermitId/${permitDetails.PermitId}/`,
+        );
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setInvoiceTable(response.data);
+          setSerialNumber(response.data.length + 1);
+        }
+      } catch (err) {
+        console.error("Failed to load existing invoices for this permit", err);
       }
-    } catch (err) {
-      console.error("Failed to load existing invoices for this permit", err);
-    }
-  };
+    };
 
-  fetchExistingInvoices();
-}, [permitDetails?.PermitId]);
+    fetchExistingInvoices();
+  }, [permitDetails?.PermitId]);
+
+  // ============================Invoice Filled Order Check=========================
+
+  const getSectionOrder = () => [
+    {
+      key: "supplierManuFacturer",
+      visible: true,
+      ref: supplierManuFacturerCodeRef,
+    },
+    { key: "importer", visible: true, ref: importerCodeRef },
+  ];
+
+  const focusNextSection = (currentKey) => {
+    setTimeout(() => {
+      const order = getSectionOrder();
+      const currentIndex = order.findIndex((s) => s.key === currentKey);
+      if (currentIndex === -1) return;
+
+      for (let i = currentIndex + 1; i < order.length; i++) {
+        if (order[i].visible) {
+          order[i].ref.current?.focus();
+          return;
+        }
+      }
+
+      document.getElementById("PartySaveDraft")?.focus();
+    }, 0);
+  };
 
   // ======================== UI ========================
   return (
     <div className="row g-2">
       <div className="col-12">
         <div className="row align-items-center compact-row">
-          <label className="col-sm-2 col-form-label">
+          <label className="col-sm-1 col-form-label">
             SUPPLIER / MANUFACTURER
           </label>
           <div className="col-sm-1 icon-contaniner">
@@ -1475,24 +1679,26 @@ useEffect(() => {
               className="me-4"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("supplierManuFacturer")}
+              tabIndex={1}
             />
             <FaPlus
               style={{ cursor: "pointer" }}
               onClick={saveSupplierManuFacturer}
+              tabIndex={2}
             />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={supplierManuFacturerCodeRef}
               type="text"
               className="form-control"
               placeholder="CODE"
+              tabIndex={3}
               value={supplierManuFacturerCode}
               onChange={handleSupplierManuFacturerChange}
               onKeyDown={handleSupplierManuFacturerKeyDown}
               onBlur={handleSupplierManuFacturerFocusOut}
               onFocus={() => setSupplierManuFacturerError(false)}
-              tabIndex={1}
             />
             {showSupplierManuFacturerDropdown &&
               filteredSupplierManuFacturerSuggestions.length > 0 && (
@@ -1532,7 +1738,7 @@ useEffect(() => {
           </div>
           <div className="col-sm-2">
             <input
-              tabIndex={2}
+              tabIndex={4}
               type="text"
               className="form-control mandatory"
               placeholder="CRUEI"
@@ -1545,7 +1751,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <input
               type="text"
-              tabIndex={3}
+              tabIndex={5}
               className="form-control mandatory"
               placeholder="NAME"
               value={
@@ -1566,7 +1772,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <input
               type="text"
-              tabIndex={4}
+              tabIndex={6}
               className="form-control"
               placeholder="NAME1"
               value={
@@ -1579,22 +1785,27 @@ useEffect(() => {
 
         {/* IMPORTER ROW */}
         <div className="row align-items-center compact-row">
-          <label className="col-sm-2 col-form-label">IMPORTER</label>
+          <label className="col-sm-1 col-form-label">IMPORTER</label>
           <div className="col-sm-1 icon-contaniner">
             <FaSearch
               className="me-4"
+              tabIndex={7}
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("importer")}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveImporter}
+              tabIndex={8}
+            />
           </div>
-          <div className="col-sm-1 position-relative">
+          <div className="col-sm-2 position-relative">
             <input
               ref={importerCodeRef}
               id="importerCode"
               className="form-control"
               placeholder="CODE"
-              tabIndex={5}
+              tabIndex={9}
               value={invoiceImporterCode}
               onChange={handleImporterChange}
               onKeyDown={handleImporterKeyDown}
@@ -1633,7 +1844,7 @@ useEffect(() => {
               id="importerCruei"
               className="form-control mandatory"
               placeholder="CRUEI"
-              tabIndex={6}
+              tabIndex={10}
               value={importer?.CRUEI || invoiceImporterCruei || ""}
               onChange={(e) => setInvoiceImporterCruei(e.target.value)}
             />
@@ -1643,24 +1854,24 @@ useEffect(() => {
               id="importerName"
               className="form-control mandatory"
               placeholder="NAME"
-              tabIndex={7}
+              tabIndex={11}
               value={importer?.Name || invoiceImporterName || ""}
               onChange={(e) => setInvoiceImporterName(e.target.value)}
             />
           </div>
-          <div className="col-sm-2">
+          <div className="col-sm-1">
             <input
               id="importerName1"
               className="form-control"
               placeholder="NAME1"
-              tabIndex={8}
+              tabIndex={12}
               value={importer?.Name1 || invoiceImporterName1 || ""}
               onChange={(e) => setInvoiceImporterName1(e.target.value)}
             />
           </div>
           <div className="col-sm-1">
             <button
-              tabIndex={9}
+              tabIndex={13}
               type="button"
               className="ButtonClick SaveContainer"
               onClick={copyImporter}
@@ -1672,13 +1883,13 @@ useEffect(() => {
       </div>
 
       {/* INVOICE INFORMATION */}
-      <div className="col-12">
+      <div className="col-12 g-4 mt-1">
         <div className="row align-items-center compact-row">
           <div className="col-sm-8 border-bottom pb-1 full-width-title">
             INVOICE INFORMATION
           </div>
         </div>
-        <div className="row align-items-center compact-row">
+        <div className="row align-items-center compact-row mt-1">
           <div className="col-sm-1 col-form-label">SERIAL NUMBER</div>
           <div className="col-sm-2">
             <input
@@ -1692,7 +1903,7 @@ useEffect(() => {
           <div className="col-sm-1">INVOICE DATE</div>
           <div className="col-sm-3">
             <DateField
-              tabIndex={10}
+              tabIndex={14}
               value={invoiceDate}
               setValue={setInvoiceDate}
             />
@@ -1700,22 +1911,14 @@ useEffect(() => {
               <span className="ErrColor">FILL Invoice Date</span>
             )}
           </div>
-          {/* <div className="col-sm-1 form-check">
-            <input
-              type="checkbox"
-              tabIndex={11}
-              className="form-check-input"
-              checked={adValoremIndicator === "True"}
-              onChange={(e) =>
-                setAdValoremIndicator(e.target.checked ? "True" : "False")
-              }
-            />
-          </div>
-          <div className="col-sm-1">AD VALOREM INDICATOR</div> */}
           <div className="col-sm-3 form-check">
             <input
+              style={{
+                width: "16px",
+                height: "16px",
+                cursor: "pointer",
+              }}
               type="checkbox"
-              tabIndex={12}
               className="form-check-input"
               checked={preDutyRateIndicator === "True"}
               onChange={(e) =>
@@ -1731,7 +1934,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               type="text"
-              tabIndex={13}
+              tabIndex={15}
               className="form-control"
               value={invoiceNumber}
               onChange={handleInvoiceNumberChange}
@@ -1741,10 +1944,10 @@ useEffect(() => {
             )}
           </div>
           <div className="col-sm-1">TERM TYPE</div>
-          <div className="col-sm-4">
+          <div className="col-sm-3">
             <select
               className="Dropdown HighLight mandatory"
-              tabIndex={14}
+              tabIndex={16}
               value={termTypeSelected}
               onChange={(e) => handleTermChange(e.target.value)}
             >
@@ -1764,7 +1967,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <select
               className="form-control"
-              tabIndex={15}
+              tabIndex={17}
               value={supplierRelationship}
               onChange={(e) => setSupplierRelationship(e.target.value)}
             >
@@ -1788,7 +1991,7 @@ useEffect(() => {
       </div>
 
       {/* CALCULATION TABLE */}
-      <div className="col-12 mt-3">
+      <div className="col-12 mt-1">
         <div className="table-responsive">
           <table id="InvoiceCalculationTable">
             <thead>
@@ -1810,6 +2013,7 @@ useEffect(() => {
                   <select
                     className="Dropdown HighLight"
                     style={{ width: "90%" }}
+                    tabIndex={18}
                     value={invoiceCurrency}
                     onChange={(e) =>
                       handleCurrencyChange(e.target.value, "invoice")
@@ -1845,6 +2049,7 @@ useEffect(() => {
                   <input
                     type="text"
                     value={invoiceAmount}
+                    tabIndex={19}
                     className="inputStyle"
                     onChange={(e) =>
                       handleAmountChange(e.target.value, "invoice")
@@ -1857,10 +2062,10 @@ useEffect(() => {
                     placeholder="0.00"
                   />
                 </td>
-                <td>
+<td>
                   <input
                     type="text"
-                    value={invoiceDollar}
+                    value={fmtComma(invoiceDollar)}
                     placeholder="0.00"
                     className="inputStyle"
                     disabled
@@ -1883,6 +2088,7 @@ useEffect(() => {
                   <select
                     className="Dropdown"
                     style={{ width: "90%" }}
+                    tabIndex={20}
                     value={otherValueCurrency}
                     onChange={(e) =>
                       handleCurrencyChange(e.target.value, "other")
@@ -1917,6 +2123,7 @@ useEffect(() => {
                   <input
                     type="text"
                     value={otherValueAmount}
+                    tabIndex={21}
                     className="inputStyle"
                     onChange={(e) =>
                       handleAmountChange(e.target.value, "other")
@@ -1927,7 +2134,7 @@ useEffect(() => {
                 <td>
                   <input
                     type="text"
-                    value={otherValueDollar}
+                    value={fmtComma(otherValueDollar)}
                     className="inputStyle"
                     disabled
                     placeholder="0.00"
@@ -1943,6 +2150,7 @@ useEffect(() => {
                       FREIGHT VALUE (INCL. OTHER VALUE)
                       <input
                         type="checkbox"
+                        tabIndex={22}
                         className="form-check-input ms-2"
                         checked={freightChargesEnabled}
                         onChange={(e) => {
@@ -1956,6 +2164,7 @@ useEffect(() => {
                     <input
                       type="text"
                       value={freightValueCharges}
+                      tabIndex={23}
                       className="inputStyle"
                       placeholder="0.00"
                       disabled={!freightChargesEnabled}
@@ -1967,6 +2176,7 @@ useEffect(() => {
                       className="Dropdown"
                       style={{ width: "90%" }}
                       value={freightValueCurrency}
+                      tabIndex={24}
                       onChange={(e) =>
                         handleCurrencyChange(e.target.value, "freight")
                       }
@@ -2000,6 +2210,7 @@ useEffect(() => {
                     <input
                       type="text"
                       value={freightValueAmount}
+                      tabIndex={25}
                       disabled={freightValueCharges > 0}
                       onChange={(e) =>
                         handleAmountChange(e.target.value, "freight")
@@ -2011,7 +2222,7 @@ useEffect(() => {
                   <td>
                     <input
                       type="text"
-                      value={freightValueDollar}
+                      value={fmtComma(freightValueDollar)}
                       className="inputStyle"
                       disabled
                       placeholder="0.00"
@@ -2028,6 +2239,7 @@ useEffect(() => {
                       INSURANCE VALUE (INCL. FREIGHT VALUE)
                       <input
                         type="checkbox"
+                        tabIndex={26}
                         className="ms-2 form-check-input"
                         checked={insuranceChargesEnabled}
                         onChange={(e) => {
@@ -2042,6 +2254,7 @@ useEffect(() => {
                       type="text"
                       placeholder="0.00"
                       className="inputStyle"
+                      tabIndex={27}
                       value={insuranceCharges}
                       disabled={!insuranceChargesEnabled}
                       onChange={(e) => setInsuranceCharges(e.target.value)}
@@ -2052,6 +2265,7 @@ useEffect(() => {
                       className="Dropdown"
                       style={{ width: "90%" }}
                       value={insuranceValueCurrency}
+                      tabIndex={28}
                       onChange={(e) =>
                         handleCurrencyChange(e.target.value, "insurance")
                       }
@@ -2085,6 +2299,7 @@ useEffect(() => {
                     <input
                       type="text"
                       value={insuranceValueAmount}
+                      tabIndex={29}
                       className="inputStyle"
                       placeholder="0.00"
                       onChange={(e) =>
@@ -2095,7 +2310,7 @@ useEffect(() => {
                   <td>
                     <input
                       type="text"
-                      value={insuranceValueDollar}
+                       value={fmtComma(insuranceValueDollar)}
                       className="inputStyle"
                       disabled
                       placeholder="0.00"
@@ -2111,7 +2326,7 @@ useEffect(() => {
                 <td>
                   <input
                     type="text"
-                    value={cifTotal}
+                    value={fmtComma(cifTotal)}
                     disabled
                     className="inputStyle"
                   />
@@ -2133,7 +2348,7 @@ useEffect(() => {
                 <td>
                   <input
                     type="text"
-                    value={gstTotal}
+                    value={fmtComma(gstTotal)}
                     disabled
                     className="inputStyle"
                   />
@@ -2145,11 +2360,11 @@ useEffect(() => {
       </div>
 
       {/* NAVIGATION */}
-      <div className="col-12">
-        <div className="mt-3 d-flex justify-content-center gap-3">
+      <div className="col-12 mt-1">
+        <div className="mt-2 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
+            tabIndex={30}
             id="PartySaveDraft"
             onClick={handleSaveAsDraftClick}
           >
@@ -2158,6 +2373,7 @@ useEffect(() => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
+            tabIndex={31}
           >
             PREVIOUS
           </button>
@@ -2165,6 +2381,7 @@ useEffect(() => {
             className="NextpageBtns"
             onClick={saveInvoice}
             disabled={isInvoiceSaving}
+            tabIndex={32}
           >
             {isInvoiceSaving ? "SAVING..." : "ADD INVOICE"}
           </button>
@@ -2176,6 +2393,7 @@ useEffect(() => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("ItemTab")}
+            tabIndex={33}
           >
             NEXT
           </button>
@@ -2424,7 +2642,7 @@ useEffect(() => {
       </div>
 
       {/* INVOICE TABLE */}
-      <div className="col-12 mt-4">
+      <div className="col-12 mt-1">
         <div className="table-responsive">
           <table
             id="InvoiceTable"
@@ -2471,11 +2689,11 @@ useEffect(() => {
                     <td>{inv.SNo}</td>
                     <td>{inv.InvoiceNo}</td>
                     <td>{inv.InvoiceDate}</td>
-                    <td>{inv.TermType}</td>
+                    <td>{inv.TermType.toUpperCase()}</td>
                     <td>{inv.TICurrency}</td>
-                    <td>{inv.TIAmount}</td>
-                    <td>{inv.CIFSUMAmount}</td>
-                    <td>{inv.GSTSUMAmount}</td>
+                    <td>{fmt(inv.TIAmount)}</td>
+                    <td>{fmt(inv.CIFSUMAmount)}</td>
+                    <td>{fmt(inv.GSTSUMAmount)}</td>
                   </tr>
                 ))
               )}

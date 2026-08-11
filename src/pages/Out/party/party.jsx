@@ -379,6 +379,7 @@ function Party({ setActiveTab, isViewMode }) {
     setImporterName1(name1);
     setShowImporterDropdown(false);
     setImporterError(false);
+    focusNextSection("importer");
   };
   // ======================== IMPORTER FOCUSOUT ========================
   const handleFocusOut = () => {
@@ -404,6 +405,7 @@ function Party({ setActiveTab, isViewMode }) {
         setImporterName(name);
         setImporterName1(name1);
         setImporterError(false);
+        focusNextSection("importer");
       } else {
         setImporter(null);
         // setImporterCruei("");
@@ -712,6 +714,7 @@ function Party({ setActiveTab, isViewMode }) {
     setInwardName1(name1);
     setShowInwardDropdown(false);
     setInwardError(false);
+    focusNextSection("inward");
   };
   // ======================== INWARD FOCUSOUT ========================
   const handleInwardFocusOut = () => {
@@ -736,6 +739,7 @@ function Party({ setActiveTab, isViewMode }) {
         setInwardName(name);
         setInwardName1(name1);
         setInwardError(false);
+        focusNextSection("inward");
       } else {
         setInwardAgent(null);
         // setInwardCruei("");
@@ -982,6 +986,7 @@ function Party({ setActiveTab, isViewMode }) {
     setFreightForwarderName1(name1);
     setShowFreightForwarderDropdown(false);
     setFreightForwarderError(false);
+    focusNextSection("freightForwarder");
   };
 
   // ======================== FREIGHTFORWARDER FOCUSOUT ========================
@@ -1016,6 +1021,7 @@ function Party({ setActiveTab, isViewMode }) {
         setFreightForwarderName(name);
         setFreightForwarderName1(name1);
         setFreightForwarderError(false);
+        focusNextSection("freightForwarder");
       } else {
         setFreightForwarder(null);
         // setFreightForwarderCruei("");
@@ -1462,6 +1468,7 @@ function Party({ setActiveTab, isViewMode }) {
     setCongineeCountryCode(country);
     setShowCongineeDropdown(false);
     setCongineeError(false);
+    focusNextSection("consignee");
   };
 
   // ======================== CONSIGNEE FOCUSOUT ========================
@@ -1525,6 +1532,7 @@ function Party({ setActiveTab, isViewMode }) {
         setCongineePostel(postal);
         setCongineeCountryCode(country);
         setCongineeError(false);
+        focusNextSection("consignee");
       } else {
         setConsignee(null);
         setCongineeError(true);
@@ -1804,6 +1812,7 @@ function Party({ setActiveTab, isViewMode }) {
     setExporterCountryCode(country);
     setShowExporterDropdown(false);
     setExporterError(false);
+    focusNextSection("exporter");
   };
 
   // ======================== EXPORTER FOCUSOUT ========================
@@ -1869,6 +1878,7 @@ function Party({ setActiveTab, isViewMode }) {
         setExporterPostal(postal);
         setExporterCountryCode(country);
         setExporterError(false);
+        focusNextSection("exporter");
       } else {
         setExporter(null);
         setExporterError(true);
@@ -1897,13 +1907,15 @@ function Party({ setActiveTab, isViewMode }) {
       CRUEI: exporterCruei || "",
       Name: exporterName || "",
       Name1: exporterName1 || "",
-      Address: exporter?.Address || "",
-      Address1: exporter?.Address1 || "",
-      City: exporter?.City || "",
-      SubCode: exporter?.SubCode || "",
-      Sub: exporter?.Sub || "",
-      Postal: exporter?.Postal || "",
-      Country: exporter?.Country || "",
+
+    Address: exporterAddress || "",
+    Address1: exporterAddress1 || "",
+    City: exporterCity || "",
+    SubCode: exporterSubCode || "",
+    Sub: exporterSubDivision || "",
+    Postal: exporterPostal || "",
+    Country: exporterCountryCode || "",
+
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
       Status: "Active",
@@ -2071,6 +2083,7 @@ function Party({ setActiveTab, isViewMode }) {
     setOutwardName1(name1);
     setShowOutwardDropdown(false);
     setOutwardError(false);
+    focusNextSection("outward");
   };
 
   // ======================== OUTWARD FOCUSOUT ========================
@@ -2098,6 +2111,7 @@ function Party({ setActiveTab, isViewMode }) {
         setOutwardName(name);
         setOutwardName1(name1);
         setOutwardError(false);
+        focusNextSection("outward");
       } else {
         setOutwardAgent(null);
         setOutwardError(true);
@@ -2320,6 +2334,7 @@ function Party({ setActiveTab, isViewMode }) {
     setEndUserCountryCode(country);
     setShowEndUserDropdown(false);
     setEndUserError(false);
+    focusNextSection("endUser");
   };
 
   // ======================== END USER FOCUSOUT ========================
@@ -2383,6 +2398,7 @@ function Party({ setActiveTab, isViewMode }) {
         setEndUserPostal(postal);
         setEndUserCountryCode(country);
         setEndUserError(false);
+        focusNextSection("endUser");
       } else {
         setEndUser(null);
         setEndUserError(true);
@@ -2640,6 +2656,7 @@ function Party({ setActiveTab, isViewMode }) {
     setManufacturerCountry(country);
     setShowManufacturerDropdown(false);
     setManufacturerError(false);
+    focusNextSection("manufacturer");
   };
 
   // ======================== MANUFACTURER FOCUSOUT ========================
@@ -2705,6 +2722,7 @@ function Party({ setActiveTab, isViewMode }) {
         setManufacturerPostal(postal);
         setManufacturerCountry(country);
         setManufacturerError(false);
+        focusNextSection("manufacturer");
       } else {
         setManufacturer(null);
         setManufacturerError(true);
@@ -3110,6 +3128,40 @@ function Party({ setActiveTab, isViewMode }) {
   //   delay: 2000,
   // });
 
+  // ============================Party Filled Order Check=========================
+
+  const getSectionOrder = () => [
+    { key: "exporter", visible: true, ref: exporterCodeRef },
+    { key: "importer", visible: showPartyImporter, ref: importerCodeRef },
+    { key: "inward", visible: showInwardCarrier, ref: inwardCodeRef },
+    { key: "outward", visible: showOutwardCarrier, ref: outwardCodeRef },
+    { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
+    { key: "consignee", visible: showCongineeShow, ref: congineeCodeRef },
+    { key: "endUser", visible: showPartyEndUser, ref: endUserCodeRef },
+    {
+      key: "manufacturer",
+      visible: showCertificateOfOrigin,
+      ref: manufacturerCodeRef,
+    },
+  ];
+
+  const focusNextSection = (currentKey) => {
+    setTimeout(() => {
+      const order = getSectionOrder();
+      const currentIndex = order.findIndex((s) => s.key === currentKey);
+      if (currentIndex === -1) return;
+
+      for (let i = currentIndex + 1; i < order.length; i++) {
+        if (order[i].visible) {
+          order[i].ref.current?.focus();
+          return;
+        }
+      }
+
+      document.getElementById("PartySaveDraft")?.focus();
+    }, 0);
+  };
+
   // =======================End User Click==============
   const handleEndUserCheckFunction = (e) => {
     const checked = e.target.checked;
@@ -3129,6 +3181,7 @@ function Party({ setActiveTab, isViewMode }) {
               className="form-control"
               value={permitDetails?.Code || ""}
               readOnly
+              tabIndex={1}
             />
           </div>
           <div className="col-sm-2">
@@ -3136,6 +3189,7 @@ function Party({ setActiveTab, isViewMode }) {
               className="form-control"
               value={permitDetails?.CRUEI || ""}
               readOnly
+              tabIndex={2}
             />
           </div>
           <div className="col-sm-3">
@@ -3143,6 +3197,7 @@ function Party({ setActiveTab, isViewMode }) {
               className="form-control"
               value={permitDetails?.name || ""}
               readOnly
+              tabIndex={3}
             />
           </div>
           <div className="col-sm-2">
@@ -3151,6 +3206,7 @@ function Party({ setActiveTab, isViewMode }) {
               placeholder="Name1"
               value={permitDetails?.name1 || ""}
               readOnly
+              tabIndex={4}
             />
           </div>
         </div>
@@ -3164,8 +3220,13 @@ function Party({ setActiveTab, isViewMode }) {
               className="me-3"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("exporter")}
+              tabIndex={5}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveExporter}
+              tabIndex={6}
+            />
           </div>
 
           {/* CODE */}
@@ -3175,6 +3236,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterCode"
               className="inputStyle"
               placeholder="CODE"
+              tabIndex={7}
               value={exporterCode}
               onChange={handleExporterChange}
               onKeyDown={handleExporterKeyDown}
@@ -3217,6 +3279,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterCruei"
               className="inputStyle HighLight"
               placeholder="CRUEI"
+              tabIndex={8}
               value={exporter?.CRUEI || exporterCruei || ""}
               onChange={(e) => setExporterCruei(e.target.value)}
             />
@@ -3232,6 +3295,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterName"
               className="inputStyle HighLight"
               placeholder="NAME"
+              tabIndex={9}
               value={exporter?.Name || exporterName || ""}
               onChange={(e) => setExporterName(e.target.value)}
             />
@@ -3247,6 +3311,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterName1"
               className="inputStyle"
               placeholder="NAME1"
+              tabIndex={10}
               value={exporter?.Name1 || exporterName1 || ""}
               onChange={(e) => setExporterName1(e.target.value)}
             />
@@ -3254,7 +3319,7 @@ function Party({ setActiveTab, isViewMode }) {
         </div>
 
         {/* ADDRESS ROW */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-2">
           <div className="col-2"></div>
           <div className="col-1"></div>
           <div className="col-2"></div>
@@ -3263,6 +3328,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterAddress"
               className="inputStyle"
               placeholder="ADDRESS"
+              tabIndex={11}
               value={exporter?.Address || exporterAddress || ""}
               onChange={(e) => setExporterAddress(e.target.value)}
             />
@@ -3272,6 +3338,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterAddress1"
               className="inputStyle"
               placeholder="ADDRESS1"
+              tabIndex={12}
               value={exporter?.Address1 || exporterAddress1 || ""}
               onChange={(e) => setExporterAddress1(e.target.value)}
             />
@@ -3281,6 +3348,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterCity"
               className="inputStyle"
               placeholder="CITY"
+              tabIndex={13}
               value={exporter?.City || exporterCity || ""}
               onChange={(e) => setExporterCity(e.target.value)}
             />
@@ -3288,7 +3356,7 @@ function Party({ setActiveTab, isViewMode }) {
         </div>
 
         {/* SUB CODE ROW */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-2">
           <div className="col-2"></div>
           <div className="col-1"></div>
           <div className="col-2"></div>
@@ -3297,6 +3365,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterSubCode"
               className="inputStyle"
               placeholder="SUB CODE"
+              tabIndex={14}
               value={exporter?.SubCode || exporterSubCode || ""}
               onChange={(e) => setExporterSubCode(e.target.value)}
             />
@@ -3306,6 +3375,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterSubDivision"
               className="inputStyle"
               placeholder="SUB DIVISION"
+              tabIndex={15}
               value={exporter?.Sub || exporterSubDivision || ""}
               onChange={(e) => setExporterSubDivision(e.target.value)}
             />
@@ -3315,6 +3385,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterPostal"
               className="inputStyle"
               placeholder="COUNTRY"
+              tabIndex={16}
               value={exporter?.Country || exporterCountryCode || ""}
               onChange={(e) => setExporterCountryCode(e.target.value)}
             />
@@ -3322,7 +3393,7 @@ function Party({ setActiveTab, isViewMode }) {
         </div>
 
         {/* COUNTRY CODE ROW */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-2">
           <div className="col-2"></div>
           <div className="col-1"></div>
           <div className="col-2"></div>
@@ -3331,6 +3402,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="exporterCountryCode"
               className="inputStyle"
               placeholder="POSTAL CODE"
+              tabIndex={17}
               value={exporter?.Postal || exporterPostal || ""}
               onChange={(e) => setExporterPostal(e.target.value)}
             />
@@ -3347,10 +3419,15 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-1">
               <FaSearch
                 className="me-3"
+                tabIndex={18}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("importer")}
               />
-              <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveImporter}
+                tabIndex={19}
+              />
             </div>
             <div className="col-sm-2 position-relative">
               <input
@@ -3358,6 +3435,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="importerCode"
                 className="form-control-mandatory"
                 placeholder="CODE"
+                tabIndex={20}
                 // value={importer?.Code || importerCode || ""}
                 value={importerCode}
                 onChange={handleImporterChange}
@@ -3392,6 +3470,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-2">
               <input
                 id="importerCruei"
+                tabIndex={21}
                 className="form-control-mandatory"
                 placeholder="CRUEI"
                 value={importer?.CRUEI || importerCruei || ""}
@@ -3407,6 +3486,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="importerName"
                 className="form-control-mandatory"
                 placeholder="NAME"
+                tabIndex={22}
                 value={importer?.Name || importerName || ""}
                 onChange={(e) => setImporterName(e.target.value)}
               />
@@ -3419,6 +3499,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="importerName1"
                 className="form-control-mandatory"
                 placeholder="NAME1"
+                tabIndex={23}
                 value={importer?.Name1 || importerName1 || ""}
                 onChange={(e) => setImporterName1(e.target.value)}
               />
@@ -3428,17 +3509,22 @@ function Party({ setActiveTab, isViewMode }) {
 
         {/* INWARD CARRIER AGENT */}
         {showInwardCarrier && (
-          <div className="row align-items-center compact-row">
+          <div className="row align-items-center compact-row mt-1">
             <label className="col-sm-2 col-form-label">
               INWARD CARRIER AGENT
             </label>
             <div className="col-sm-1">
               <FaSearch
+                tabIndex={24}
                 className="me-3"
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("inward")}
               />
-              <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveInward}
+                tabIndex={25}
+              />
             </div>
             <div className="col-sm-2 position-relative">
               <input
@@ -3446,6 +3532,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="inwardCode"
                 className="form-control"
                 placeholder="CODE"
+                tabIndex={26}
                 // value={inwardAgent?.Code || inwardCode || ""}
                 value={inwardCode}
                 onChange={handleInwardChange}
@@ -3485,6 +3572,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-2">
               <input
                 id="inwardCruei"
+                tabIndex={27}
                 className={
                   isSea || isAir ? "form-control-mandatory" : "form-control"
                 }
@@ -3501,6 +3589,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-3">
               <input
                 id="inwardName"
+                tabIndex={28}
                 className={
                   isSea || isAir ? "form-control-mandatory" : "form-control"
                 }
@@ -3514,6 +3603,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="inwardName1"
                 className="form-control"
                 placeholder="NAME1"
+                tabIndex={29}
                 value={inwardAgent?.Name1 || inwardName1 || ""}
                 onChange={(e) => setInwardName1(e.target.value)}
               />
@@ -3523,7 +3613,7 @@ function Party({ setActiveTab, isViewMode }) {
 
         {/* OUTWARD CARRIER AGENT */}
         {showOutwardCarrier && (
-          <div className="row align-items-center compact-row">
+          <div className="row align-items-center compact-row mt-1">
             <label className="col-sm-2 col-form-label">
               OUTWARD CARRIER AGENT
             </label>
@@ -3532,8 +3622,13 @@ function Party({ setActiveTab, isViewMode }) {
                 className="me-3"
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("outward")}
+                tabIndex={30}
               />
-              <FaPlus style={{ cursor: "pointer" }} onClick={saveOutward} />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveOutward}
+                tabIndex={31}
+              />
             </div>
 
             {/* CODE */}
@@ -3543,6 +3638,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="outwardCode"
                 className="form-control"
                 placeholder="CODE"
+                tabIndex={32}
                 value={outwardCode}
                 onChange={handleOutwardChange}
                 onKeyDown={handleOutwardKeyDown}
@@ -3583,6 +3679,7 @@ function Party({ setActiveTab, isViewMode }) {
             <div className="col-sm-2">
               <input
                 id="outwardCruei"
+                tabIndex={33}
                 className="form-control"
                 placeholder="CRUEI"
                 value={outwardAgent?.CRUEI || outwardCruei || ""}
@@ -3596,6 +3693,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="outwardName"
                 className="form-control"
                 placeholder="NAME"
+                tabIndex={34}
                 value={outwardAgent?.Name || outwardName || ""}
                 onChange={(e) => setOutwardName(e.target.value)}
               />
@@ -3607,6 +3705,7 @@ function Party({ setActiveTab, isViewMode }) {
                 id="outwardName1"
                 className="form-control"
                 placeholder="NAME1"
+                tabIndex={35}
                 value={outwardAgent?.Name1 || outwardName1 || ""}
                 onChange={(e) => setOutwardName1(e.target.value)}
               />
@@ -3615,17 +3714,19 @@ function Party({ setActiveTab, isViewMode }) {
         )}
 
         {/* FREIGHT FORWARDER  */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-1">
           <label className="col-sm-2 col-form-label">FREIGHT FORWARDER</label>
           <div className="col-sm-1">
             <FaSearch
               className="me-3"
+              tabIndex={36}
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("freightForwarder")}
             />
             <FaPlus
               style={{ cursor: "pointer" }}
               onClick={saveFreightForwarder}
+              tabIndex={37}
             />
           </div>
           <div className="col-sm-2 position-relative">
@@ -3634,6 +3735,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="freightForwarderCode"
               className="form-control"
               placeholder="CODE"
+              tabIndex={38}
               value={freightForwarderCode}
               onChange={handleFreightForwarderChange}
               onKeyDown={handleFreightForwarderKeyDown}
@@ -3677,6 +3779,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="freightForwarderCrei"
               className="form-control"
               placeholder="CRUEI"
+              tabIndex={39}
               value={freightForwarder?.CRUEI || freightForwarderCruei || ""}
               onChange={(e) => setFreightForwarderCruei(e.target.value)}
             />
@@ -3686,6 +3789,7 @@ function Party({ setActiveTab, isViewMode }) {
               id="freightForwarderName"
               className="form-control"
               placeholder="NAME"
+              tabIndex={40}
               value={freightForwarder?.Name || freightForwardName || ""}
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
@@ -3695,6 +3799,7 @@ function Party({ setActiveTab, isViewMode }) {
               className="form-control"
               id="freightForwarderName1"
               placeholder="NAME1"
+              tabIndex={41}
               value={freightForwarder?.Name1 || freightForwardName1 || ""}
               onChange={(e) => setFreightForwarderName1(e.target.value)}
             />
@@ -3704,16 +3809,21 @@ function Party({ setActiveTab, isViewMode }) {
         {/* CONGINEE */}
         {showCongineeShow && (
           <div>
-            <div className="row align-items-center compact-row">
+            <div className="row align-items-center compact-row mt-1">
               <label className="col-sm-2 col-form-label">CONSIGNEE</label>
 
               <div className="col-sm-1">
                 <FaSearch
                   className="me-3"
+                  tabIndex={42}
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("consignee")}
                 />
-                <FaPlus style={{ cursor: "pointer" }} onClick={saveConsignee} />
+                <FaPlus
+                  style={{ cursor: "pointer" }}
+                  onClick={saveConsignee}
+                  tabIndex={43}
+                />
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
@@ -3721,6 +3831,7 @@ function Party({ setActiveTab, isViewMode }) {
                 <input
                   ref={congineeCodeRef}
                   id="congineeCode"
+                  tabIndex={44}
                   className="form-control"
                   placeholder="CODE"
                   value={congineeCode}
@@ -3767,6 +3878,7 @@ function Party({ setActiveTab, isViewMode }) {
               <div className="col-sm-2">
                 <input
                   id="congineeCruei"
+                  tabIndex={45}
                   className="form-control"
                   placeholder="CRUEI"
                   value={consignee?.ConsigneeCRUEI || congineeCruei || ""}
@@ -3780,6 +3892,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeName"
                   className="form-control"
                   placeholder="NAME"
+                  tabIndex={46}
                   value={consignee?.ConsigneeName || congineeName || ""}
                   onChange={(e) => setCongineeName(e.target.value)}
                 />
@@ -3791,6 +3904,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeName1"
                   className="form-control"
                   placeholder="NAME1"
+                  tabIndex={47}
                   value={consignee?.ConsigneeName1 || congineeName1 || ""}
                   onChange={(e) => setCongineeName1(e.target.value)}
                 />
@@ -3809,6 +3923,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeAddress"
                   className="form-control"
                   placeholder="ADDRESS"
+                  tabIndex={48}
                   value={consignee?.ConsigneeAddress || congineeAddress || ""}
                   onChange={(e) => setCongineeAddress(e.target.value)}
                 />
@@ -3818,6 +3933,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeAddress1"
                   className="form-control"
                   placeholder="ADDRESS1"
+                  tabIndex={49}
                   value={consignee?.ConsigneeAddress1 || congineeAddress1 || ""}
                   onChange={(e) => setCongineeAddress1(e.target.value)}
                 />
@@ -3827,6 +3943,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeCity"
                   className="form-control"
                   placeholder="CITY"
+                  tabIndex={50}
                   value={consignee?.ConsigneeCity || congineeCity || ""}
                   onChange={(e) => setCongineeCity(e.target.value)}
                 />
@@ -3843,6 +3960,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeSubCode"
                   className="form-control"
                   placeholder="SUB CODE"
+                  tabIndex={51}
                   value={consignee?.ConsigneeSub || congineeSubCode || ""}
                   onChange={(e) => setCongineeSubCode(e.target.value)}
                 />
@@ -3852,6 +3970,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeSubDivision"
                   className="form-control"
                   placeholder="SUB DIVISION"
+                  tabIndex={52}
                   value={
                     consignee?.ConsigneeSubDivi || congineeSubDivision || ""
                   }
@@ -3863,6 +3982,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineePostal"
                   className="form-control"
                   placeholder="COUNTRY"
+                  tabIndex={53}
                   value={
                     consignee?.ConsigneeCountry || congineeCountryCode || ""
                   }
@@ -3881,6 +4001,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="congineeCountryCode"
                   className="form-control"
                   placeholder="POSTAL"
+                  tabIndex={54}
                   value={consignee?.ConsigneePostal || congineePostal || ""}
                   onChange={(e) => setCongineePostel(e.target.value)}
                 />
@@ -3909,6 +4030,7 @@ function Party({ setActiveTab, isViewMode }) {
                 }}
                 checked={endUserCheck}
                 onChange={handleEndUserCheckFunction}
+                tabIndex={55}
               />
               ENDUSER
             </label>
@@ -3938,6 +4060,7 @@ function Party({ setActiveTab, isViewMode }) {
                 <button
                   className="NextpageBtns view-nav-btn"
                   onClick={handleCopyConsignee}
+                  tabIndex={56}
                 >
                   COPY OF CONSIGNE
                 </button>
@@ -3948,8 +4071,13 @@ function Party({ setActiveTab, isViewMode }) {
                   className="me-3"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("endUser")}
+                  tabIndex={57}
                 />
-                <FaPlus style={{ cursor: "pointer" }} onClick={saveEndUser} />
+                <FaPlus
+                  style={{ cursor: "pointer" }}
+                  onClick={saveEndUser}
+                  tabIndex={58}
+                />
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
@@ -3959,6 +4087,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserCode"
                   className="form-control"
                   placeholder="CODE"
+                  tabIndex={59}
                   value={endUserCode}
                   onChange={handleEndUserChange}
                   onKeyDown={handleEndUserKeyDown}
@@ -4005,6 +4134,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserCruei"
                   className="form-control"
                   placeholder="CRUEI"
+                  tabIndex={60}
                   value={endUser?.EndUserCRUEI || endUserCruei || ""}
                   onChange={(e) => setEndUserCruei(e.target.value)}
                 />
@@ -4016,6 +4146,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserName"
                   className="form-control"
                   placeholder="NAME"
+                  tabIndex={61}
                   value={endUser?.EndUserName || endUserName || ""}
                   onChange={(e) => setEndUserName(e.target.value)}
                 />
@@ -4027,6 +4158,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserName1"
                   className="form-control"
                   placeholder="NAME1"
+                  tabIndex={62}
                   value={endUser?.EndUserName1 || endUserName1 || ""}
                   onChange={(e) => setEndUserName1(e.target.value)}
                 />
@@ -4044,6 +4176,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserAddress"
                   className="form-control"
                   placeholder="ADDRESS"
+                  tabIndex={63}
                   value={endUser?.EndUserAddress || endUserAddress || ""}
                   onChange={(e) => setEndUserAddress(e.target.value)}
                 />
@@ -4053,6 +4186,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserAddress1"
                   className="form-control"
                   placeholder="ADDRESS1"
+                  tabIndex={64}
                   value={endUser?.EndUserAddress1 || endUserAddress1 || ""}
                   onChange={(e) => setEndUserAddress1(e.target.value)}
                 />
@@ -4062,6 +4196,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserCity"
                   className="form-control"
                   placeholder="CITY"
+                  tabIndex={65}
                   value={endUser?.EndUserCity || endUserCity || ""}
                   onChange={(e) => setEndUserCity(e.target.value)}
                 />
@@ -4079,6 +4214,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserSubCode"
                   className="form-control"
                   placeholder="SUB CODE"
+                  tabIndex={66}
                   value={endUser?.EndUserSub || endUserSubCode || ""}
                   onChange={(e) => setEndUserSubCode(e.target.value)}
                 />
@@ -4088,6 +4224,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserSubDivision"
                   className="form-control"
                   placeholder="SUB DIVISION"
+                  tabIndex={67}
                   value={endUser?.EndUserSubDivi || endUserSubDivision || ""}
                   onChange={(e) => setEndUserSubDivision(e.target.value)}
                 />
@@ -4097,6 +4234,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserPostal"
                   className="form-control"
                   placeholder="COUNTRY"
+                  tabIndex={68}
                   value={endUser?.EndUserPostal || endUserPostal || ""}
                   onChange={(e) => setEndUserPostal(e.target.value)}
                 />
@@ -4114,6 +4252,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="endUserCountryCode"
                   className="form-control"
                   placeholder="POSTAL"
+                  tabIndex={69}
                   value={endUser?.EndUserCountry || endUserCountryCode || ""}
                   onChange={(e) => setEndUserCountryCode(e.target.value)}
                 />
@@ -4132,12 +4271,14 @@ function Party({ setActiveTab, isViewMode }) {
               <div className="col-sm-1">
                 <FaSearch
                   className="me-3"
+                  tabIndex={70}
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("manufacturer")}
                 />
                 <FaPlus
                   style={{ cursor: "pointer" }}
                   onClick={saveManufacturer}
+                  tabIndex={71}
                 />
               </div>
               <div className="col-sm-2 position-relative">
@@ -4146,6 +4287,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerCode"
                   className="form-control"
                   placeholder="CODE"
+                  tabIndex={72}
                   value={manufacturerCode}
                   onChange={handleManufacturerChange}
                   onKeyDown={handleManufacturerKeyDown}
@@ -4189,6 +4331,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerCruei"
                   className="form-control"
                   placeholder="CRUEI"
+                  tabIndex={73}
                   value={
                     manufacturer?.ManufacturerCRUEI || manufacturerCruei || ""
                   }
@@ -4200,6 +4343,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerName"
                   className="form-control"
                   placeholder="NAME"
+                  tabIndex={74}
                   value={
                     manufacturer?.ManufacturerName || manufacturerName || ""
                   }
@@ -4211,6 +4355,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerName1"
                   className="form-control"
                   placeholder="NAME1"
+                  tabIndex={75}
                   value={
                     manufacturer?.ManufacturerName1 || manufacturerName1 || ""
                   }
@@ -4229,6 +4374,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerAddress"
                   className="form-control"
                   placeholder="ADDRESS"
+                  tabIndex={76}
                   value={
                     manufacturer?.ManufacturerAddress ||
                     manufacturerAddress ||
@@ -4242,6 +4388,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerAddress1"
                   className="form-control"
                   placeholder="ADDRESS1"
+                  tabIndex={77}
                   value={
                     manufacturer?.ManufacturerAddress1 ||
                     manufacturerAddress1 ||
@@ -4255,6 +4402,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerCity"
                   className="form-control"
                   placeholder="CITY"
+                  tabIndex={78}
                   value={
                     manufacturer?.ManufacturerCity || manufacturerCity || ""
                   }
@@ -4273,6 +4421,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerSub"
                   className="form-control"
                   placeholder="SUB CODE"
+                  tabIndex={79}
                   value={manufacturer?.ManufacturerSub || manufacturerSub || ""}
                   onChange={(e) => setManufacturerSub(e.target.value)}
                 />
@@ -4282,6 +4431,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerSubDivi"
                   className="form-control"
                   placeholder="SUB DIVISION"
+                  tabIndex={80}
                   value={
                     manufacturer?.ManufacturerSubDivi ||
                     manufacturerSubDivi ||
@@ -4295,6 +4445,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerPostal"
                   className="form-control"
                   placeholder="COUNTRY"
+                  tabIndex={81}
                   value={
                     manufacturer?.ManufacturerPostal || manufacturerPostal || ""
                   }
@@ -4313,6 +4464,7 @@ function Party({ setActiveTab, isViewMode }) {
                   id="manufacturerCountry"
                   className="form-control"
                   placeholder="POSTAL"
+                  tabIndex={82}
                   value={
                     manufacturer?.ManufacturerCountry ||
                     manufacturerCountry ||
@@ -4331,7 +4483,7 @@ function Party({ setActiveTab, isViewMode }) {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
+            tabIndex={83}
             id="PartySaveDraft"
             onClick={handleSaveAsDraftClick}
           >
@@ -4340,6 +4492,7 @@ function Party({ setActiveTab, isViewMode }) {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("HeaderTab")}
+            tabIndex={84}
           >
             PREVIOUS
           </button>
@@ -4350,6 +4503,7 @@ function Party({ setActiveTab, isViewMode }) {
           )}
           <button
             className="NextpageBtns view-nav-btn"
+            tabIndex={85}
             onClick={() => setActiveTab("CargoTab")}
           >
             NEXT

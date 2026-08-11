@@ -729,6 +729,7 @@ function Party({ setActiveTab, isViewMode }) {
     setFreightForwarderName1(name1);
     setShowFreightForwarderDropdown(false);
     setFreightForwarderError(false);
+    focusNextSection("freightForwarder");
   };
 
   // ======================== FREIGHTFORWARDER FOCUSOUT ========================
@@ -763,6 +764,7 @@ function Party({ setActiveTab, isViewMode }) {
         setFreightForwarderName(name);
         setFreightForwarderName1(name1);
         setFreightForwarderError(false);
+        focusNextSection("freightForwarder");
       } else {
         setFreightForwarder(null);
         // setFreightForwarderCruei("");
@@ -1208,6 +1210,7 @@ function Party({ setActiveTab, isViewMode }) {
     setCongineeCountryCode(country);
     setShowCongineeDropdown(false);
     setCongineeError(false);
+    focusNextSection("consignee");
   };
 
   // ======================== CONSIGNEE FOCUSOUT ========================
@@ -1271,6 +1274,7 @@ function Party({ setActiveTab, isViewMode }) {
         setCongineePostel(postal);
         setCongineeCountryCode(country);
         setCongineeError(false);
+        focusNextSection("consignee");
       } else {
         setConsignee(null);
         setCongineeError(true);
@@ -1538,6 +1542,7 @@ const handleExporterSelect = (item) => {
   setExporterCity(city);
   setShowExporterDropdown(false);
   setExporterError(false);
+  focusNextSection("exporter");
 };
   // ======================== EXPORTER FOCUSOUT ========================
 const handleExporterFocusOut = () => {
@@ -1586,6 +1591,7 @@ const handleExporterFocusOut = () => {
       setExporterAddress1(addr1);
       setExporterCity(city);
       setExporterError(false);
+      focusNextSection("exporter");
     } else {
       setExporter(null);
       setExporterError(true);
@@ -1829,6 +1835,7 @@ const handleExporterFocusOut = () => {
     setOutwardName1(name1);
     setShowOutwardDropdown(false);
     setOutwardError(false);
+    focusNextSection("outward");
   };
 
   // ======================== OUTWARD FOCUSOUT ========================
@@ -1856,6 +1863,7 @@ const handleExporterFocusOut = () => {
         setOutwardName(name);
         setOutwardName1(name1);
         setOutwardError(false);
+        focusNextSection("outward");
       } else {
         setOutwardAgent(null);
         setOutwardError(true);
@@ -2392,6 +2400,7 @@ const handleExporterFocusOut = () => {
     setManufacturerCountry(country);
     setShowManufacturerDropdown(false);
     setManufacturerError(false);
+    focusNextSection("manufacturer");
   };
 
   // ======================== MANUFACTURER FOCUSOUT ========================
@@ -2457,6 +2466,7 @@ const handleExporterFocusOut = () => {
         setManufacturerPostal(postal);
         setManufacturerCountry(country);
         setManufacturerError(false);
+        focusNextSection("manufacturer");
       } else {
         setManufacturer(null);
         setManufacturerError(true);
@@ -3049,6 +3059,32 @@ const handleExporterFocusOut = () => {
   //   delay: 2000,
   // });
 
+  // ============================Party Filled Order Check=========================
+const getSectionOrder = () => [
+  { key: "exporter", visible: true, ref: exporterCodeRef },
+  { key: "outward", visible: true, ref: outwardCodeRef },
+  { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
+  { key: "consignee", visible: true, ref: congineeCodeRef },
+  { key: "manufacturer", visible: true, ref: manufacturerCodeRef },
+];
+
+const focusNextSection = (currentKey) => {
+  setTimeout(() => {
+    const order = getSectionOrder();
+    const currentIndex = order.findIndex((s) => s.key === currentKey);
+    if (currentIndex === -1) return;
+
+    for (let i = currentIndex + 1; i < order.length; i++) {
+      if (order[i].visible) {
+        order[i].ref.current?.focus();
+        return;
+      }
+    }
+
+    document.getElementById("PartySaveDraft")?.focus();
+  }, 0);
+};
+
   // =======================End User Click==============
   const handleEndUserCheckFunction = (e) => {
     const checked = e.target.checked;
@@ -3068,6 +3104,7 @@ const handleExporterFocusOut = () => {
               className="form-control"
               value={permitDetails?.Code || ""}
               readOnly
+              tabIndex={1}
             />
           </div>
           <div className="col-sm-2">
@@ -3075,6 +3112,7 @@ const handleExporterFocusOut = () => {
               className="form-control"
               value={permitDetails?.CRUEI || ""}
               readOnly
+              tabIndex={2}
             />
           </div>
           <div className="col-sm-3">
@@ -3082,6 +3120,7 @@ const handleExporterFocusOut = () => {
               className="form-control"
               value={permitDetails?.name || ""}
               readOnly
+              tabIndex={3}
             />
           </div>
           <div className="col-sm-2">
@@ -3090,6 +3129,7 @@ const handleExporterFocusOut = () => {
               placeholder="Name1"
               value={permitDetails?.name1 || ""}
               readOnly
+              tabIndex={4}
             />
           </div>
         </div>
@@ -3103,8 +3143,9 @@ const handleExporterFocusOut = () => {
               className="me-3"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("exporter")}
+              tabIndex={5}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} />
+            <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} tabIndex={6}/>
           </div>
 
           {/* CODE */}
@@ -3114,6 +3155,7 @@ const handleExporterFocusOut = () => {
               id="exporterCode"
               className="inputStyle"
               placeholder="CODE"
+              tabIndex={7}
               value={exporterCode}
               onChange={handleExporterChange}
               onKeyDown={handleExporterKeyDown}
@@ -3156,6 +3198,7 @@ const handleExporterFocusOut = () => {
               id="exporterCruei"
               className="inputStyle HighLight"
               placeholder="CRUEI"
+              tabIndex={8}
               value={exporter?.CRUEI || exporterCruei || ""}
               onChange={(e) => setExporterCruei(e.target.value)}
             />
@@ -3171,6 +3214,7 @@ const handleExporterFocusOut = () => {
               id="exporterName"
               className="inputStyle HighLight"
               placeholder="NAME"
+              tabIndex={9}
               value={exporter?.Name || exporterName || ""}
               onChange={(e) => setExporterName(e.target.value)}
             />
@@ -3186,6 +3230,7 @@ const handleExporterFocusOut = () => {
               id="exporterName1"
               className="inputStyle"
               placeholder="NAME1"
+              tabIndex={10}
               value={exporter?.Name1 || exporterName1 || ""}
               onChange={(e) => setExporterName1(e.target.value)}
             />
@@ -3193,7 +3238,7 @@ const handleExporterFocusOut = () => {
         </div>
 
         {/* ADDRESS ROW */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-2">
           <div className="col-2"></div>
           <div className="col-1"></div>
           <div className="col-2"></div>
@@ -3202,6 +3247,7 @@ const handleExporterFocusOut = () => {
               id="exporterAddress"
               className="inputStyle"
               placeholder="ADDRESS"
+              tabIndex={11}
               value={exporter?.Address || exporterAddress || ""}
               onChange={(e) => setExporterAddress(e.target.value)}
             />
@@ -3211,6 +3257,7 @@ const handleExporterFocusOut = () => {
               id="exporterAddress1"
               className="inputStyle"
               placeholder="ADDRESS1"
+              tabIndex={12}
               value={exporter?.Address1 || exporterAddress1 || ""}
               onChange={(e) => setExporterAddress1(e.target.value)}
             />
@@ -3220,6 +3267,7 @@ const handleExporterFocusOut = () => {
               id="exporterCity"
               className="inputStyle"
               placeholder="CITY"
+              tabIndex={13}
               value={exporter?.City || exporterCity || ""}
               onChange={(e) => setExporterCity(e.target.value)}
             />
@@ -3281,7 +3329,7 @@ const handleExporterFocusOut = () => {
 
         {/* OUTWARD CARRIER AGENT */}
 
-        <div className="row align-items-center compact-row">
+        <div className="row align-items-center compact-row mt-2">
           <label className="col-sm-2 col-form-label">
             OUTWARD CARRIER AGENT
           </label>
@@ -3289,9 +3337,10 @@ const handleExporterFocusOut = () => {
             <FaSearch
               className="me-3"
               style={{ cursor: "pointer" }}
+              tabIndex={14}
               onClick={() => handleIconClick("outward")}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveOutward} />
+            <FaPlus style={{ cursor: "pointer" }} onClick={saveOutward} tabIndex={15}/>
           </div>
 
           {/* CODE */}
@@ -3302,6 +3351,7 @@ const handleExporterFocusOut = () => {
               className="form-control"
               placeholder="CODE"
               value={outwardCode}
+              tabIndex={16}
               onChange={handleOutwardChange}
               onKeyDown={handleOutwardKeyDown}
               onBlur={handleOutwardFocusOut}
@@ -3341,6 +3391,7 @@ const handleExporterFocusOut = () => {
               id="outwardCruei"
               className="form-control"
               placeholder="CRUEI"
+              tabIndex={17}
               value={outwardAgent?.CRUEI || outwardCruei || ""}
               onChange={(e) => setOutwardCruei(e.target.value)}
             />
@@ -3352,6 +3403,7 @@ const handleExporterFocusOut = () => {
               id="outwardName"
               className="form-control"
               placeholder="NAME"
+              tabIndex={18}
               value={outwardAgent?.Name || outwardName || ""}
               onChange={(e) => setOutwardName(e.target.value)}
             />
@@ -3363,6 +3415,7 @@ const handleExporterFocusOut = () => {
               id="outwardName1"
               className="form-control"
               placeholder="NAME1"
+              tabIndex={19}
               value={outwardAgent?.Name1 || outwardName1 || ""}
               onChange={(e) => setOutwardName1(e.target.value)}
             />
@@ -3370,17 +3423,19 @@ const handleExporterFocusOut = () => {
         </div>
 
         {/* FREIGHT FORWARDER  */}
-        <div className="row align-items-center compact-row mt-3">
+        <div className="row align-items-center compact-row mt-2">
           <label className="col-sm-2 col-form-label">FREIGHT FORWARDER</label>
           <div className="col-sm-1">
             <FaSearch
               className="me-3"
+              tabIndex={20}
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("freightForwarder")}
             />
             <FaPlus
               style={{ cursor: "pointer" }}
               onClick={saveFreightForwarder}
+              tabIndex={21}
             />
           </div>
           <div className="col-sm-2 position-relative">
@@ -3389,6 +3444,7 @@ const handleExporterFocusOut = () => {
               id="freightForwarderCode"
               className="form-control"
               placeholder="CODE"
+              tabIndex={22}
               value={freightForwarderCode}
               onChange={handleFreightForwarderChange}
               onKeyDown={handleFreightForwarderKeyDown}
@@ -3432,6 +3488,7 @@ const handleExporterFocusOut = () => {
               id="freightForwarderCrei"
               className="form-control"
               placeholder="CRUEI"
+              tabIndex={23}
               value={freightForwarder?.CRUEI || freightForwarderCruei || ""}
               onChange={(e) => setFreightForwarderCruei(e.target.value)}
             />
@@ -3450,6 +3507,7 @@ const handleExporterFocusOut = () => {
               className="form-control"
               id="freightForwarderName1"
               placeholder="NAME1"
+              tabIndex={24}
               value={freightForwarder?.Name1 || freightForwardName1 || ""}
               onChange={(e) => setFreightForwarderName1(e.target.value)}
             />
@@ -3465,6 +3523,7 @@ const handleExporterFocusOut = () => {
             <div className="col-sm-1">
               <FaSearch
                 className="me-3"
+                tabIndex={25}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("consignee")}
               />
@@ -3478,6 +3537,7 @@ const handleExporterFocusOut = () => {
                 id="congineeCode"
                 className="form-control"
                 placeholder="CODE"
+                tabIndex={26}
                 value={congineeCode}
                 onChange={handleCongineeChange}
                 onKeyDown={handleCongineeKeyDown}
@@ -3522,6 +3582,7 @@ const handleExporterFocusOut = () => {
             <div className="col-sm-2">
               <input
                 id="congineeCruei"
+                tabIndex={27}
                 className="form-control"
                 placeholder="CRUEI"
                 value={consignee?.ConsigneeCRUEI || congineeCruei || ""}
@@ -3535,6 +3596,7 @@ const handleExporterFocusOut = () => {
                 id="congineeName"
                 className="form-control"
                 placeholder="NAME"
+                tabIndex={28}
                 value={consignee?.ConsigneeName || congineeName || ""}
                 onChange={(e) => setCongineeName(e.target.value)}
               />
@@ -3546,6 +3608,7 @@ const handleExporterFocusOut = () => {
                 id="congineeName1"
                 className="form-control"
                 placeholder="NAME1"
+                tabIndex={29}
                 value={consignee?.ConsigneeName1 || congineeName1 || ""}
                 onChange={(e) => setCongineeName1(e.target.value)}
               />
@@ -3564,6 +3627,7 @@ const handleExporterFocusOut = () => {
                 id="congineeAddress"
                 className="form-control"
                 placeholder="ADDRESS"
+                tabIndex={30}
                 value={consignee?.ConsigneeAddress || congineeAddress || ""}
                 onChange={(e) => setCongineeAddress(e.target.value)}
               />
@@ -3573,6 +3637,7 @@ const handleExporterFocusOut = () => {
                 id="congineeAddress1"
                 className="form-control"
                 placeholder="ADDRESS1"
+                tabIndex={31}
                 value={consignee?.ConsigneeAddress1 || congineeAddress1 || ""}
                 onChange={(e) => setCongineeAddress1(e.target.value)}
               />
@@ -3582,6 +3647,7 @@ const handleExporterFocusOut = () => {
                 id="congineeCity"
                 className="form-control"
                 placeholder="CITY"
+                tabIndex={32}
                 value={consignee?.ConsigneeCity || congineeCity || ""}
                 onChange={(e) => setCongineeCity(e.target.value)}
               />
@@ -3655,12 +3721,14 @@ const handleExporterFocusOut = () => {
             <div className="col-sm-1">
               <FaSearch
                 className="me-3"
+                tabIndex={33}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("manufacturer")}
               />
               <FaPlus
                 style={{ cursor: "pointer" }}
                 onClick={saveManufacturer}
+                tabIndex={34}
               />
             </div>
             <div className="col-sm-2 position-relative">
@@ -3668,6 +3736,7 @@ const handleExporterFocusOut = () => {
                 ref={manufacturerCodeRef}
                 id="manufacturerCode"
                 className="form-control"
+                tabIndex={35}
                 placeholder="CODE"
                 value={manufacturerCode}
                 onChange={handleManufacturerChange}
@@ -3712,6 +3781,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerCruei"
                 className="form-control"
                 placeholder="CRUEI"
+                tabIndex={36}
                 value={
                   manufacturer?.ManufacturerCRUEI || manufacturerCruei || ""
                 }
@@ -3723,6 +3793,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerName"
                 className="form-control"
                 placeholder="NAME"
+                tabIndex={37}
                 value={manufacturer?.ManufacturerName || manufacturerName || ""}
                 onChange={(e) => setManufacturerName(e.target.value)}
               />
@@ -3732,6 +3803,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerName1"
                 className="form-control"
                 placeholder="NAME1"
+                tabIndex={38}
                 value={
                   manufacturer?.ManufacturerName1 || manufacturerName1 || ""
                 }
@@ -3749,6 +3821,7 @@ const handleExporterFocusOut = () => {
               <input
                 id="manufacturerAddress"
                 className="form-control"
+                tabIndex={39}
                 placeholder="ADDRESS"
                 value={
                   manufacturer?.ManufacturerAddress || manufacturerAddress || ""
@@ -3761,6 +3834,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerAddress1"
                 className="form-control"
                 placeholder="ADDRESS1"
+                tabIndex={40}
                 value={
                   manufacturer?.ManufacturerAddress1 ||
                   manufacturerAddress1 ||
@@ -3773,6 +3847,7 @@ const handleExporterFocusOut = () => {
               <input
                 id="manufacturerCity"
                 className="form-control"
+                tabIndex={41}
                 placeholder="CITY"
                 value={manufacturer?.ManufacturerCity || manufacturerCity || ""}
                 onChange={(e) => setManufacturerCity(e.target.value)}
@@ -3789,6 +3864,7 @@ const handleExporterFocusOut = () => {
               <input
                 id="manufacturerSub"
                 className="form-control"
+                tabIndex={42}
                 placeholder="SUB CODE"
                 value={manufacturer?.ManufacturerSub || manufacturerSub || ""}
                 onChange={(e) => setManufacturerSub(e.target.value)}
@@ -3799,6 +3875,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerSubDivi"
                 className="form-control"
                 placeholder="SUB DIVISION"
+                tabIndex={43}
                 value={
                   manufacturer?.ManufacturerSubDivi || manufacturerSubDivi || ""
                 }
@@ -3810,6 +3887,7 @@ const handleExporterFocusOut = () => {
                 id="manufacturerPostal"
                 className="form-control"
                 placeholder="COUNTRY"
+                tabIndex={44}
                 value={
                   manufacturer?.ManufacturerPostal || manufacturerPostal || ""
                 }
@@ -3827,6 +3905,7 @@ const handleExporterFocusOut = () => {
               <input
                 id="manufacturerCountry"
                 className="form-control"
+                tabIndex={45}
                 placeholder="POSTAL"
                 value={
                   manufacturer?.ManufacturerCountry || manufacturerCountry || ""
@@ -3843,8 +3922,8 @@ const handleExporterFocusOut = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
             id="PartySaveDraft"
+            tabIndex={46}
             onClick={handleSaveAsDraftClick}
           >
             SAVE AS DRAFT
@@ -3852,6 +3931,7 @@ const handleExporterFocusOut = () => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("HeaderTab")}
+            tabIndex={47}
           >
             PREVIOUS
           </button>
@@ -3863,6 +3943,7 @@ const handleExporterFocusOut = () => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
+            tabIndex={48}
           >
             NEXT
           </button>

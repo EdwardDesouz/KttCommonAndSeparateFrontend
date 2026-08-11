@@ -1,5 +1,12 @@
 import { FaSearch, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
-import { useEffect, useState, useContext, useMemo } from "react";
+import {
+  useEffect,
+  useState,
+  useContext,
+  useMemo,
+  forwardRef,
+  useRef,
+} from "react";
 import API from "../../../api/api";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -15,12 +22,64 @@ import {
 } from "./cargoFunctions";
 
 // =================== DateField ===================
-export const DateField = ({ value, setValue }) => {
+const CustomDateInput = forwardRef(
+  (
+    {
+      value,
+      onClick,
+      onChange,
+      onBlur,
+      onKeyDown,
+      className,
+      placeholder,
+      tabIndex,
+    },
+    ref,
+  ) => {
+    const localRef = useRef(null);
+
+    useEffect(() => {
+      if (localRef.current && tabIndex !== undefined) {
+        localRef.current.setAttribute("tabindex", tabIndex);
+      }
+    }, [tabIndex]);
+
+    return (
+      <input
+        ref={(node) => {
+          localRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) ref.current = node;
+        }}
+        className={className}
+        value={value}
+        placeholder={placeholder}
+        tabIndex={tabIndex}
+        onClick={onClick}
+        onChange={onChange}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        autoComplete="off"
+      />
+    );
+  },
+);
+
+export const DateField = ({ value, setValue, tabIndex }) => {
   const { error, parseDate, handleBlur, handleKeyDown } = useCargoDate();
+  const dpRef = useRef(null);
+
+  useEffect(() => {
+    const inputEl = dpRef.current?.input;
+    if (inputEl && tabIndex !== undefined) {
+      inputEl.tabIndex = tabIndex;
+    }
+  }, [tabIndex]);
 
   return (
     <div className="col-sm-7">
       <DatePicker
+        ref={dpRef}
         selected={value && value.length === 10 ? parseDate(value) : null}
         onChange={(date) => {
           if (!date) {
@@ -42,7 +101,6 @@ export const DateField = ({ value, setValue }) => {
         showMonthDropdown
         showYearDropdown
         dropdownMode="select"
-        autoComplete="off"
       />
       <input type="hidden" value={value} readOnly />
     </div>
@@ -1664,7 +1722,7 @@ function Cargo({ setActiveTab, isViewMode }) {
   // ====================== UI======================
 
   return (
-    <div className="row g-2">
+    <div className="row g-2 cargo-compact">
       <div className="col-12">
         <div className="row">
           {/* OUTWARD DETAILS */}
@@ -1692,11 +1750,12 @@ function Cargo({ setActiveTab, isViewMode }) {
 
                   {/* DEPARTURE DATE */}
                   {/* {showDepartureDate && ( */}
-                  <div className="row align-items-center compact-row mb-3 mt-3">
+                  <div className="row align-items-center compact-row mb-3 mt-2">
                     <label className="col-sm-4 col-form-label">
                       DEPARTURE DATE
                     </label>
                     <DateField
+                    tabIndex={1}
                       value={departureDate}
                       setValue={(val) => {
                         setDepartureDate(val);
@@ -1717,12 +1776,14 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-1 d-flex align-items-center">
                         <FaSearch
+                        tabIndex={2}
                           style={{ cursor: "pointer" }}
                           onClick={() => handleIconClick("dischargeport")}
                         />
                       </div>
                       <div className="col-sm-2 position-relative">
                         <input
+                        tabIndex={3}
                           type="text"
                           className="form-control"
                           value={dischargePortCode}
@@ -1777,6 +1838,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-5">
                         <input
                           type="text"
+                          tabIndex={4}
                           className="form-control"
                           value={dischargePortName}
                           readOnly
@@ -1792,6 +1854,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <select
+                        tabIndex={5}
                           className="Dropdown HighLight"
                           value={finalDestinationCountry}
                           onChange={(e) =>
@@ -1829,6 +1892,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-7">
                         <input
                           type="text"
+                          tabIndex={6}
                           className="form-control"
                           value={outVoyageNumber}
                           onChange={(e) => setOutVoyageNumber(e.target.value)}
@@ -1845,6 +1909,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <input
+                        tabIndex={7}
                           type="text"
                           className="form-control"
                           value={outVesselName}
@@ -1962,6 +2027,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-7">
                         <input
                           type="text"
+                          tabIndex={8}
                           className="form-control"
                           value={outConveyanceNumber}
                           onChange={(e) =>
@@ -1981,6 +2047,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-7">
                         <input
                           type="text"
+                          tabIndex={9}
                           className="form-control"
                           value={outTransportDetails}
                           onChange={(e) =>
@@ -1999,6 +2066,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <input
+                        tabIndex={10}
                           type="text"
                           className="form-control"
                           value={outFlightNumber}
@@ -2017,6 +2085,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-7">
                         <input
                           type="text"
+                          tabIndex={11}
                           className="form-control"
                           value={outAircraftRegNumber}
                           onChange={(e) =>
@@ -2037,7 +2106,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+         tabIndex={12}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2046,12 +2115,14 @@ function Cargo({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("PartyTab")}
+          tabIndex={13}
         >
           PREVIOUS
         </button>
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("ItemTab")}
+          tabIndex={14}
         >
           NEXT
         </button>

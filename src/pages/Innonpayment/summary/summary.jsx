@@ -247,6 +247,11 @@ function Summary({ setActiveTab, isViewMode }) {
     0,
   );
 
+  const totalInvoiceGstAmount = invoiceTable.reduce(
+  (sum, inv) => sum + (parseFloat(inv.GSTSUMAmount) || 0),
+  0,
+);
+
   const sumOfExciseDutyAmount = itemTable.reduce(
     (sum, item) => sum + (parseFloat(item.ExciseDutyAmount) || 0),
     0,
@@ -1878,6 +1883,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
+              tabIndex={1}
               value={summaryApprovedBy}
               onChange={(e) => setSummaryApprovedBy(e.target.value)}
             />
@@ -1887,6 +1893,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <input
               type="text"
               className="form-control"
+              tabIndex={2}
               value={summaryCustomerRemarks}
               onChange={(e) => setSummaryCustomerRemarks(e.target.value)}
             />
@@ -1900,6 +1907,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <button
               type="button"
               className="ButtonClick SaveContainer"
+              tabIndex={3}
               onClick={showPermitFunction}
             >
               PREV PERMIT NUMBER
@@ -1910,6 +1918,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showExRate}
+              tabIndex={4}
             >
               EX. RATE
             </button>
@@ -1920,6 +1929,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={formatRemark}
+              tabIndex={5}
               onChange={(e) => setFormatRemark(e.target.value)}
             />
           </div>
@@ -1928,6 +1938,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={summaryConfigBtnFunction}
+              tabIndex={6}
             >
               CONFIG
             </button>
@@ -1939,6 +1950,7 @@ function Summary({ setActiveTab, isViewMode }) {
               className="form-control summary-remarks-textarea"
               value={summaryCrossReference}
               onChange={(e) => setSummaryCrossReference(e.target.value)}
+              tabIndex={7}
             />
           </div>
         </div>
@@ -1948,6 +1960,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-12">
             <textarea
               className="form-control"
+              tabIndex={8}
               value={summaryRemarks}
               onChange={(e) => setSummaryRemarks(e.target.value)}
             />
@@ -1971,6 +1984,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={summaryInternalReamarks}
+              tabIndex={9}
               onChange={(e) => setSummaryInternalRemarks(e.target.value)}
             />
           </div>
@@ -1992,8 +2006,9 @@ function Summary({ setActiveTab, isViewMode }) {
               <select
                 className="Dropdown HighLight mandatory"
                 value={summaryDeclaringFor}
+                tabIndex={10}
                 onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-                tabIndex="5"
+            
               >
                 <option value="">--Select--</option>
                 {summaryDeclaringFor &&
@@ -2033,14 +2048,14 @@ function Summary({ setActiveTab, isViewMode }) {
               <div className="row">
                 <div className="col-6">IMPORTER</div>
                 <div className="col-6">
-                  {summaryImporterCruei}-{summaryImporterName}
+                  {summaryImporterCruei.toUpperCase()}-{summaryImporterName.toUpperCase()}
                 </div>
               </div>
             </div>
             <div className="col-6">
               <div className="row">
                 <div className="col-6">HAWB/HBL</div>
-                <div className="col-6">{cargoHawb}</div>
+                <div className="col-6">{cargoHawb.toUpperCase()}</div>
               </div>
             </div>
           </div>
@@ -2048,7 +2063,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">MAWB/OBL</div>
-                <div className="col-6">{obl}</div>
+                <div className="col-6">{obl.toUpperCase()}</div>
               </div>
             </div>
             <div className="col-6">
@@ -2072,7 +2087,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL ITEM GST</div>
-                <div className="col-6">{totalItemGstAmount.toFixed(2)}</div>
+                <div className="col-6">{money(totalItemGstAmount)}</div>
               </div>
             </div>
           </div>
@@ -2092,7 +2107,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <div className="col-6">
               <div className="row">
                 <div className="col-6">TOTAL INVOICE GST</div>
-                <div className="col-6">{totalItemGstAmount.toFixed(2)}</div>
+                <div className="col-6">{money(totalInvoiceGstAmount)}</div>
               </div>
             </div>
           </div>
@@ -2107,6 +2122,7 @@ function Summary({ setActiveTab, isViewMode }) {
                   type="checkbox"
                   className="form-check-input"
                   checked={declarationChecked}
+                  tabIndex={11}
                   onChange={(e) => setDeclarationChecked(e.target.checked)}
                 />
               </div>
@@ -2156,7 +2172,7 @@ function Summary({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+      
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2223,7 +2239,7 @@ function Summary({ setActiveTab, isViewMode }) {
             NEXT
           </button>
         ) : (
-          <button className="NextpageBtns" onClick={handleSavePermit}>
+          <button className="NextpageBtns" tabIndex={12} onClick={handleSavePermit}>
             SAVE
           </button>
         )}

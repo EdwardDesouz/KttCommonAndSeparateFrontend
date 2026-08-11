@@ -602,6 +602,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
           <div className="col-sm-1 icon-contaniner">
             <input
               type="checkbox"
+              tabIndex={1}
               id="Aeo"
               checked={showAeo}
               onChange={toggleCheckbox(setShowAeo)}
@@ -620,6 +621,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
             <input
               type="checkbox"
               id="Cwc"
+              tabIndex={2}
               checked={showCwc}
               onChange={toggleCheckbox(setShowCwc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -637,6 +639,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
             <input
               type="checkbox"
               id="SeaStore"
+              tabIndex={3}
               checked={showSeaStoreCpc}
               onChange={toggleCheckbox(setShowSeaStoreCpc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -655,6 +658,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
               type="checkbox"
               id="Sts"
               checked={showSts}
+              tabIndex={4}
               onChange={toggleCheckbox(setShowSts)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
             />
@@ -671,6 +675,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
             <input
               type="checkbox"
               id="StsCwc"
+              tabIndex={4}
               checked={showStsCwc}
               onChange={toggleCheckbox(setShowStsCwc)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -690,6 +695,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
             <input
               type="checkbox"
               id="DeferredPrinting"
+              tabIndex={5}
               checked={showDeferredPrinting}
               onChange={toggleCheckbox(setShowDeferredPrinting)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -708,6 +714,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
             <input
               type="checkbox"
               id="Cnb"
+              tabIndex={6}
               checked={cnBChecked}
               onChange={toggleCheckbox(setCnBChecked)}
               style={{ width: "16px", height: "16px", cursor: "pointer" }}
@@ -725,6 +732,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
           <div className="col-sm-1 icon-contaniner">
             <input
               type="checkbox"
+              tabIndex={7}
               id="InternationalPermitExchange"
               checked={showInternationalPermitExchange}
               onChange={toggleCheckbox(setShowInternationalPermitExchange)}
@@ -743,7 +751,7 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
       <div className="mt-4 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={8}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -752,12 +760,14 @@ aeoRows, cwcRows, seaStoreRows, stsRows, stsCwcRows, deferredPrintingRows, inter
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("ItemTab")}
+          tabIndex={9}
         >
           PREVIOUS
         </button>
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("SummaryTab")}
+          tabIndex={10}
         >
           NEXT
         </button>

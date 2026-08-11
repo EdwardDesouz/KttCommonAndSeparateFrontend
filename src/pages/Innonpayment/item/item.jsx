@@ -412,9 +412,14 @@ function Item({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = countrySuggestions.filter((item) =>
-      item.toLowerCase().includes(value.toLowerCase()),
-    );
+    const lowerValue = value.toLowerCase();
+
+    const filtered = countrySuggestions.filter((item) => {
+      const [code, description] = item.split(":");
+      return code.toLowerCase().startsWith(lowerValue);
+      //  ||
+      // description.toLowerCase().startsWith(lowerValue)
+    });
 
     setFilteredCountrySuggestions(filtered.slice(0, 50));
     setShowCountryDropdown(filtered.length > 0);
@@ -1532,6 +1537,18 @@ function Item({ setActiveTab, isViewMode }) {
     setOptionalCharges(charges);
   };
 
+  // =====================Sum of exchange rate calculateion
+  useEffect(() => {
+    if (!showUnitPriceVal) {
+      setSumExchangeRate("0.00");
+      return;
+    }
+    const rate = parseFloat(invoiceExRate) || 0;
+    const price = parseFloat(unitPrice) || 0;
+    const sum = rate * price;
+    setSumExchangeRate(sum.toFixed(2));
+  }, [invoiceExRate, unitPrice, showUnitPriceVal]);
+
   // ------------------Alchohol Calculation Function-------------
 
   const itemAlchoholCalculationFunction = () => {
@@ -1952,7 +1969,7 @@ function Item({ setActiveTab, isViewMode }) {
       HSUOM: hsUom || "",
       AlcoholPer: alcoholPercentage || 0,
       InvoiceNo: selectedInvoice || "",
-      ChkUnitPrice: showUnitPriceVal || "",
+      ChkUnitPrice: showUnitPriceVal === true,
       UnitPrice: unitPrice || 0,
       UnitPriceCurrency: invoiceCurrency || "",
       ExchangeRate: invoiceExRate || 0,
@@ -2003,28 +2020,61 @@ function Item({ setActiveTab, isViewMode }) {
     try {
       setIsAddItem(true);
       // Step 1: Save to CommonItemDtl
-      const res = await API.post("/postItemTable/", payload);
-      commonSaved = true;
-      setItemTable(res.data.Records);
+      // const res = await API.post("/postItemTable/", payload);
+      // commonSaved = true;
+      // setItemTable(res.data.Records);
 
-      const cascData = ItemCascSave(itemNumber);
-      console.log("cascData:", cascData);
-      if (cascData.length > 0) {
-        await API.post("/postCascTable/", cascData);
-        console.log("CASC Data Saved Successfully (Common)");
-      }
+      // const cascData = ItemCascSave(itemNumber);
+      // console.log("cascData:", cascData);
+      // if (cascData.length > 0) {
+      //   await API.post("/postCascTable/", cascData);
+      //   console.log("CASC Data Saved Successfully (Common)");
+      // }
 
-      // Step 2: Save to ItemDtl (inpayment)
-      const inpaymentRes = await API.post(
-        "innonpayment/postInnonItemTable/",
+      // // Step 2: Save to ItemDtl (inpayment)
+      // const inpaymentRes = await API.post(
+      //   "innonpayment/postInnonItemTable/",
+      //   payload,
+      // );
+      // console.log("Saved to ItemDtl:", inpaymentRes.data);
+
+      // if (cascData.length > 0) {
+      //   await API.post("innonpayment/postInnonCascTable/", cascData);
+      //   console.log("CASC Data Saved Successfully (Inpayment)");
+      // }
+
+      // // Single call — backend saves to CommonItemDtl AND mirrors to InNonItemDtl
+
+      //  two logics
+      // const res = await API.post("innonpayment/postInnonItemTable/", payload);
+      // setItemTable(res.data.Records);
+
+      // if (res.data?.Warning) {
+      //   alert(res.data.Warning);
+      // }
+
+      // const cascData = ItemCascSave(itemNumber);
+      // if (cascData.length > 0) {
+      //   // Single call — backend saves to CommonCASCDtl AND mirrors to INNONCASCDtl
+      //   const cascRes = await API.post(
+      //     "innonpayment/postInnonCascTable/",
+      //     cascData,
+      //   );
+      //   if (cascRes.data?.Warning) {
+      //     alert(cascRes.data.Warning);
+      //   }
+      // }
+
+      const res = await API.post(
+        "innonpayment/postInnonItemWithCasc/",
         payload,
       );
-      console.log("Saved to ItemDtl:", inpaymentRes.data);
+      setItemTable(res.data.Records);
 
-      if (cascData.length > 0) {
-        await API.post("innonpayment/postInnonCascTable/", cascData);
-        console.log("CASC Data Saved Successfully (Inpayment)");
+      if (res.data?.Warning) {
+        alert(res.data.Warning);
       }
+
       setIsAddItem(false);
       setEditingSNo(null);
       setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
@@ -2344,58 +2394,76 @@ function Item({ setActiveTab, isViewMode }) {
     setModel(item.Model || "");
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
-    setDuitableQuantity(item.DutiableQty || 0);
+
+setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
-    setTotalDuitableQuantity(item.TotalDutiableQty || 0);
+    setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
-    setInvoiceQuantity(item.InvoiceQuantity || 0);
-    setHsQuantity(item.HSQty || 0);
+    setInvoiceQuantity(fmt(item.InvoiceQuantity, 4));
+    // ---------------- VEHICLE ----------------
+    setVehicleType(item.VehicleType || "");
+    setEngineCapcityValue(item.EngineCapcity || "");
+    setEngineCapacityUom(item.EngineCapUOM || "");
+    setOriginalRegistrationDate(item.orignaldatereg || "");
+    //  ----------------------------------------------
+setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
-    setAlcoholPercentage(item.AlcoholPer || 0);
+    setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
     console.log("invoiceno:", item.InvoiceNo);
-    setUnitPrice(item.UnitPrice || 0);
+    setUnitPrice(fmt(item.UnitPrice, 2));
     setInvoiceCurrency(item.UnitPriceCurrency || "");
     console.log("invoiceCurrency:", item.UnitPriceCurrency);
-    setInvoiceExRate(item.ExchangeRate || 0);
+    setInvoiceExRate(fmt(item.ExchangeRate, 6));
     console.log("invoiceExRate:", item.ExchangeRate);
-    setSumExchangeRate(item.SumExchangeRate || 0);
-    setTotalLineAmount(item.TotalLineAmount || 0);
-    setTotalInvoiceCharge(item.InvoiceCharges || 0);
-    setCifFob(item.CIFFOB || 0);
-    setOuterPackQuantity(item.OPQty || 0);
+    setSumExchangeRate(fmt(item.SumExchangeRate, 2));
+    setTotalLineAmount(fmt(item.TotalLineAmount, 2));
+    setTotalInvoiceCharge(fmt(item.InvoiceCharges, 2));
+    setCifFob(fmt(item.CIFFOB, 2));
+    setOuterPackQuantity(fmt(item.OPQty, 2));
     setOuterPackQuantityUom(item.OPUOM || "");
-    setInPackQuantity(item.IPQty || 0);
+    setInPackQuantity(fmt(item.IPQty, 2));
     setInPackQuantityUom(item.IPUOM || "");
-    setInnerPackQuantity(item.InPqty || 0);
+    setInnerPackQuantity(fmt(item.InPqty, 2));
     setInnerPackQuantityUom(item.InPUOM || "");
-    setImmostPackQuantity(item.ImPQty || 0);
+    setImmostPackQuantity(fmt(item.ImPQty, 2));
     setImmostPackQuantityUom(item.ImPUOM || "");
     const hasPacking =
       item.OPQty > 0 ||
-      item.OPUOM.trim() !== "" ||
+      (item.OPUOM || "").trim() !== "" ||
       item.IPQty > 0 ||
-      item.IPUOM.trim() !== "" ||
+      (item.IPUOM || "").trim() !== "" ||
       item.InPqty > 0 ||
-      item.ImPUOM.trim() !== "" ||
+      (item.InPUOM || "").trim() !== "" ||
       item.ImPQty > 0 ||
-      item.ImPUOM.trim() !== "";
+      (item.ImPUOM || "").trim() !== "";
+
+    const chkVal = item.ChkUnitPrice;
+    const isUnitPriceChecked =
+      chkVal === true ||
+      chkVal === 1 ||
+      chkVal === "1" ||
+      (typeof chkVal === "string" &&
+        ["true", "yes"].includes(chkVal.trim().toLowerCase()));
+
+    setShowUnitPriceVal(isUnitPriceChecked);
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
-    setPreferentialCode(item.PreferentialCode || "");
-    setGstRateValue(item.GSTRate);
+
+setPreferentialCode(item.PreferentialCode || "");
+    setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
-    setGstSum(item.GSTAmount || 0);
-    setExciseDutyRate(item.ExciseDutyRate || 0);
+    setGstSum(fmt(item.GSTAmount, 2));
+    setExciseDutyRate(fmt(item.ExciseDutyRate, 2));
     setExciseDutyUom(item.ExciseDutyUOM || "");
-    setExciseDutyAmount(item.ExciseDutyAmount || 0);
-    setCustomsDutyRate(item.CustomsDutyRate || 0);
+    setExciseDutyAmount(fmt(item.ExciseDutyAmount, 2));
+    setCustomsDutyRate(fmt(item.CustomsDutyRate, 2));
     setCustomsDutyUom(item.CustomsDutyUOM || "");
-    setCustomsDutyAmount(item.CustomsDutyAmount || 0);
-    setOtherTaxRate(item.OtherTaxRate || 0);
+    setCustomsDutyAmount(fmt(item.CustomsDutyAmount, 2));
+    setOtherTaxRate(fmt(item.OtherTaxRate, 4));
     setOtherTaxUom(item.OtherTaxUOM || "");
-    setOtherTaxAmount(item.OtherTaxAmount || 0);
-    setLastSellingPrice(item.LSPValue || 0);
+    setOtherTaxAmount(fmt(item.OtherTaxAmount, 2));
+    setLastSellingPrice(fmt(item.LSPValue, 2));
 
     const hasLotId =
       item.CurrentLot?.trim() ||
@@ -2416,7 +2484,7 @@ function Item({ setActiveTab, isViewMode }) {
     setShippingMarks2(item.ShippingMarks2 || "");
     setShippingMarks3(item.ShippingMarks3 || "");
     setShippingMarks4(item.ShippingMarks4 || "");
-    setOptionalCharges(item.Optioncahrge || 0);
+setOptionalCharges(fmt(item.Optioncahrge, 2));
     // setOptionlAmount(item.OptionalSumtotal || 0);
     setSelectedCurrency(
       item.OptionalChrgeUOM
@@ -2483,6 +2551,193 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
+  // -----------------------------COPY ITEM---------------
+    const copyItem = async (itemNo) => {
+    const item = itemTable.find((i) => i.ItemNo === itemNo);
+    if (!item) return;
+    const permitId = permitDetails?.PermitId;
+    // setSerialNumber(item.ItemNo?.toString().padStart(3));
+   const selectedHs = hsCodeSuggestions.find(
+      (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
+    );
+    if (selectedHs) {
+      setHsCodeRow(selectedHs);
+      applyHsLogic(selectedHs);
+    }
+    setHsCode(item.HSCode || "");
+    setHsCodeDescription(item.Description || "");
+    setDgIndicator(item.DGIndicator === "Yes");
+    setCountryCode(item.Contry || "");
+    setBrand(item.Brand || "");
+    if (item.Brand == "UNBRANDED") {
+      setUnbranded(true);
+    }
+    setModel(item.Model || "");
+    setHawb(item.InHAWBOBL || "");
+    setOutHawb(item.OutHAWBOBL || "");
+
+setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantityUom(item.DutiableUOM || "--Select--");
+    setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
+    setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
+    setInvoiceQuantity(fmt(item.InvoiceQuantity, 4));
+    // ---------------- VEHICLE ----------------
+    setVehicleType(item.VehicleType || "");
+    setEngineCapcityValue(item.EngineCapcity || "");
+    setEngineCapacityUom(item.EngineCapUOM || "");
+    setOriginalRegistrationDate(item.orignaldatereg || "");
+    //  ----------------------------------------------
+setHsQuantity(fmt(item.HSQty, 4));
+    setHsUom(item.HSUOM || "--Select--");
+    setAlcoholPercentage(fmt(item.AlcoholPer, 2));
+    setSelectedInvoice(item.InvoiceNo || "");
+    console.log("invoiceno:", item.InvoiceNo);
+    setUnitPrice(fmt(item.UnitPrice, 2));
+    setInvoiceCurrency(item.UnitPriceCurrency || "");
+    console.log("invoiceCurrency:", item.UnitPriceCurrency);
+    setInvoiceExRate(fmt(item.ExchangeRate, 6));
+    console.log("invoiceExRate:", item.ExchangeRate);
+    setSumExchangeRate(fmt(item.SumExchangeRate, 2));
+    setTotalLineAmount(fmt(item.TotalLineAmount, 2));
+    setTotalInvoiceCharge(fmt(item.InvoiceCharges, 2));
+    setCifFob(fmt(item.CIFFOB, 2));
+    setOuterPackQuantity(fmt(item.OPQty, 2));
+    setOuterPackQuantityUom(item.OPUOM || "");
+    setInPackQuantity(fmt(item.IPQty, 2));
+    setInPackQuantityUom(item.IPUOM || "");
+    setInnerPackQuantity(fmt(item.InPqty, 2));
+    setInnerPackQuantityUom(item.InPUOM || "");
+    setImmostPackQuantity(fmt(item.ImPQty, 2));
+    setImmostPackQuantityUom(item.ImPUOM || "");
+    const hasPacking =
+      item.OPQty > 0 ||
+      (item.OPUOM || "").trim() !== "" ||
+      item.IPQty > 0 ||
+      (item.IPUOM || "").trim() !== "" ||
+      item.InPqty > 0 ||
+      (item.InPUOM || "").trim() !== "" ||
+      item.ImPQty > 0 ||
+      (item.ImPUOM || "").trim() !== "";
+
+    const chkVal = item.ChkUnitPrice;
+    const isUnitPriceChecked =
+      chkVal === true ||
+      chkVal === 1 ||
+      chkVal === "1" ||
+      (typeof chkVal === "string" &&
+        ["true", "yes"].includes(chkVal.trim().toLowerCase()));
+
+    setShowUnitPriceVal(isUnitPriceChecked);
+    setPackingChecked(hasPacking);
+    setShowPacking(hasPacking);
+
+setPreferentialCode(item.PreferentialCode || "");
+    setGstRateValue(fmt(item.GSTRate, 4));
+    setGstUom(item.GSTUOM || "");
+    setGstSum(fmt(item.GSTAmount, 2));
+    setExciseDutyRate(fmt(item.ExciseDutyRate, 2));
+    setExciseDutyUom(item.ExciseDutyUOM || "");
+    setExciseDutyAmount(fmt(item.ExciseDutyAmount, 2));
+    setCustomsDutyRate(fmt(item.CustomsDutyRate, 2));
+    setCustomsDutyUom(item.CustomsDutyUOM || "");
+    setCustomsDutyAmount(fmt(item.CustomsDutyAmount, 2));
+    setOtherTaxRate(fmt(item.OtherTaxRate, 4));
+    setOtherTaxUom(item.OtherTaxUOM || "");
+    setOtherTaxAmount(fmt(item.OtherTaxAmount, 2));
+    setLastSellingPrice(fmt(item.LSPValue, 2));
+
+    const hasLotId =
+      item.CurrentLot?.trim() ||
+      item.Making?.trim() ||
+      item.PreviousLot?.trim();
+    setShowLotId(!!hasLotId);
+    setCurrentLot(item.CurrentLot || "");
+    setMaking(item.Making || "");
+    setPreviousLot(item.PreviousLot || "");
+
+    const hasShippingMarks =
+      item.ShippingMarks1?.trim() ||
+      item.ShippingMarks2?.trim() ||
+      item.ShippingMarks3?.trim() ||
+      item.ShippingMarks4?.trim();
+    setShowShippingMarks(!!hasShippingMarks);
+    setShippingMarks1(item.ShippingMarks1 || "");
+    setShippingMarks2(item.ShippingMarks2 || "");
+    setShippingMarks3(item.ShippingMarks3 || "");
+    setShippingMarks4(item.ShippingMarks4 || "");
+setOptionalCharges(fmt(item.Optioncahrge, 2));
+    // setOptionlAmount(item.OptionalSumtotal || 0);
+    setSelectedCurrency(
+      item.OptionalChrgeUOM
+        ? {
+            CurrencyUOM: item.OptionalChrgeUOM,
+            CurrencyRate: item.OptionalSumExchage,
+          }
+        : null,
+    );
+    setEditingSNo(item.ItemNo);
+    try {
+      const res = await API.get(`/getCasc/${permitId}/`);
+      const filtered = res.data.filter(
+        (c) => String(c.ItemNo) === String(itemNo),
+      );
+      const maxCascBoxes = 3;
+      const finalCasc = Array.from({ length: maxCascBoxes }, () => ({
+        code: "",
+        hsQuantity: 0,
+        uom: "",
+        casc: [],
+      }));
+      filtered.forEach((c) => {
+        const cascIndex = parseInt(c.CASCId.replace("Casc", "")) - 1;
+        if (cascIndex < 0 || cascIndex >= maxCascBoxes) return;
+        if (!finalCasc[cascIndex].code) {
+          finalCasc[cascIndex].code = c.ProductCode;
+          finalCasc[cascIndex].hsQuantity = c.Quantity;
+          finalCasc[cascIndex].uom = c.ProductUOM;
+        }
+        const row = [c.CascCode1 || "", c.CascCode2 || "", c.CascCode3 || ""];
+        finalCasc[cascIndex].casc.push(row);
+      });
+      setItemCasc(finalCasc);
+      const hasCasc = filtered.length > 0;
+      setItemCascChecked(hasCasc);
+      setShowItemCasc(hasCasc);
+    } catch (error) {
+      console.error("CASC fetch failed", error);
+      const emptyCasc = Array.from({ length: 3 }, () => ({
+        code: "",
+        hsQuantity: 0,
+        uom: "",
+        casc: [],
+      }));
+      setItemCasc(emptyCasc);
+      setItemCascChecked(false);
+      setShowItemCasc(false);
+    }
+    handleCountryFocusOut(item.Contry || "");
+    const matched = applyInvoiceChange(item.InvoiceNo, false);
+    if (matched) {
+      invoiceTotalLineAmountFunction(
+        item.TotalLineAmount,
+        matched.TIExRate,
+        item.InvoiceNo,
+      );
+    } else {
+      invoiceTotalLineAmountFunction(
+        item.TotalLineAmount,
+        item.ExchangeRate,
+        item.InvoiceNo,
+      );
+    }
+  };
+
+    //------------------------Decimel helper------------------------
+  const fmt = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+};
+
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
     // ---------------- BASIC DETAILS ----------------
@@ -2506,6 +2761,12 @@ function Item({ setActiveTab, isViewMode }) {
     setHsUom("--Select--");
     setAlcoholPercentage("");
     setSelectedInvoice("");
+
+    // ---------------- VEHICLE ----------------
+    setVehicleType("");
+    setEngineCapcityValue("");
+    setEngineCapacityUom("");
+    setOriginalRegistrationDate("");
 
     // ---------------- INVOICE ----------------
     setUnitPrice("");
@@ -3040,7 +3301,13 @@ function Item({ setActiveTab, isViewMode }) {
           HSUOM: item.HSUOM || "",
           AlcoholPer: item.AlcoholPer || 0,
           InvoiceNo: item.InvoiceNo || "",
-          ChkUnitPrice: item.ChkUnitPrice || "",
+          ChkUnitPrice:
+            item.ChkUnitPrice === true ||
+            item.ChkUnitPrice === 1 ||
+            item.ChkUnitPrice === "1" ||
+            (typeof item.ChkUnitPrice === "string" &&
+              ["true", "yes"].includes(item.ChkUnitPrice.trim().toLowerCase())),
+
           UnitPrice: item.UnitPrice || 0,
           UnitPriceCurrency:
             matchedInvoice?.TICurrency || item.UnitPriceCurrency || "",
@@ -3468,7 +3735,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   // ----------------------- UI ---------------------------------
   return (
-    <div className="row g-2">
+    <div className="row g-2 cargo-compact">
       <div className="col-12">
         <div className="row">
           <div className="col-7"></div>
@@ -3477,7 +3744,7 @@ function Item({ setActiveTab, isViewMode }) {
               type="button"
               style={{ width: "24%" }}
               className="NextpageBtns"
-              tabIndex={27}
+              tabindex={27}
               onClick={ItemSave}
               disabled={isAddItem}
             >
@@ -3708,6 +3975,7 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle HighLight"
                     id="ItemHsCode"
                     value={hsCode}
+                    tabIndex={1}
                     onChange={handleHsCodeChange}
                     onKeyDown={handleHsCodeKeyDown}
                     onBlur={handleHsCodeFocusOut}
@@ -3763,6 +4031,7 @@ function Item({ setActiveTab, isViewMode }) {
 
                 <div className="col-8">
                   <textarea
+                    tabIndex={2}
                     className="inputStyle"
                     value={hsCodeDescription}
                     style={{ resize: "vertical", minHeight: "90px" }}
@@ -3793,6 +4062,7 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="form-control"
                     value={countryCode}
+                    tabIndex={3}
                     onChange={handleCountryChange}
                     onKeyDown={handleCountryKeyDown}
                     onBlur={(e) => handleCountryFocusOut(e.target.value)}
@@ -3876,6 +4146,7 @@ function Item({ setActiveTab, isViewMode }) {
                       id="itemUnBrand"
                       className="me-2"
                       checked={unbranded}
+                      tabIndex={4}
                       onChange={handleCheckFunction}
                       style={{
                         width: "16px",
@@ -3898,8 +4169,8 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle HighLight"
                     id="itemBrandInput"
                     value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
                     tabIndex={5}
+                    onChange={(e) => setBrand(e.target.value)}
                   />
                   {brand.trim() === "" && brandError && (
                     <span className="ErrColor">FILL BRAND</span>
@@ -3915,6 +4186,7 @@ function Item({ setActiveTab, isViewMode }) {
                 <div className="col-8">
                   <input
                     type="text"
+                    tabIndex={6}
                     className="inputStyle"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
@@ -4004,6 +4276,7 @@ function Item({ setActiveTab, isViewMode }) {
                     <div className="col-5">ORIGINAL REGISTRATION DATE</div>
                     <div className="col-7">
                       <DateField
+                        tabIndex={10}
                         value={originalRegistrationDate}
                         setValue={setOriginalRegistrationDate}
                       />
@@ -4023,7 +4296,7 @@ function Item({ setActiveTab, isViewMode }) {
                       type="text"
                       className="inputStyle"
                       placeholder="0.00"
-                      tabIndex={12}
+                      tabIndex={11}
                       value={duitableQuantity}
                       onChange={(e) => setDuitableQuantity(e.target.value)}
                       onBlur={dutiableQtyFunction}
@@ -4033,6 +4306,7 @@ function Item({ setActiveTab, isViewMode }) {
                     <select
                       className="Dropdown"
                       value={duitableQuantityUom}
+                      tabIndex={12}
                       onChange={(e) => setDuitableQuantityUom(e.target.value)}
                     >
                       <option>--Select--</option>
@@ -4065,7 +4339,7 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle"
                     placeholder="0.00"
-                    tabIndex={12}
+                    tabIndex={13}
                     onBlur={totalDutiableQtyFunction}
                     value={totalDuitableQuantity}
                     onChange={(e) => setTotalDuitableQuantity(e.target.value)}
@@ -4075,6 +4349,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <select
                     className="Dropdown"
                     value={totalDuitableQuantityUom}
+                    tabIndex={14}
                     onChange={(e) =>
                       setTotalDuitableQuantityUom(e.target.value)
                     }
@@ -4108,10 +4383,10 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle"
                     value={invoiceQuantity}
+                    tabIndex={15}
                     placeholder="0.00"
                     onBlur={itemInvoiceQuantityFunction}
                     onChange={(e) => setInvoiceQuantity(e.target.value)}
-                    tabIndex={13}
                   />
                 </div>
               </div>
@@ -4127,8 +4402,8 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle HighLight"
                     placeholder="0.00"
                     value={hsQuantity}
+                    tabIndex={16}
                     onChange={(e) => setHsQuantity(e.target.value)}
-                    tabIndex={14}
                   />
                   {hsQuantity === "" && hsQuantityError && (
                     <span className="ErrColor">FILL HS QUANTITY</span>
@@ -4139,6 +4414,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <select
                     className="Dropdown HighLight"
                     value={hsUom}
+                    tabIndex={17}
                     // onChange={(e) => setHsUom(e.target.value)}
                     onChange={(e) => handleUomChange(e.target.value)}
                   >
@@ -4171,6 +4447,7 @@ function Item({ setActiveTab, isViewMode }) {
                       type="text"
                       className="inputStyle"
                       placeholder="0.00"
+                      tabIndex={18}
                       value={alcoholPercentage}
                       onChange={(e) => setAlcoholPercentage(e.target.value)}
                       onBlur={itemAlchoholCalculationFunction}
@@ -4202,13 +4479,13 @@ function Item({ setActiveTab, isViewMode }) {
                     <input
                       type="checkbox"
                       id="packing_details"
+                      tabIndex={21}
                       className="me-2"
                       style={{
                         width: "16px",
                         height: "16px",
                         cursor: "pointer",
                       }}
-                      tabIndex={16}
                       checked={packingChecked}
                       onChange={(e) => togglePacking(e.target.checked)}
                     />
@@ -4226,13 +4503,13 @@ function Item({ setActiveTab, isViewMode }) {
                     <input
                       type="checkbox"
                       id="itemCascID"
+                      tabIndex={22}
                       className="me-2"
                       style={{
                         width: "16px",
                         height: "16px",
                         cursor: "pointer",
                       }}
-                      tabIndex={17}
                       checked={itemCascChecked}
                       onChange={(e) => toggleItemCasc(e.target.checked)}
                     />
@@ -4247,6 +4524,7 @@ function Item({ setActiveTab, isViewMode }) {
                     <input
                       type="checkbox"
                       id="shippingMarkCheck"
+                      tabIndex={23}
                       className="me-2"
                       style={{
                         width: "16px",
@@ -4269,6 +4547,7 @@ function Item({ setActiveTab, isViewMode }) {
                     <input
                       type="checkbox"
                       id="lotIdCheck"
+                      tabIndex={24}
                       className="me-2"
                       style={{
                         width: "16px",
@@ -4495,7 +4774,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <select
                     className="Dropdown"
                     id="ItemInvoiceNumber"
-                    tabIndex={25}
+                    tabIndex={19}
                     value={selectedInvoice}
                     onChange={handleInvoiceChange}
                     defaultValue=""
@@ -4586,7 +4865,8 @@ function Item({ setActiveTab, isViewMode }) {
                       className="inputStyle"
                       defaultValue="0.00"
                       value={sumExchangeRate}
-                      onChange={(e) => setSumExchangeRate(e.target.value)}
+                      readOnly
+                      // onChange={(e) => setSumExchangeRate(e.target.value)}
                     />
                   </div>
                 </div>
@@ -4671,12 +4951,12 @@ function Item({ setActiveTab, isViewMode }) {
                     placeholder="0.00"
                     className="inputStyle HighLight"
                     value={totalLineAmount}
+                    tabIndex={20}
                     onChange={(e) => setTotalLineAmount(e.target.value)}
                     // onBlur={invoiceTotalLineAmountFunction}
                     onBlur={(e) =>
                       invoiceTotalLineAmountFunction(e.target.value)
                     }
-                    tabIndex={26}
                   />
                   {totalLineAmount === 0 && totalLineAmountError && (
                     <span className="ErrColor">FILL TOTAL LINE AMOUNT</span>
@@ -5203,7 +5483,7 @@ function Item({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={25}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -5212,6 +5492,7 @@ function Item({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("InvoiceTab")}
+          tabIndex={26}
         >
           PREVIOUS
         </button>
@@ -5223,6 +5504,7 @@ function Item({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("CpcTab")}
+          tabindex={28}
         >
           NEXT
         </button>
@@ -5469,6 +5751,7 @@ function Item({ setActiveTab, isViewMode }) {
                 <th>HS UOM</th>
                 <th>GST (S$)</th>
                 <th>ITEM LINE AMOUNT</th>
+                <th>COPY ITEM</th>
               </tr>
             </thead>
 
@@ -5518,18 +5801,26 @@ function Item({ setActiveTab, isViewMode }) {
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-                      <td>{item.ItemNo}</td>
+<td>{item.ItemNo}</td>
                       <td>{item.HSCode}</td>
                       <td>{item.Description}</td>
                       <td>{item.Contry}</td>
                       <td>{item.InHAWBOBL}</td>
                       <td>{item.OutHAWBOBL}</td>
                       <td>{item.UnitPriceCurrency}</td>
-                      <td>{item.CIFFOB}</td>
-                      <td>{item.HSQty}</td>
+                      <td>{fmt(item.CIFFOB, 2)}</td>
+                      <td>{fmt(item.HSQty, 4)}</td>
                       <td>{item.HSUOM}</td>
-                      <td>{item.GSTAmount}</td>
-                      <td>{item.TotalLineAmount}</td>
+                      <td>{fmt(item.GSTAmount, 2)}</td>
+                      <td>{fmt(item.TotalLineAmount, 2)}</td>
+                      <td>
+                        <FaPlus
+                          className="view-show"
+                          style={{ width: "30px", cursor: "pointer" }}
+                          className="AddContainerBtn"
+                          onClick={() => copyItem(item.ItemNo)}
+                        />
+                      </td>
                     </tr>
                   );
                 })

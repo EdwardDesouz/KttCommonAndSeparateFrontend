@@ -388,9 +388,14 @@ function Item({ setActiveTab, isViewMode }) {
       return;
     }
 
-    const filtered = countrySuggestions.filter((item) =>
-      item.toLowerCase().includes(value.toLowerCase()),
-    );
+    const lowerValue = value.toLowerCase();
+
+    const filtered = countrySuggestions.filter((item) => {
+      const [code, description] = item.split(":");
+      return code.toLowerCase().startsWith(lowerValue);
+      //  ||
+      // description.toLowerCase().startsWith(lowerValue)
+    });
 
     setFilteredCountrySuggestions(filtered.slice(0, 50));
     setShowCountryDropdown(filtered.length > 0);
@@ -1806,26 +1811,39 @@ function Item({ setActiveTab, isViewMode }) {
 
     try {
       setIsAddItem(true);
-      // Step 1: Save to CommonItemDtl
-      const res = await API.post("/postItemTable/", payload);
-      commonSaved = true;
+      // // Step 1: Save to CommonItemDtl
+      // const res = await API.post("/postItemTable/", payload);
+      // commonSaved = true;
+      // setItemTable(res.data.Records);
+
+      // const cascData = ItemCascSave(itemNumber);
+      // console.log("cascData:", cascData);
+      // if (cascData.length > 0) {
+      //   await API.post("/postCascTable/", cascData);
+      //   console.log("CASC Data Saved Successfully (Common)");
+      // }
+
+      // // Step 2: Save to ItemDtl (coo)
+      // const inpaymentRes = await API.post("coo/postCooItemTable/", payload);
+      // console.log("Saved to ItemDtl:", inpaymentRes.data);
+
+      // if (cascData.length > 0) {
+      //   await API.post("coo/postCooCascTable/", cascData);
+      //   console.log("CASC Data Saved Successfully (CooItemDtl)");
+      // }
+
+      const res = await API.post("coo/postCooItemTable/", payload);
       setItemTable(res.data.Records);
 
-      const cascData = ItemCascSave(itemNumber);
-      console.log("cascData:", cascData);
-      if (cascData.length > 0) {
-        await API.post("/postCascTable/", cascData);
-        console.log("CASC Data Saved Successfully (Common)");
+      if (res.data?.Warning) {
+        alert(res.data.Warning);
       }
 
-      // Step 2: Save to ItemDtl (coo)
-      const inpaymentRes = await API.post("coo/postCooItemTable/", payload);
-      console.log("Saved to ItemDtl:", inpaymentRes.data);
-
-      if (cascData.length > 0) {
-        await API.post("coo/postCooCascTable/", cascData);
-        console.log("CASC Data Saved Successfully (CooItemDtl)");
-      }
+      // const cascData = ItemCascSave(itemNumber);
+      // if (cascData.length > 0) {
+      //   await API.post("/postCascTable/", cascData);
+      //   await API.post("coo/postCooCascTable/", cascData);
+      // }
       setIsAddItem(false);
       setEditingSNo(null);
       setSerialNumber((res.data.Records.length + 1).toString().padStart(3));
@@ -2066,23 +2084,23 @@ function Item({ setActiveTab, isViewMode }) {
     setOutHawb(item.OutHAWBOBL || "");
 
     // Dutiable
-    setDuitableQuantity(item.DutiableQty || 0);
+ setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
-    setTotalDuitableQuantity(item.TotalDutiableQty || 0);
+    setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
-    setInvoiceQuantity(item.InvoiceQuantity || 0);
-    setHsQuantity(item.HSQty || 0);
+    setInvoiceQuantity(fmt(item.InvoiceQuantity, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
-    setAlcoholPercentage(item.AlcoholPer || 0);
+    setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
 
     // Invoice
-    setUnitPrice(item.UnitPrice || 0);
+    setUnitPrice(fmt(item.UnitPrice, 2));
     setInvoiceCurrency(item.UnitPriceCurrency || "");
-    setInvoiceExRate(item.ExchangeRate || 0);
-    setSumExchangeRate(item.SumExchangeRate || 0);
-    setTotalLineAmount(item.TotalLineAmount || 0);
-    setCifFob(item.CIFFOB || 0);
+    setInvoiceExRate(fmt(item.ExchangeRate, 6));
+    setSumExchangeRate(fmt(item.SumExchangeRate, 2));
+    setTotalLineAmount(fmt(item.TotalLineAmount, 2));
+    setCifFob(fmt(item.CIFFOB, 2));
 
     // Packing
     const hasPacking =
@@ -2105,21 +2123,21 @@ function Item({ setActiveTab, isViewMode }) {
     setImmostPackQuantity(item.ImPQty || 0);
     setImmostPackQuantityUom(item.ImPUOM || "");
 
-    // Duty
+// Duty
     setPreferentialCode(item.PreferentialCode || "");
-    setGstRateValue(item.GSTRate || 0);
+    setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
-    setGstSum(item.GSTAmount || 0);
-    setExciseDutyRate(item.ExciseDutyRate || 0);
+    setGstSum(fmt(item.GSTAmount, 2));
+    setExciseDutyRate(fmt(item.ExciseDutyRate, 2));
     setExciseDutyUom(item.ExciseDutyUOM || "");
-    setExciseDutyAmount(item.ExciseDutyAmount || 0);
-    setCustomsDutyRate(item.CustomsDutyRate || 0);
+    setExciseDutyAmount(fmt(item.ExciseDutyAmount, 2));
+    setCustomsDutyRate(fmt(item.CustomsDutyRate, 2));
     setCustomsDutyUom(item.CustomsDutyUOM || "");
-    setCustomsDutyAmount(item.CustomsDutyAmount || 0);
-    setOtherTaxRate(item.OtherTaxRate || 0);
+    setCustomsDutyAmount(fmt(item.CustomsDutyAmount, 2));
+    setOtherTaxRate(fmt(item.OtherTaxRate, 4));
     setOtherTaxUom(item.OtherTaxUOM || "");
-    setOtherTaxAmount(item.OtherTaxAmount || 0);
-    setLastSellingPrice(item.LSPValue || 0);
+    setOtherTaxAmount(fmt(item.OtherTaxAmount, 2));
+    setLastSellingPrice(fmt(item.LSPValue, 2));
 
     // Shipping marks — single textarea now
     setShippingMarks(item.ShippingMarks1 || "");
@@ -2136,10 +2154,10 @@ function Item({ setActiveTab, isViewMode }) {
         : null,
     );
 
-    // Certificate of Origin
-    setCerItemQty(parseFloat(item.CerItemQty) || 0);
+// Certificate of Origin
+    setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
-    setCifCerValue(parseFloat(item.CIFValOfCer) || 0);
+    setCifCerValue(fmt(item.CIFValOfCer, 2));
 
     if (item.ManufactureCostDate) {
       const date = new Date(item.ManufactureCostDate);
@@ -2151,9 +2169,10 @@ function Item({ setActiveTab, isViewMode }) {
       setManuDate("");
     }
 
-    setTextileCategory(item.TexCat || "");
-    setTextileQuotaQty(parseFloat(item.TexQuotaQty) || 0);
+  setTextileCategory(item.TexCat || "");
+    setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2240,6 +2259,219 @@ function Item({ setActiveTab, isViewMode }) {
     setCifFob(recalcCif.toFixed(2));
   };
 
+
+    // ---------------------------COPY ITEM -----------------
+
+  const copyItem = async (itemNo) => {
+    const item = itemTable.find((i) => i.ItemNo === itemNo);
+    if (!item) return;
+
+    const permitId = permitDetails?.PermitId;
+
+    // setSerialNumber(item.ItemNo?.toString().padStart(3));
+    // setSerialNumber(item.ItemNo?.toString().padStart(3, "0"));
+
+    // HS Code logic
+    const selectedHs = hsCodeSuggestions.find(
+      (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
+    );
+    if (selectedHs) {
+      setHsCodeRow(selectedHs);
+      applyHsLogic(selectedHs);
+    }
+
+    // Basic details
+    setHsCode(item.HSCode || "");
+    setHsCodeDescription(item.Description || "");
+    setDgIndicator(item.DGIndicator === "Yes");
+    setCountryCode(item.Contry || "");
+    setBrand(item.Brand || "");
+    setUnbranded(item.Brand === "UNBRANDED");
+    setModel(item.Model || "");
+    setHawb(item.InHAWBOBL || "");
+    setOutHawb(item.OutHAWBOBL || "");
+
+    // Dutiable
+ setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantityUom(item.DutiableUOM || "--Select--");
+    setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
+    setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
+    setInvoiceQuantity(fmt(item.InvoiceQuantity, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
+    setHsUom(item.HSUOM || "--Select--");
+    setAlcoholPercentage(fmt(item.AlcoholPer, 2));
+    setSelectedInvoice(item.InvoiceNo || "");
+
+    // Invoice
+    setUnitPrice(fmt(item.UnitPrice, 2));
+    setInvoiceCurrency(item.UnitPriceCurrency || "");
+    setInvoiceExRate(fmt(item.ExchangeRate, 6));
+    setSumExchangeRate(fmt(item.SumExchangeRate, 2));
+    setTotalLineAmount(fmt(item.TotalLineAmount, 2));
+    setCifFob(fmt(item.CIFFOB, 2));
+
+    // Packing
+    const hasPacking =
+      item.OPQty > 0 ||
+      (item.OPUOM || "").trim() !== "" ||
+      item.IPQty > 0 ||
+      (item.IPUOM || "").trim() !== "" ||
+      item.InPqty > 0 ||
+      (item.InPUOM || "").trim() !== "" ||
+      item.ImPQty > 0 ||
+      (item.ImPUOM || "").trim() !== "";
+    setPackingChecked(hasPacking);
+    setShowPacking(hasPacking);
+    setOuterPackQuantity(item.OPQty || 0);
+    setOuterPackQuantityUom(item.OPUOM || "");
+    setInPackQuantity(item.IPQty || 0);
+    setInPackQuantityUom(item.IPUOM || "");
+    setInnerPackQuantity(item.InPqty || 0);
+    setInnerPackQuantityUom(item.InPUOM || "");
+    setImmostPackQuantity(item.ImPQty || 0);
+    setImmostPackQuantityUom(item.ImPUOM || "");
+
+// Duty
+    setPreferentialCode(item.PreferentialCode || "");
+    setGstRateValue(fmt(item.GSTRate, 4));
+    setGstUom(item.GSTUOM || "");
+    setGstSum(fmt(item.GSTAmount, 2));
+    setExciseDutyRate(fmt(item.ExciseDutyRate, 2));
+    setExciseDutyUom(item.ExciseDutyUOM || "");
+    setExciseDutyAmount(fmt(item.ExciseDutyAmount, 2));
+    setCustomsDutyRate(fmt(item.CustomsDutyRate, 2));
+    setCustomsDutyUom(item.CustomsDutyUOM || "");
+    setCustomsDutyAmount(fmt(item.CustomsDutyAmount, 2));
+    setOtherTaxRate(fmt(item.OtherTaxRate, 4));
+    setOtherTaxUom(item.OtherTaxUOM || "");
+    setOtherTaxAmount(fmt(item.OtherTaxAmount, 2));
+    setLastSellingPrice(fmt(item.LSPValue, 2));
+
+    // Shipping marks — single textarea now
+    setShippingMarks(item.ShippingMarks1 || "");
+    setShowShippingMarks(!!item.ShippingMarks1?.trim());
+
+    // Optional charges
+    setOptionalCharges(item.Optioncahrge || 0);
+    setSelectedCurrency(
+      item.OptionalChrgeUOM
+        ? {
+            CurrencyUOM: item.OptionalChrgeUOM,
+            CurrencyRate: item.OptionalSumExchage,
+          }
+        : null,
+    );
+
+// Certificate of Origin
+    setCerItemQty(fmt(item.CerItemQty, 2));
+    setCerItemUOM(item.CerItemUOM || "--Select--");
+    setCifCerValue(fmt(item.CIFValOfCer, 2));
+
+    if (item.ManufactureCostDate) {
+      const date = new Date(item.ManufactureCostDate);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      setManuDate(`${day}/${month}/${year}`);
+    } else {
+      setManuDate("");
+    }
+
+  setTextileCategory(item.TexCat || "");
+    setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
+    setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
+     
+    setCerInvoiceNumber(item.CerInvNo || "");
+
+    if (item.CerInvDate) {
+      const date = new Date(item.CerInvDate);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      setInvDate(`${day}/${month}/${year}`);
+    } else {
+      setInvDate("");
+    }
+
+    setCerDescription(item.CertificateDescription || "");
+    setHsCodeCer(item.HSCodeCer || "");
+    setPercentageOrigin(item.PerContent || "");
+
+    // Origin criterion — split joined string back into 3 individual fields
+    const originParts = (item.OriginOfCer || "")
+      .split(",")
+      .map((s) => s.trim());
+    setOriginCriterionCode1(originParts[0] || "");
+    setOriginCriterionCode2(originParts[1] || "");
+    setOriginCriterionCode3(originParts[2] || "");
+
+    setEditingSNo(item.ItemNo);
+
+    // Fetch CASC data
+    try {
+      const res = await API.get(`/getCasc/${permitId}/`);
+      const filtered = res.data.filter(
+        (c) => String(c.ItemNo) === String(itemNo),
+      );
+      const maxCascBoxes = 3;
+      const finalCasc = Array.from({ length: maxCascBoxes }, () => ({
+        code: "",
+        hsQuantity: 0,
+        uom: "",
+        enduserDescription: "",
+        casc: [],
+      }));
+      filtered.forEach((c) => {
+        const cascIndex = parseInt(c.CASCId.replace("Casc", "")) - 1;
+        if (cascIndex < 0 || cascIndex >= maxCascBoxes) return;
+        if (!finalCasc[cascIndex].code) {
+          finalCasc[cascIndex].code = c.ProductCode;
+          finalCasc[cascIndex].hsQuantity = c.Quantity;
+          finalCasc[cascIndex].uom = c.ProductUOM;
+          finalCasc[cascIndex].enduserDescription = c.EndUserDes || "";
+        }
+        finalCasc[cascIndex].casc.push([
+          c.CascCode1 || "",
+          c.CascCode2 || "",
+          c.CascCode3 || "",
+        ]);
+      });
+      setItemCasc(finalCasc);
+      const hasCasc = filtered.length > 0;
+      setItemCascChecked(hasCasc);
+      setShowItemCasc(hasCasc);
+    } catch (error) {
+      console.error("CASC fetch failed", error);
+      setItemCasc(
+        Array.from({ length: 3 }, () => ({
+          code: "",
+          hsQuantity: 0,
+          uom: "",
+          casc: [],
+        })),
+      );
+      setItemCascChecked(false);
+      setShowItemCasc(false);
+    }
+
+    handleCountryFocusOut(item.Contry || "");
+
+    // CIF/FOB recalculation
+    const matchedCurrency = currency.find(
+      (cur) => cur.Currency === item.UnitPriceCurrency,
+    );
+    const resolvedExRate = matchedCurrency
+      ? parseFloat(matchedCurrency.CurrencyRate)
+      : parseFloat(item.ExchangeRate) || 0;
+    const recalcCif = resolvedExRate * parseFloat(item.TotalLineAmount || 0);
+    setCifFob(recalcCif.toFixed(2));
+  };
+
+  //------------------------Decimel helper------------------------
+  const fmt = (val, decimals = 2) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+};
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
     // ---------------- BASIC DETAILS ----------------
@@ -3145,7 +3377,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   // ----------------------- UI ---------------------------------
   return (
-    <div className="row g-2">
+    <div className="row g-2 cargo-compact">
       <div className="col-12">
         <div className="row">
           <div className="col-7"></div>
@@ -3154,7 +3386,7 @@ function Item({ setActiveTab, isViewMode }) {
               type="button"
               style={{ width: "24%" }}
               className="NextpageBtns"
-              tabIndex={27}
+              tabIndex={33}
               onClick={ItemSave}
               disabled={isAddItem}
             >
@@ -3216,12 +3448,13 @@ function Item({ setActiveTab, isViewMode }) {
             </div>
 
             {/* ITEM CODE */}
-            <div className="row mt-4">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">ITEM CODE</div>
                 <div className="col-6 position-relative">
                   <input
                     type="text"
+                    tabIndex={1}
                     className="inputStyle"
                     value={itemCode}
                     onChange={handleItemCodeChange}
@@ -3263,6 +3496,7 @@ function Item({ setActiveTab, isViewMode }) {
                     className="btn"
                     style={{ fontWeight: "bold" }}
                     onClick={handleAddItemCode}
+                    tabIndex={2}
                   >
                     <FaPlus />
                   </button>
@@ -3280,6 +3514,7 @@ function Item({ setActiveTab, isViewMode }) {
                   {/* Controlled Item Alert */}
                   <input
                     type="text"
+                    tabIndex={3}
                     className="inputStyle HighLight"
                     id="ItemHsCode"
                     value={hsCode}
@@ -3332,13 +3567,14 @@ function Item({ setActiveTab, isViewMode }) {
 
             {/* ================= DESCRIPTION ================= */}
 
-            <div className="row mt-4">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">DESCRIPTION</div>
 
                 <div className="col-8">
                   <textarea
                     className="inputStyle"
+                    tabIndex={4}
                     value={hsCodeDescription}
                     style={{ resize: "vertical", minHeight: "90px" }}
                     onChange={(e) => setHsCodeDescription(e.target.value)}
@@ -3352,7 +3588,7 @@ function Item({ setActiveTab, isViewMode }) {
             </div>
 
             {/* COO */}
-            <div className="row mt-4">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-2">COO</div>
 
@@ -3366,6 +3602,7 @@ function Item({ setActiveTab, isViewMode }) {
                 <div className="col-sm-3 position-relative">
                   <input
                     type="text"
+                    tabIndex={5}
                     className="form-control"
                     value={countryCode}
                     onChange={handleCountryChange}
@@ -3414,6 +3651,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <input
                     type="text"
                     className="form-control"
+                    tabIndex={6}
                     value={countryDescription}
                     readOnly
                   />
@@ -3421,7 +3659,7 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
             {/* INVOICE QUANTITY */}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">INVOICE QUANTITY</div>
                 <div className="col-8">
@@ -3429,17 +3667,17 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle"
                     value={invoiceQuantity}
+                    tabIndex={7}
                     placeholder="0.00"
                     onChange={(e) => setInvoiceQuantity(e.target.value)}
                     onBlur={handleInvoiceQuantityFocusOut}
-                    tabIndex={13}
                   />
                 </div>
               </div>
             </div>
 
             {/* HS QUANTITY */}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">HS QUANTITY</div>
                 <div className="col-4">
@@ -3448,8 +3686,8 @@ function Item({ setActiveTab, isViewMode }) {
                     className="inputStyle HighLight"
                     placeholder="0.00"
                     value={hsQuantity}
+                    tabIndex={8}
                     onChange={(e) => setHsQuantity(e.target.value)}
-                    tabIndex={14}
                   />
                   {hsQuantity === "" && hsQuantityError && (
                     <span className="ErrColor">FILL HS QUANTITY</span>
@@ -3459,6 +3697,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <select
                     className="Dropdown HighLight"
                     value={hsUom}
+                    tabIndex={9}
                     onChange={(e) => handleUomChange(e.target.value)}
                   >
                     <option>--Select--</option>
@@ -3481,13 +3720,14 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
             {/* CURRENCY UNIT PRICE AUTO */}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">
                   <label htmlFor="itemCheckUnitPrice">
                     CURR (UNIT PRICE{" "}
                     <input
                       type="checkbox"
+                      tabIndex={10}
                       className="me-2"
                       style={{
                         width: "16px",
@@ -3505,6 +3745,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <select
                     className="Dropdown HighLight"
                     id="itemInvoiceCurr"
+                    tabIndex={11}
                     value={invoiceCurrency}
                     onChange={(e) =>
                       handleCurrencyChange(e.target.value, "invoice")
@@ -3529,6 +3770,7 @@ function Item({ setActiveTab, isViewMode }) {
                   <input
                     type="text"
                     value={invoiceExRate}
+                    tabIndex={12}
                     disabled
                     className="inputStyle"
                     placeholder="0.00"
@@ -3537,20 +3779,20 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
             {/* TOTAL LINE AMOUNT */}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">TOTAL LINE AMOUNT</div>
                 <div className="col-8">
                   <input
                     type="text"
                     placeholder="0.00"
+                    tabIndex={13}
                     className="inputStyle HighLight"
                     value={totalLineAmount}
                     onChange={(e) => setTotalLineAmount(e.target.value)}
                     onBlur={(e) =>
                       invoiceTotalLineAmountFunction(e.target.value)
                     }
-                    tabIndex={26}
                   />
                   {totalLineAmount === 0 && totalLineAmountError && (
                     <span className="ErrColor">FILL TOTAL LINE AMOUNT</span>
@@ -3559,12 +3801,13 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
             {/* CIF / FOB */}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">CIF/FOB (SGD)</div>
                 <div className="col-8">
                   <input
                     type="text"
+                    tabIndex={14}
                     placeholder="0.00"
                     className="inputStyle"
                     value={cifFob}
@@ -3574,12 +3817,13 @@ function Item({ setActiveTab, isViewMode }) {
               </div>
             </div>
             {/* SHIPPING MARKS*/}
-            <div className="row mt-3">
+            <div className="row mt-2">
               <div className="row">
                 <div className="col-4">SHIPPING MARKS</div>
                 <div className="col-8">
                   <textarea
                     className="inputStyle"
+                    tabIndex={15}
                     value={shippingMarks}
                     style={{ resize: "vertical", minHeight: "90px" }}
                     onChange={(e) => setShippingMarks(e.target.value)}
@@ -3620,6 +3864,7 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     id="TxtCerItemQty"
+                    tabIndex={16}
                     value={cerItemQty}
                     placeholder="0.00"
                     onChange={(e) => setCerItemQty(e.target.value)}
@@ -3630,6 +3875,7 @@ function Item({ setActiveTab, isViewMode }) {
                     className="Dropdown CoTypeEmptySelect"
                     id="DrpCerItemUOM"
                     value={cerItemUOM}
+                    tabIndex={17}
                     onChange={(e) => setCerItemUOM(e.target.value)}
                   >
                     <option value="">--Select--</option>
@@ -3647,19 +3893,19 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               </div>
 
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">MANUFACTURING COST DATE</div>
 
                 <div className="col-7">
                   <DateField
-                    tabIndex={10}
+                    tabIndex={18}
                     value={manuDate}
                     setValue={setManuDate}
                   />
                 </div>
               </div>
               {showCifFobValue && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5">CIF/FOB ITEM VALUE ON CERTIFICATE</div>
 
                   <div className="col-7">
@@ -3667,6 +3913,7 @@ function Item({ setActiveTab, isViewMode }) {
                       type="text"
                       className="inputStyle CoTypeEmpty"
                       id="TxtCIFCer"
+                      tabIndex={19}
                       value={cifCerValue}
                       placeholder="0.00"
                       onChange={(e) => setCifCerValue(e.target.value)}
@@ -3675,12 +3922,13 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               )}
               {showItemTexttile && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5">TEXTILE CATEGORY</div>
 
                   <div className="col-7">
                     <input
                       type="text"
+                      tabIndex={19}
                       className="inputStyle CoTypeEmpty"
                       id="TexCat"
                       value={textileCategory}
@@ -3690,12 +3938,13 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               )}
               {showItemTexttile && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5">TEXTILE QUOTA QUANTITY</div>
 
                   <div className="col-4">
                     <input
                       type="text"
+                      tabIndex={20}
                       className="inputStyle CoTypeEmpty"
                       id="TexQuotaQty"
                       value={textileQuotaQty}
@@ -3706,6 +3955,7 @@ function Item({ setActiveTab, isViewMode }) {
                     <select
                       className="Dropdown CoTypeEmptySelect"
                       id="DrpCerItemUOM"
+                      tabIndex={21}
                       value={textileQuotaUOM}
                       onChange={(e) => setTextileQuotaUOM(e.target.value)}
                     >
@@ -3728,12 +3978,13 @@ function Item({ setActiveTab, isViewMode }) {
                   </div>
                 </div>
               )}
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">INVOICE NUMBER</div>
 
                 <div className="col-7">
                   <input
                     type="text"
+                    tabIndex={22}
                     className="inputStyle CoTypeEmpty"
                     id="TxtCerInvoice"
                     value={cerInvoiceNumber}
@@ -3742,12 +3993,13 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               </div>
               {showOriginCriterion && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5">ORIGIN CRITERION</div>
 
                   <div className="col-7">
                     <input
                       type="text"
+                      tabIndex={23}
                       className="inputStyle CoTypeEmpty"
                       id="OriginDes1"
                       value={originCriterionCode1}
@@ -3757,12 +4009,13 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               )}
               {showOriginCriterion && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5"></div>
 
                   <div className="col-7">
                     <input
                       type="text"
+                      tabIndex={24}
                       className="inputStyle CoTypeEmpty"
                       id="OriginDes2"
                       value={originCriterionCode2}
@@ -3772,7 +4025,7 @@ function Item({ setActiveTab, isViewMode }) {
                 </div>
               )}
               {showOriginCriterion && (
-                <div className="row mt-3">
+                <div className="row mt-2">
                   <div className="col-5"></div>
 
                   <div className="col-7">
@@ -3780,24 +4033,25 @@ function Item({ setActiveTab, isViewMode }) {
                       type="text"
                       className="inputStyle CoTypeEmpty"
                       id="OriginDes3"
+                      tabIndex={25}
                       value={originCriterionCode3}
                       onChange={(e) => setOriginCriterionCode3(e.target.value)}
                     />
                   </div>
                 </div>
               )}
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">INVOICE DATE</div>
 
                 <div className="col-7">
                   <DateField
-                    tabIndex={10}
+                    tabIndex={27}
                     value={invDate}
                     setValue={setInvDate}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">HS CODE ON CERTIFICATE</div>
 
                 <div className="col-7">
@@ -3805,12 +4059,13 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     id="TxtHSCodeCer"
+                    tabIndex={28}
                     value={hsCodeCer}
                     onChange={(e) => setHsCodeCer(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">
                   PERCENTAGE CONTENT OF ORIGIN CRITERION
                 </div>
@@ -3820,17 +4075,19 @@ function Item({ setActiveTab, isViewMode }) {
                     type="text"
                     className="inputStyle CoTypeEmpty"
                     id="TxtPerOrigin"
+                    tabIndex={29}
                     value={percentageOrigin}
                     onChange={(e) => setPercentageOrigin(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="row mt-3">
+              <div className="row mt-2">
                 <div className="col-5">CERTIFICATE DESCRIPTION</div>
 
                 <div className="col-7">
                   <textarea
                     className="inputStyle CoTypeEmpty"
+                    tabIndex={30}
                     style={{ resize: "vertical", minHeight: "90px" }}
                     id="TxtCerDes"
                     value={cerDescription}
@@ -3894,7 +4151,7 @@ function Item({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={31}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -3903,6 +4160,7 @@ function Item({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("InvoiceTab")}
+          tabIndex={32}
         >
           PREVIOUS
         </button>
@@ -3914,6 +4172,7 @@ function Item({ setActiveTab, isViewMode }) {
         <button
           className="NextpageBtns view-nav-btn"
           onClick={() => setActiveTab("SummaryTab")}
+          tabIndex={34}
         >
           NEXT
         </button>
@@ -4099,7 +4358,7 @@ function Item({ setActiveTab, isViewMode }) {
       </div>
 
       {/* item section --buttons */}
-      <div className="row mt-4">
+      <div className="row mt-2">
         <div className="col-2">
           <button
             className="MoveOnButtons showDisable"
@@ -4132,7 +4391,7 @@ function Item({ setActiveTab, isViewMode }) {
       </div>
 
       {/* item section --table */}
-      <div className="col-12 mt-5">
+      <div className="col-12 mt-2">
         <div className="table-responsive">
           <table id="ItemTable">
             <thead>
@@ -4160,6 +4419,7 @@ function Item({ setActiveTab, isViewMode }) {
                 <th>CERT ITEM QTY</th>
                 <th>CERT ITEM UOM</th>
                 <th> CERT ITEM VALUE</th>
+                <th>COPY ITEM</th>
               </tr>
             </thead>
 
@@ -4206,19 +4466,27 @@ function Item({ setActiveTab, isViewMode }) {
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-                      <td>{item.ItemNo}</td>
+<td>{item.ItemNo}</td>
                       <td>{item.HSCode}</td>
                       <td>{item.Description}</td>
                       <td>{item.Contry}</td>
                       <td>{item.UnitPriceCurrency}</td>
-                      <td>{item.CIFFOB}</td>
-                      <td>{item.HSQty}</td>
+                      <td>{fmt(item.CIFFOB, 2)}</td>
+                      <td>{fmt(item.HSQty, 4)}</td>
                       <td>{item.HSUOM}</td>
-                      <td>{item.TotalLineAmount}</td>
-                      <td>{item.CerItemQty}</td>
+                      <td>{fmt(item.TotalLineAmount, 2)}</td>
+                      <td>{fmt(item.CerItemQty, 2)}</td>
                       <td>{item.CerItemUOM}</td>
-                      <td>{item.CIFValOfCer}</td>
-                    </tr>
+                      <td>{fmt(item.CIFValOfCer, 2)}</td>
+                                         <td>
+                                            <FaPlus
+                                              className="view-show"
+                                              style={{ width: "30px", cursor: "pointer" }}
+                                              className="AddContainerBtn"
+                                              onClick={() => copyItem(item.ItemNo)}
+                                            />
+                                          </td>
+                                        </tr>
                   );
                 })
               )}

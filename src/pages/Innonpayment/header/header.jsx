@@ -1089,7 +1089,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
             <select
               className="Dropdown HighLight mandatory"
               id="declarationType"
-              tabIndex="1"
+              tabIndex={1}
               value={decType}
               // onChange={(e) => setDecType(e.target.value)}
               onChange={DeclarationChange}
@@ -1113,13 +1113,13 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
         </div>
 
         {/* PREVIOUS PERMIT NO */}
-        <div className="row align-items-center compact-row">
+        <div className="row align-items-center compact-row mt-1">
           <label className="col-sm-4 col-form-label">PREVIOUS PERMIT NO</label>
           <div className="col-sm-8">
             <input
               type="text"
               className="form-control"
-              tabIndex="2"
+              tabIndex={2}
               value={prevPermitNo}
               onChange={(e) => setPrevPermitNo(e.target.value)}
             />
@@ -1132,7 +1132,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
           <div className="col-sm-8">
             <select
               className="Dropdown HighLight mandatory"
-              tabIndex="3"
+              tabIndex={3}
               value={cargo}
               onChange={CargoPackTypeChange}
             >
@@ -1205,7 +1205,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                 className="Dropdown HighLight mandatory"
                 value={outTransportMode}
                 onChange={OutwardTransportModeChange}
-                tabIndex={4}
+                tabIndex={5}
               >
                 <option value="">--Select--</option>
                 {outTransportMode &&
@@ -1240,11 +1240,11 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               <select
                 className="Dropdown HighLight mandatory"
                 value={declFor}
+                tabIndex={6}
                 onChange={(e) => {
                   setDeclFor(e.target.value);
                   if (e.target.value) setShowDeclaringForError(false);
                 }}
-                tabIndex="5"
               >
                 <option value="">--Select--</option>
                 {declFor && !declaringFor.find((d) => d.Name === declFor) && (
@@ -1273,7 +1273,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               className="Dropdown HighLight"
               value={bgInd}
               onChange={(e) => setBgInd(e.target.value)}
-              tabIndex="6"
+              tabIndex={7}
             >
               <option value="">--Select--</option>
               {bgInd && !bgIndicator.find((b) => b.Name === bgInd) && (
@@ -1297,7 +1297,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               className="form-check-input"
               checked={overrideEx}
               onChange={(e) => setOverrideEx(e.target.checked)}
-              tabIndex="7"
+              tabIndex={8}
             />
           </div>
         </div>
@@ -1311,7 +1311,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               className="form-check-input"
               checked={supplyInd}
               onChange={(e) => setSupplyInd(e.target.checked)}
-              tabIndex="8"
+              tabIndex={9}
             />
           </div>
         </div>
@@ -1324,7 +1324,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               type="checkbox"
               className="form-check-input"
               id="ReferenceDocuments"
-              tabIndex="9"
+              tabIndex={10}
               checked={refDocs}
               onChange={(e) => setRefDocs(e.target.checked)}
             />
@@ -1407,19 +1407,20 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
         {/* LICENSE SECTION */}
         {refDocs && (
           <fieldset>
-            <div className="row mt-4 col-12">
+            <div className="row mt-1 col-13">
               <h5 className="mt-3 border-bottom pb-2 full-width-title">
                 LICENSE
               </h5>
 
               {/* Licence 1 + 2 */}
-              <div className="row g-2">
+              <div className="row mt-1">
                 <div className="col-5 mb-2">
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control form-control-sm"
                     placeholder="Licence 1"
                     value={licence1}
+                    tabIndex={14}
                     onChange={(e) => setLicence1(e.target.value)}
                   />
                 </div>
@@ -1432,19 +1433,21 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                     className="form-control"
                     placeholder="Licence 2"
                     value={licence2}
+                    tabIndex={15}
                     onChange={(e) => setLicence2(e.target.value)}
                   />
                 </div>
               </div>
 
               {/* Licence 3 + 4 */}
-              <div className="row g-2">
+              <div className="row">
                 <div className="col-5 mb-2">
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Licence 3"
                     value={licence3}
+                    tabIndex={16}
                     onChange={(e) => setLicence3(e.target.value)}
                   />
                 </div>
@@ -1457,19 +1460,21 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                     className="form-control"
                     placeholder="Licence 4"
                     value={licence4}
+                    tabIndex={17}
                     onChange={(e) => setLicence4(e.target.value)}
                   />
                 </div>
               </div>
 
               {/* Licence 5 */}
-              <div className="row g-2">
+              <div className="row">
                 <div className="col-5 mb-2">
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Licence 5"
                     value={licence5}
+                    tabIndex={18}
                     onChange={(e) => setLicence5(e.target.value)}
                   />
                 </div>
@@ -1552,7 +1557,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
         </div>
 
         {/* ADDITIONAL RECIPIENTS */}
-        <h6 className="full-width-title">ADDITIONAL RECIPIENTS</h6>
+        {/* <h6 className="full-width-title">ADDITIONAL RECIPIENTS</h6>
 
         <div className="row align-items-center mb-2">
           <label className="col-sm-4 col-form-label">RECIPIENTS 1</label>
@@ -1561,6 +1566,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients1}
+              tabIndex={11}
               onChange={(e) => setRecipients1(e.target.value)}
             />
           </div>
@@ -1572,6 +1578,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients2}
+              tabIndex={12}
               onChange={(e) => setRecipients2(e.target.value)}
             />
           </div>
@@ -1583,10 +1590,11 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               type="text"
               className="form-control form-control-sm"
               value={recipients3}
+              tabIndex={13}
               onChange={(e) => setRecipients3(e.target.value)}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* EMPTY SPACE USING BOOTSTRAP */}
         <div className="py-"></div>
@@ -1594,7 +1602,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
         {/* ATTACHMENT DOCUMENT */}
         {refDocs && (
           <fieldset>
-            <div className="mt-1">
+            <div className="mt-5">
               <h5 className="border-bottom pb-2 full-width-title">
                 ATTACHMENT DOCUMENT
               </h5>
@@ -1604,6 +1612,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                   <select
                     className="Dropdown HighLight"
                     value={documentType}
+                    tabIndex={19}
                     onChange={handleDocTypeChange}
                   >
                     <option value="">--Select--</option>
@@ -1623,12 +1632,17 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                   <input
                     type="file"
                     className="NextpageBtns"
+                    tabIndex={20}
                     onChange={handleFileChange}
                   />
                 </div>
 
                 <div className="col-2">
-                  <button className="NextpageBtns" onClick={handleAttach}>
+                  <button
+                    className="NextpageBtns"
+                    tabIndex={21}
+                    onClick={handleAttach}
+                  >
                     ATTACH
                   </button>
                 </div>
@@ -1872,7 +1886,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+          tabIndex={22}
           id="HeaderSaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -1880,7 +1894,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
         </button>
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="18"
+          tabIndex={23}
           id="HeaderNext"
           onClick={() => setActiveTab("PartyTab")}
         >

@@ -26,7 +26,7 @@
 .gradient-form .row {
   display: flex;
   flex-wrap: nowrap;
-  width: 110%;
+  width: 100%;
   max-width: 1200px;
   height: 90%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -69,10 +69,10 @@
   top: 10px;
   right: 20px;
   display: flex;
-  flex-wrap: wrap;        
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
-  max-width: calc(100% - 140px); 
+  max-width: calc(100% - 140px);
   z-index: 10;
 }
 
@@ -130,7 +130,7 @@
   position: absolute;
   top: 110%;
   right: 0;
-  z-index: 2000;   /* NEW: sit above the tab buttons below it */
+  z-index: 2000; /* NEW: sit above the tab buttons below it */
 }
 
 .logout-menu:hover {
@@ -249,11 +249,11 @@
 
 .form-control {
   width: 100%;
-  padding: 12px 15px;
+   padding: 6px 10px;
   border: 1px solid #ccc;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
-  margin-bottom: 12px;
+   margin-bottom: 10px;
   transition: all 0.2s ease;
 }
 
@@ -513,15 +513,26 @@
   font-size: 0.7rem;
   margin-top: 15px;
 }
-
+#inpaymentTable td.col-importer,
+#inpaymentTable th.col-importer {
+  width: 220px;
+  max-width: 220px;
+  min-width: 220px;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: unset;
+  line-height: 1.7;
+}
 #inpaymentTable th,
 #inpaymentTable td {
   border: 1px solid #ccc;
-  padding: 8px 8px;
+  padding: 3px 6px;
   text-align: center;
   vertical-align: middle;
   font-size: 0.6rem;
-  line-height: 2;
+  line-height: 2.8;
   white-space: nowrap;
   font-weight: bold;
 }
@@ -534,10 +545,12 @@
 
 #inpaymentTable tfoot input {
   width: 100%;
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
   border: 1px solid #ccc;
   font-size: 0.55rem;
+  height: 25px;
+  box-sizing: border-box;
 }
 
 #inpaymentTable tbody tr:hover {
@@ -667,6 +680,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-x: auto;
 }
 
 .tab-content .action-buttons {
@@ -743,7 +757,7 @@ textarea:focus,
 #InvoiceTable select:focus,
 .tab-content input:focus,
 .tab-content select:focus {
-outline: none !important;
+  outline: none !important;
   border: 1px solid #5e012c !important;
   box-shadow: 0 0 6px rgba(1, 68, 94, 0.45) !important;
   background-color: #eebebe;
@@ -877,7 +891,7 @@ input[type="radio"]:focus {
 }
 
 .InpaymentNewStyles .compact-row {
-  margin-bottom: 0.35rem !important;
+  margin-bottom: 0.35 !important;
 }
 
 .InpaymentNewStyles .compact-row .col-form-label {
@@ -1024,7 +1038,7 @@ input[type="radio"]:focus {
 #InvoiceCalculationTable th,
 #InvoiceCalculationTable td {
   border: 1px solid #ccc;
-  padding: 6px 8px;
+  padding: 3px 6px;
   text-align: center;
   vertical-align: middle;
   font-size: 0.7rem;
@@ -1063,6 +1077,7 @@ input[type="radio"]:focus {
 .InvoiceTotalRow {
   background-color: rgba(1, 68, 94, 0.08);
   font-weight: 600;
+  margin-top: 100px;
 }
 /* Prevent line break inside first column */
 .nowrap-cell {
@@ -1263,6 +1278,16 @@ textarea {
   text-transform: uppercase;
 }
 
+/* Add this as the LAST rule in the file */
+input,
+select,
+textarea,
+.form-control,
+.inputStyle,
+.Dropdown {
+  font-size: 0.7rem !important;
+}
+
 /* ==============================
    Outer Pack & Gross Weight Input
 ============================== */
@@ -1375,11 +1400,107 @@ textarea {
   align-items: center;
   padding: 4px 16px;
   border-radius: 999px;
-  background:  #dc2626;
+  background: #dc2626;
   border: 1px solid #dc2626;
   color: #dc2626;
   font-weight: bold;
-font-display: auto;
+  font-display: auto;
   font-size: 0.8rem;
   letter-spacing: 0.5px;
+}
+
+
+
+/* ==============================
+   COMPACT MODE — Cargo page only
+============================== */
+
+.cargo-compact input,
+.cargo-compact select,
+.cargo-compact textarea,
+.cargo-compact .form-control,
+.cargo-compact .inputStyle,
+.cargo-compact .Dropdown {
+   font-size: 0.68rem !important;
+  font-weight: 400 !important;
+}
+
+.cargo-compact .form-control,
+.cargo-compact .Dropdown,
+.cargo-compact .custom-dropdown,
+.cargo-compact .inputStyle,
+.cargo-compact .pack-input,
+.cargo-compact .pack-select {
+  padding: 4px 8px !important;
+  height: 26px !important;
+  margin-bottom: 6px !important;
+  border-radius: 6px !important;
+}
+
+.cargo-compact .form-control-mandatory {
+  padding: 6px 10px !important;
+  margin-bottom: 6px !important;
+  border-radius: 6px !important;
+  font-weight: 400 !important;
+}
+
+.cargo-compact .compact-row {
+  margin-bottom: 4px !important;
+}
+
+.cargo-compact .compact-row .col-form-label {
+  font-size: 0.66rem;
+   font-weight: 500 !important;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.cargo-compact .full-width-title,
+.cargo-compact .ContainerInfoTitle {
+  font-size: 0.65rem !important;
+  padding: 4px 0 !important;
+  margin: 6px 0 4px 0 !important;
+}
+
+.cargo-compact.tab-content,
+.cargo-compact .tab-content {
+  padding: 12px !important;
+  gap: 10px !important;
+}
+
+.cargo-compact .NextpageBtns,
+.cargo-compact .NewBtns,
+.cargo-compact .MoveOnButtons {
+  padding: 5px 16px !important;
+  font-size: 0.70rem !important;   /* bumped from 0.68rem */
+  font-weight: 500 !important;
+}
+
+.cargo-compact .StdBtns {
+  padding: 2px 8px !important;
+  font-size: 0.6rem !important;
+  font-weight: 600 !important;
+}
+
+.cargo-compact #ConatinerTable th,
+.cargo-compact #ConatinerTable td,
+.cargo-compact #InvoiceCalculationTable th,
+.cargo-compact #InvoiceCalculationTable td,
+.cargo-compact #InvoiceTable th,
+.cargo-compact #InvoiceTable td,
+.cargo-compact #ItemTable th,
+.cargo-compact #ItemTable td {
+  padding: 4px 6px !important;
+  font-size: 0.6rem !important;
+}
+
+.cargo-compact.row.g-2,
+.cargo-compact .row.g-2 {
+  --bs-gutter-y: 0.35rem !important;
+}
+
+.cargo-compact input[type="checkbox"],
+.cargo-compact input[type="radio"] {
+  width: 14px !important;
+  height: 14px !important;
 }

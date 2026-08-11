@@ -308,6 +308,7 @@ function Party({ setActiveTab, isViewMode }) {
     setImporterName1(name1);
     setShowImporterDropdown(false);
     setImporterError(false);
+    focusNextSection("importer");
   };
   // ======================== IMPORTER FOCUSOUT ========================
   const handleFocusOut = () => {
@@ -333,6 +334,7 @@ function Party({ setActiveTab, isViewMode }) {
         setImporterName(name);
         setImporterName1(name1);
         setImporterError(false);
+          focusNextSection("importer");
       } else {
         setImporter(null);
         // setImporterCruei("");
@@ -587,6 +589,7 @@ function Party({ setActiveTab, isViewMode }) {
     setInwardName1(name1);
     setShowInwardDropdown(false);
     setInwardError(false);
+     focusNextSection("inward"); 
   };
   // ======================== INWARD FOCUSOUT ========================
   const handleInwardFocusOut = () => {
@@ -611,6 +614,7 @@ function Party({ setActiveTab, isViewMode }) {
         setInwardName(name);
         setInwardName1(name1);
         setInwardError(false);
+              focusNextSection("inward");
       } else {
         setInwardAgent(null);
         // setInwardCruei("");
@@ -854,6 +858,7 @@ function Party({ setActiveTab, isViewMode }) {
     setFreightForwarderName1(name1);
     setShowFreightForwarderDropdown(false);
     setFreightForwarderError(false);
+     focusNextSection("freightForwarder"); 
   };
 
   // ======================== FREIGHTFORWARDER FOCUSOUT ========================
@@ -888,6 +893,7 @@ function Party({ setActiveTab, isViewMode }) {
         setFreightForwarderName(name);
         setFreightForwarderName1(name1);
         setFreightForwarderError(false);
+          focusNextSection("freightForwarder");
       } else {
         setFreightForwarder(null);
         // setFreightForwarderCruei("");
@@ -1126,6 +1132,7 @@ function Party({ setActiveTab, isViewMode }) {
     setclaimantcmantName1(claimantName1);
     setShowClaimantDropdown(false);
     setClaimantError(false);
+     focusNextSection("claimant");
   };
   // ======================== CLAIMANT PARTY FOCUSOUT ========================
   const handleClaimantFocusOut = () => {
@@ -1161,6 +1168,7 @@ function Party({ setActiveTab, isViewMode }) {
         setclaimantcmantName(claimantName);
         setclaimantcmantName1(claimantName1);
         setClaimantError(false);
+         focusNextSection("claimant");
       } else {
         setClaimant(null);
         setClaimantError(true);
@@ -1288,51 +1296,57 @@ function Party({ setActiveTab, isViewMode }) {
   //   fetchConsignee();
   // }, []);
 
-useEffect(() => {
-  const fetchConsignee = async () => {
-    try {
-      const [commonResult, innonResult] = await Promise.allSettled([
-        API.get("/getCommonConsigneeTableInfo/"),
-        API.get("innonpayment/getInnonConsigneeTableInfo/"),
-      ]);
+  useEffect(() => {
+    const fetchConsignee = async () => {
+      try {
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonConsigneeTableInfo/"),
+          API.get("innonpayment/getInnonConsigneeTableInfo/"),
+        ]);
 
-      const commonData =
-        commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
-      const innonData =
-        innonResult.status === "fulfilled" ? innonResult.value.data || [] : [];
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
 
-      if (commonResult.status === "rejected")
-        console.error("Failed to fetch Common consignees", commonResult.reason);
-      if (innonResult.status === "rejected")
-        console.error("Failed to fetch Innon consignees", innonResult.reason);
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common consignees",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error("Failed to fetch Innon consignees", innonResult.reason);
 
-      const commonCodes = new Set(
-        commonData.map((i) => String(i.ConsigneeCode || "").toLowerCase()),
-      );
-      setCommonCongineeCodes(commonCodes);
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.ConsigneeCode || "").toLowerCase()),
+        );
+        setCommonCongineeCodes(commonCodes);
 
-      const merged = [...commonData];
-      for (const item of innonData) {
-        const code = String(item.ConsigneeCode || "").toLowerCase(); 
-        if (!commonCodes.has(code)) merged.push(item);
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.ConsigneeCode || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
+          (i) =>
+            `${i.ConsigneeCode}:${i.ConsigneeCRUEI}:${i.ConsigneeName}:${i.ConsigneeName1}:${i.ConsigneeAddress || ""}:${i.ConsigneeAddress1 || ""}:${i.ConsigneeCity || ""}:${i.ConsigneeSub || ""}:${i.ConsigneeSubDivi || ""}:${i.ConsigneePostal || ""}:${i.ConsigneeCountry || ""}`,
+        );
+
+        console.log("Fetched consignees:", list);
+
+        setCongineeSuggestions(list);
+        setFilteredCongineeSuggestions(list);
+      } catch (err) {
+        console.error("Failed to fetch consignees", err);
       }
-
-     
-      const list = merged.map(
-        (i) =>
-          `${i.ConsigneeCode}:${i.ConsigneeCRUEI}:${i.ConsigneeName}:${i.ConsigneeName1}:${i.ConsigneeAddress || ""}:${i.ConsigneeAddress1 || ""}:${i.ConsigneeCity || ""}:${i.ConsigneeSub || ""}:${i.ConsigneeSubDivi || ""}:${i.ConsigneePostal || ""}:${i.ConsigneeCountry || ""}`,
-      );
-
-      console.log("Fetched consignees:", list);
-
-      setCongineeSuggestions(list);
-      setFilteredCongineeSuggestions(list);
-    } catch (err) {
-      console.error("Failed to fetch consignees", err);
-    }
-  };
-  fetchConsignee();
-}, []);
+    };
+    fetchConsignee();
+  }, []);
 
   // ======================== CONSIGNEE HANDLERS ========================
   const handleCongineeChange = (e) => {
@@ -1419,6 +1433,7 @@ useEffect(() => {
     setCongineeCountryCode(country);
     setShowCongineeDropdown(false);
     setCongineeError(false);
+    focusNextSection("consignee");
   };
 
   // ======================== CONSIGNEE FOCUSOUT ========================
@@ -1482,6 +1497,7 @@ useEffect(() => {
         setCongineePostel(postal);
         setCongineeCountryCode(country);
         setCongineeError(false);
+              focusNextSection("consignee");
       } else {
         setConsignee(null);
         setCongineeError(true);
@@ -1539,9 +1555,7 @@ useEffect(() => {
       alert("Code is required!");
       return;
     }
-    const duplicate = commonCongineeCodes.has(
-      congineeCode.toLowerCase()
-    );
+    const duplicate = commonCongineeCodes.has(congineeCode.toLowerCase());
     if (duplicate) {
       alert("Duplicate code found! Consignee not saved.");
       return;
@@ -1706,6 +1720,7 @@ useEffect(() => {
     setExporterName1(name1);
     setShowExporterDropdown(false);
     setExporterError(false);
+      focusNextSection("exporter"); 
   };
 
   // ======================== EXPORTER FOCUSOUT ========================
@@ -1733,6 +1748,7 @@ useEffect(() => {
         setExporterName(name);
         setExporterName1(name1);
         setExporterError(false);
+         focusNextSection("exporter");
       } else {
         setExporter(null);
         setExporterError(true);
@@ -1859,45 +1875,55 @@ useEffect(() => {
   // }, []);
 
   useEffect(() => {
-  const fetchOutward = async () => {
-    try {
-      const [commonResult, innonResult] = await Promise.allSettled([
-        API.get("/getCommonOutwardCarrierAgentTableInfo/"),
-        API.get("innonpayment/getInnonOutwardCarrierAgentTableInfo/"),
-      ]);
+    const fetchOutward = async () => {
+      try {
+        const [commonResult, innonResult] = await Promise.allSettled([
+          API.get("/getCommonOutwardCarrierAgentTableInfo/"),
+          API.get("innonpayment/getInnonOutwardCarrierAgentTableInfo/"),
+        ]);
 
-      const commonData =
-        commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
-      const innonData =
-        innonResult.status === "fulfilled" ? innonResult.value.data || [] : [];
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const innonData =
+          innonResult.status === "fulfilled"
+            ? innonResult.value.data || []
+            : [];
 
-      if (commonResult.status === "rejected")
-        console.error("Failed to fetch Common outward carrier agents", commonResult.reason);
-      if (innonResult.status === "rejected")
-        console.error("Failed to fetch Innon outward carrier agents", innonResult.reason);
+        if (commonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Common outward carrier agents",
+            commonResult.reason,
+          );
+        if (innonResult.status === "rejected")
+          console.error(
+            "Failed to fetch Innon outward carrier agents",
+            innonResult.reason,
+          );
 
-      const commonCodes = new Set(
-        commonData.map((i) => String(i.Code || "").toLowerCase()),
-      );
-      setCommonOutwardCodes(commonCodes);
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
+        );
+        setCommonOutwardCodes(commonCodes);
 
-      const merged = [...commonData];
-      for (const item of innonData) {
-        const code = String(item.Code || "").toLowerCase();
-        if (!commonCodes.has(code)) merged.push(item);
+        const merged = [...commonData];
+        for (const item of innonData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!commonCodes.has(code)) merged.push(item);
+        }
+
+        const list = merged.map(
+          (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+        );
+        setOutwardSuggestions(list);
+        setFilteredOutwardSuggestions(list);
+      } catch (err) {
+        console.error("Failed to fetch outward carrier agent", err);
       }
-
-      const list = merged.map(
-        (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
-      );
-      setOutwardSuggestions(list);
-      setFilteredOutwardSuggestions(list);
-    } catch (err) {
-      console.error("Failed to fetch outward carrier agent", err);
-    }
-  };
-  fetchOutward();
-}, []);
+    };
+    fetchOutward();
+  }, []);
 
   // ======================== OUTWARD HANDLERS ========================
   const handleOutwardChange = (e) => {
@@ -1955,6 +1981,7 @@ useEffect(() => {
     setOutwardName1(name1);
     setShowOutwardDropdown(false);
     setOutwardError(false);
+    focusNextSection("outward");
   };
 
   // ======================== OUTWARD FOCUSOUT ========================
@@ -1982,6 +2009,7 @@ useEffect(() => {
         setOutwardName(name);
         setOutwardName1(name1);
         setOutwardError(false);
+           focusNextSection("outward");
       } else {
         setOutwardAgent(null);
         setOutwardError(true);
@@ -2043,48 +2071,54 @@ useEffect(() => {
   // };
 
   const saveOutward = async () => {
-  if (!outwardCode) {
-    setOutwardError(true);
-    alert("Code is required!");
-    return;
-  }
+    if (!outwardCode) {
+      setOutwardError(true);
+      alert("Code is required!");
+      return;
+    }
 
-  const duplicate = commonOutwardCodes.has(outwardCode.toLowerCase());
-  if (duplicate) {
-    alert("Duplicate code found! Outward Carrier Agent not saved.");
-    return;
-  }
+    const duplicate = commonOutwardCodes.has(outwardCode.toLowerCase());
+    if (duplicate) {
+      alert("Duplicate code found! Outward Carrier Agent not saved.");
+      return;
+    }
 
-  const payload = {
-    Id: outwardAgent?.Id || 0,
-    Code: outwardCode || "",
-    CRUEI: outwardCruei || "",
-    Name: outwardName || "",
-    Name1: outwardName1 || "",
-    TouchUser: (user?.username).toUpperCase(),
-    TouchTime: new Date().toISOString(),
-    Status: "Active",
+    const payload = {
+      Id: outwardAgent?.Id || 0,
+      Code: outwardCode || "",
+      CRUEI: outwardCruei || "",
+      Name: outwardName || "",
+      Name1: outwardName1 || "",
+      TouchUser: (user?.username).toUpperCase(),
+      TouchTime: new Date().toISOString(),
+      Status: "Active",
+    };
+
+    try {
+      const response = await API.post(
+        "/postOutwardCarrierAgentTable/",
+        payload,
+      );
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Outward Carrier Agent saved successfully!",
+      );
+      setCommonOutwardCodes((prev) =>
+        new Set(prev).add(outwardCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error(
+        "Failed to save Outward Carrier Agent:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save Outward Carrier Agent, check console for details",
+      );
+    }
   };
-
-  try {
-    const response = await API.post("/postOutwardCarrierAgentTable/", payload);
-    alert(
-      response.data?.message ||
-        response.data?.Result ||
-        "Outward Carrier Agent saved successfully!",
-    );
-    setCommonOutwardCodes((prev) =>
-      new Set(prev).add(outwardCode.toLowerCase()),
-    );
-  } catch (err) {
-    console.error("Failed to save Outward Carrier Agent:", err.response?.data || err);
-    alert(
-      err.response?.data?.error ||
-        err.response?.data?.Result ||
-        "Failed to save Outward Carrier Agent, check console for details",
-    );
-  }
-};
 
   //---------------------------- Popup-----------------------------------
   const [popupType, setPopupType] = useState(null);
@@ -2368,6 +2402,36 @@ useEffect(() => {
   //   enabled: !isViewMode,
   //   delay: 2000,
   // });
+
+// ============================Party Filled Order Check=========================
+
+const getSectionOrder = () => [
+  { key: "importer", visible: true, ref: importerCodeRef },
+  { key: "exporter", visible: showExporter, ref: exporterCodeRef },
+  { key: "inward", visible: true, ref: inwardCodeRef },
+  { key: "outward", visible: showOutwardCarrier, ref: outwardCodeRef },
+  { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
+  { key: "claimant", visible: showClaimantPartyShow, ref: claimantCodeRef },
+  { key: "consignee", visible: showCongineeShow, ref: congineeCodeRef },
+];
+
+const focusNextSection = (currentKey) => {
+  setTimeout(() => {
+    const order = getSectionOrder();
+    const currentIndex = order.findIndex((s) => s.key === currentKey);
+    if (currentIndex === -1) return;
+
+    for (let i = currentIndex + 1; i < order.length; i++) {
+      if (order[i].visible) {
+        order[i].ref.current?.focus();
+        return;
+      }
+    }
+
+    document.getElementById("PartySaveDraft")?.focus();
+  }, 0);
+};
+
   // ------------------------------UI---------------------
   return (
     <div className="row g-2">
@@ -2381,6 +2445,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.Code || ""}
               readOnly
+              tabIndex={1}
             />
           </div>
           <div className="col-sm-2">
@@ -2388,6 +2453,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.CRUEI || ""}
               readOnly
+              tabIndex={2}
             />
           </div>
           <div className="col-sm-3">
@@ -2395,6 +2461,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.name || ""}
               readOnly
+              tabIndex={3}
             />
           </div>
           <div className="col-sm-2">
@@ -2403,6 +2470,7 @@ useEffect(() => {
               placeholder="Name1"
               value={permitDetails?.name1 || ""}
               readOnly
+              tabIndex={4}
             />
           </div>
         </div>
@@ -2414,9 +2482,14 @@ useEffect(() => {
             <FaSearch
               className="me-3"
               style={{ cursor: "pointer" }}
+              tabIndex={5}
               onClick={() => handleIconClick("importer")}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveImporter}
+              tabIndex={6}
+            />
           </div>
           <div className="col-sm-2 position-relative">
             <input
@@ -2424,6 +2497,7 @@ useEffect(() => {
               id="importerCode"
               className="form-control-mandatory"
               placeholder="CODE"
+              tabIndex={7}
               // value={importer?.Code || importerCode || ""}
               value={importerCode}
               onChange={handleImporterChange}
@@ -2458,6 +2532,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               id="importerCruei"
+              tabIndex={8}
               className="form-control-mandatory"
               placeholder="CRUEI"
               value={importer?.CRUEI || importerCruei || ""}
@@ -2471,6 +2546,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <input
               id="importerName"
+              tabIndex={9}
               className="form-control-mandatory"
               placeholder="NAME"
               value={importer?.Name || importerName || ""}
@@ -2483,6 +2559,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               id="importerName1"
+              tabIndex={10}
               className="form-control-mandatory"
               placeholder="NAME1"
               value={importer?.Name1 || importerName1 || ""}
@@ -2498,10 +2575,15 @@ useEffect(() => {
             <div className="col-sm-1">
               <FaSearch
                 className="me-3"
+                tabIndex={11}
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("exporter")}
               />
-              <FaPlus style={{ cursor: "pointer" }} onClick={saveExporter} />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveExporter}
+                tabIndex={12}
+              />
             </div>
 
             {/* CODE */}
@@ -2509,6 +2591,7 @@ useEffect(() => {
               <input
                 ref={exporterCodeRef}
                 id="exporterCode"
+                tabIndex={13}
                 className="form-control-mandatory"
                 placeholder="CODE"
                 value={exporterCode}
@@ -2556,6 +2639,7 @@ useEffect(() => {
                 id="exporterCruei"
                 className="form-control-mandatory"
                 placeholder="CRUEI"
+                tabIndex={14}
                 value={exporter?.CRUEI || exporterCruei || ""}
                 onChange={(e) => setExporterCruei(e.target.value)}
               />
@@ -2570,6 +2654,7 @@ useEffect(() => {
                 id="exporterName"
                 className="form-control-mandatory"
                 placeholder="NAME"
+                tabIndex={15}
                 value={exporter?.Name || exporterName || ""}
                 onChange={(e) => setExporterName(e.target.value)}
               />
@@ -2584,6 +2669,7 @@ useEffect(() => {
                 id="exporterName1"
                 className="form-control-mandatory"
                 placeholder="NAME1"
+                tabIndex={16}
                 value={exporter?.Name1 || exporterName1 || ""}
                 onChange={(e) => setExporterName1(e.target.value)}
               />
@@ -2599,15 +2685,21 @@ useEffect(() => {
           <div className="col-sm-1">
             <FaSearch
               className="me-3"
+              tabIndex={17}
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("inward")}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveInward}
+              tabIndex={18}
+            />
           </div>
           <div className="col-sm-2 position-relative">
             <input
               ref={inwardCodeRef}
               id="inwardCode"
+              tabIndex={19}
               className="form-control"
               placeholder="CODE"
               // value={inwardAgent?.Code || inwardCode || ""}
@@ -2647,6 +2739,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               id="inwardCruei"
+              tabIndex={20}
               className={
                 isSea || isAir ? "form-control-mandatory" : "form-control"
               }
@@ -2663,6 +2756,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <input
               id="inwardName"
+              tabIndex={21}
               className={
                 isSea || isAir ? "form-control-mandatory" : "form-control"
               }
@@ -2676,6 +2770,7 @@ useEffect(() => {
               id="inwardName1"
               className="form-control"
               placeholder="NAME1"
+              tabIndex={22}
               value={inwardAgent?.Name1 || inwardName1 || ""}
               onChange={(e) => setInwardName1(e.target.value)}
             />
@@ -2690,11 +2785,16 @@ useEffect(() => {
             </label>
             <div className="col-sm-1">
               <FaSearch
+                tabIndex={23}
                 className="me-3"
                 style={{ cursor: "pointer" }}
                 onClick={() => handleIconClick("outward")}
               />
-              <FaPlus style={{ cursor: "pointer" }} onClick={saveOutward} />
+              <FaPlus
+                style={{ cursor: "pointer" }}
+                onClick={saveOutward}
+                tabIndex={24}
+              />
             </div>
 
             {/* CODE */}
@@ -2702,6 +2802,7 @@ useEffect(() => {
               <input
                 ref={outwardCodeRef}
                 id="outwardCode"
+                tabIndex={25}
                 className="form-control"
                 placeholder="CODE"
                 value={outwardCode}
@@ -2748,6 +2849,7 @@ useEffect(() => {
                 placeholder="CRUEI"
                 value={outwardAgent?.CRUEI || outwardCruei || ""}
                 onChange={(e) => setOutwardCruei(e.target.value)}
+                tabIndex={26}
               />
             </div>
 
@@ -2759,6 +2861,7 @@ useEffect(() => {
                 placeholder="NAME"
                 value={outwardAgent?.Name || outwardName || ""}
                 onChange={(e) => setOutwardName(e.target.value)}
+                tabIndex={27}
               />
             </div>
 
@@ -2768,6 +2871,7 @@ useEffect(() => {
                 id="outwardName1"
                 className="form-control"
                 placeholder="NAME1"
+                tabIndex={28}
                 value={outwardAgent?.Name1 || outwardName1 || ""}
                 onChange={(e) => setOutwardName1(e.target.value)}
               />
@@ -2781,12 +2885,14 @@ useEffect(() => {
           <div className="col-sm-1">
             <FaSearch
               className="me-3"
+              tabIndex={29}
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("freightForwarder")}
             />
             <FaPlus
               style={{ cursor: "pointer" }}
               onClick={saveFreightForwarder}
+              tabIndex={30}
             />
           </div>
           <div className="col-sm-2 position-relative">
@@ -2795,6 +2901,7 @@ useEffect(() => {
               id="freightForwarderCode"
               className="form-control"
               placeholder="CODE"
+              tabIndex={31}
               value={freightForwarderCode}
               onChange={handleFreightForwarderChange}
               onKeyDown={handleFreightForwarderKeyDown}
@@ -2840,6 +2947,7 @@ useEffect(() => {
               placeholder="CRUEI"
               value={freightForwarder?.CRUEI || freightForwarderCruei || ""}
               onChange={(e) => setFreightForwarderCruei(e.target.value)}
+              tabIndex={32}
             />
           </div>
           <div className="col-sm-3">
@@ -2847,6 +2955,7 @@ useEffect(() => {
               id="freightForwarderName"
               className="form-control"
               placeholder="NAME"
+              tabIndex={33}
               value={freightForwarder?.Name || freightForwardName || ""}
               onChange={(e) => setFreightForwarderName(e.target.value)}
             />
@@ -2856,6 +2965,7 @@ useEffect(() => {
               className="form-control"
               id="freightForwarderName1"
               placeholder="NAME1"
+              tabIndex={34}
               value={freightForwarder?.Name1 || freightForwardName1 || ""}
               onChange={(e) => setFreightForwarderName1(e.target.value)}
             />
@@ -2870,6 +2980,7 @@ useEffect(() => {
 
               <div className="col-sm-1">
                 <FaSearch
+                  tabIndex={35}
                   className="me-3"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("claimantparty")}
@@ -2877,6 +2988,7 @@ useEffect(() => {
                 <FaPlus
                   style={{ cursor: "pointer" }}
                   onClick={saveClaimanParty}
+                  tabIndex={36}
                 />
               </div>
 
@@ -2884,6 +2996,7 @@ useEffect(() => {
               <div className="col-sm-2 position-relative">
                 <input
                   ref={claimantCodeRef}
+                  tabIndex={37}
                   id="claimantPartyCode"
                   className="form-control"
                   placeholder="CODE"
@@ -2933,6 +3046,7 @@ useEffect(() => {
               <div className="col-sm-2">
                 <input
                   id="claimantPartyCruei"
+                  tabIndex={38}
                   className="form-control"
                   placeholder="CRUEI"
                   value={claimant?.CRUEI || claimantCruei || ""}
@@ -2943,6 +3057,7 @@ useEffect(() => {
               <div className="col-sm-3">
                 <input
                   id="claimantPartyName"
+                  tabIndex={39}
                   className="form-control"
                   placeholder="NAME"
                   value={claimant?.Name || claimantName || ""}
@@ -2954,6 +3069,7 @@ useEffect(() => {
                 <input
                   id="claimantPartyName1"
                   className="form-control"
+                  tabIndex={40}
                   placeholder="NAME1"
                   value={claimant?.Name1 || claimantName1 || ""}
                   onChange={(e) => setClaimantName1(e.target.value)}
@@ -2970,6 +3086,7 @@ useEffect(() => {
                 <input
                   type="text"
                   id="claimantId"
+                  tabIndex={41}
                   className="form-control"
                   placeholder="CLAIMANT ID"
                   value={claimant?.ClaimantName || claimantcmantName || ""}
@@ -2981,6 +3098,7 @@ useEffect(() => {
                 <input
                   type="text"
                   id="claimantName"
+                  tabIndex={42}
                   className="form-control"
                   placeholder="CLAIMANT NAME"
                   value={claimant?.ClaimantName1 || claimantcmantName1 || ""}
@@ -3002,8 +3120,13 @@ useEffect(() => {
                   className="me-3"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("consignee")}
+                  tabIndex={43}
                 />
-                <FaPlus style={{ cursor: "pointer" }} onClick={saveConsignee} />
+                <FaPlus
+                  style={{ cursor: "pointer" }}
+                  onClick={saveConsignee}
+                  tabIndex={44}
+                />
               </div>
 
               {/* CONGINEE CODE INPUT WITH DROPDOWN */}
@@ -3014,6 +3137,7 @@ useEffect(() => {
                   className="form-control"
                   placeholder="CODE"
                   value={congineeCode}
+                  tabIndex={45}
                   onChange={handleCongineeChange}
                   onKeyDown={handleCongineeKeyDown}
                   onBlur={handleCongineeFocusOut}
@@ -3061,6 +3185,7 @@ useEffect(() => {
                   placeholder="CRUEI"
                   value={consignee?.ConsigneeCRUEI || congineeCruei || ""}
                   onChange={(e) => setCongineeCruei(e.target.value)}
+                  tabIndex={46}
                 />
               </div>
 
@@ -3070,6 +3195,7 @@ useEffect(() => {
                   id="congineeName"
                   className="form-control"
                   placeholder="NAME"
+                  tabIndex={47}
                   value={consignee?.ConsigneeName || congineeName || ""}
                   onChange={(e) => setCongineeName(e.target.value)}
                 />
@@ -3081,6 +3207,7 @@ useEffect(() => {
                   id="congineeName1"
                   className="form-control"
                   placeholder="NAME1"
+                  tabIndex={48}
                   value={consignee?.ConsigneeName1 || congineeName1 || ""}
                   onChange={(e) => setCongineeName1(e.target.value)}
                 />
@@ -3099,6 +3226,7 @@ useEffect(() => {
                   id="congineeAddress"
                   className="form-control"
                   placeholder="ADDRESS"
+                  tabIndex={49}
                   value={consignee?.ConsigneeAddress || congineeAddress || ""}
                   onChange={(e) => setCongineeAddress(e.target.value)}
                 />
@@ -3108,6 +3236,7 @@ useEffect(() => {
                   id="congineeAddress1"
                   className="form-control"
                   placeholder="ADDRESS1"
+                  tabIndex={50}
                   value={consignee?.ConsigneeAddress1 || congineeAddress1 || ""}
                   onChange={(e) => setCongineeAddress1(e.target.value)}
                 />
@@ -3117,6 +3246,7 @@ useEffect(() => {
                   id="congineeCity"
                   className="form-control"
                   placeholder="CITY"
+                  tabIndex={51}
                   value={consignee?.ConsigneeCity || congineeCity || ""}
                   onChange={(e) => setCongineeCity(e.target.value)}
                 />
@@ -3133,6 +3263,7 @@ useEffect(() => {
                   id="congineeSubCode"
                   className="form-control"
                   placeholder="SUB CODE"
+                  tabIndex={52}
                   value={consignee?.ConsigneeSub || congineeSubCode || ""}
                   onChange={(e) => setCongineeSubCode(e.target.value)}
                 />
@@ -3142,6 +3273,7 @@ useEffect(() => {
                   id="congineeSubDivision"
                   className="form-control"
                   placeholder="SUB DIVISION"
+                  tabIndex={53}
                   value={
                     consignee?.ConsigneeSubDivi || congineeSubDivision || ""
                   }
@@ -3153,6 +3285,7 @@ useEffect(() => {
                   id="congineePostal"
                   className="form-control"
                   placeholder="POSTAL"
+                  tabIndex={54}
                   value={consignee?.ConsigneePostal || congineePostal || ""}
                   onChange={(e) => setCongineePostel(e.target.value)}
                 />
@@ -3169,6 +3302,7 @@ useEffect(() => {
                   id="congineeCountryCode"
                   className="form-control"
                   placeholder="COUNTRY CODE"
+                  tabIndex={55}
                   value={
                     consignee?.ConsigneeCountry || congineeCountryCode || ""
                   }
@@ -3185,7 +3319,7 @@ useEffect(() => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
+            tabIndex={56}
             id="PartySaveDraft"
             onClick={handleSaveAsDraftClick}
           >
@@ -3193,6 +3327,7 @@ useEffect(() => {
           </button>
           <button
             className="NextpageBtns view-nav-btn"
+            tabIndex={57}
             onClick={() => setActiveTab("HeaderTab")}
           >
             PREVIOUS
@@ -3205,6 +3340,7 @@ useEffect(() => {
           <button
             className="NextpageBtns view-nav-btn"
             onClick={() => setActiveTab("CargoTab")}
+            tabIndex={58}
           >
             NEXT
           </button>

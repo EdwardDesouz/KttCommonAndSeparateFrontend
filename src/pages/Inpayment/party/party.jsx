@@ -95,12 +95,12 @@ function Party({ setActiveTab, isViewMode }) {
   } = useInpayment();
 
   useEffect(() => {
-    // if (isEditMode) return; 
+    // if (isEditMode) return;
     if (!permitDetails?.PermitId) {
       const stored = sessionStorage.getItem("currentPermit");
       if (stored) {
         const parsed = JSON.parse(stored);
-        updatePermitDetails(parsed); 
+        updatePermitDetails(parsed);
       }
     }
   }, []);
@@ -263,6 +263,7 @@ function Party({ setActiveTab, isViewMode }) {
     setImporterName1(name1);
     setShowImporterDropdown(false);
     setImporterError(false);
+    focusNextSection("importer");
   };
   // ======================== IMPORTER FOCUSOUT ========================
   const handleFocusOut = () => {
@@ -288,6 +289,7 @@ function Party({ setActiveTab, isViewMode }) {
         setImporterName(name);
         setImporterName1(name1);
         setImporterError(false);
+        focusNextSection("importer");
       } else {
         setImporter(null);
         // setImporterCruei("");
@@ -578,6 +580,7 @@ function Party({ setActiveTab, isViewMode }) {
     setInwardName1(name1);
     setShowInwardDropdown(false);
     setInwardError(false);
+    focusNextSection("inward");
   };
   // ======================== INWARD FOCUSOUT ========================
   const handleInwardFocusOut = () => {
@@ -602,6 +605,7 @@ function Party({ setActiveTab, isViewMode }) {
         setInwardName(name);
         setInwardName1(name1);
         setInwardError(false);
+        focusNextSection("inward");
       } else {
         setInwardAgent(null);
         // setInwardCruei("");
@@ -737,52 +741,60 @@ function Party({ setActiveTab, isViewMode }) {
   //   fetchFreightForwarder();
   // }, []);
 
-useEffect(() => {
-  const fetchFreightForwarder = async () => {
-    try {
-      const [commonResult, inpaymentResult] = await Promise.allSettled([
-        API.get("/getCommonFreightForwarderTable/"),
-        API.get("inpayment/getInFreightForwarderTable/"),
-      ]);
+  useEffect(() => {
+    const fetchFreightForwarder = async () => {
+      try {
+        const [commonResult, inpaymentResult] = await Promise.allSettled([
+          API.get("/getCommonFreightForwarderTable/"),
+          API.get("inpayment/getInFreightForwarderTable/"),
+        ]);
 
-      const commonData =
-        commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
-      const inpaymentData =
-        inpaymentResult.status === "fulfilled"
-          ? inpaymentResult.value.data || []
-          : [];
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const inpaymentData =
+          inpaymentResult.status === "fulfilled"
+            ? inpaymentResult.value.data || []
+            : [];
 
-      if (commonResult.status === "rejected") {
-        console.error("Failed to fetch Common freight forwarders", commonResult.reason);
-      }
-      if (inpaymentResult.status === "rejected") {
-        console.error("Failed to fetch Inpayment freight forwarders", inpaymentResult.reason);
-      }
-
-      const commonCodes = new Set(
-        commonData.map((i) => String(i.Code || "").toLowerCase()),
-      );
-      setCommonFreightForwarderCodes(commonCodes);
-
-      const merged = [...commonData];
-      for (const item of inpaymentData) {
-        const code = String(item.Code || "").toLowerCase();
-        if (!commonCodes.has(code)) {
-          merged.push(item);
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common freight forwarders",
+            commonResult.reason,
+          );
         }
-      }
+        if (inpaymentResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Inpayment freight forwarders",
+            inpaymentResult.reason,
+          );
+        }
 
-      const list = merged.map(
-        (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
-      );
-      setFreightForwarSuggestions(list);
-      setFilteredFreightForwarderSuggestions(list);
-    } catch (err) {
-      console.error("Failed to fetch importers", err);
-    }
-  };
-  fetchFreightForwarder();
-}, []);
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.Code || "").toLowerCase()),
+        );
+        setCommonFreightForwarderCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of inpaymentData) {
+          const code = String(item.Code || "").toLowerCase();
+          if (!commonCodes.has(code)) {
+            merged.push(item);
+          }
+        }
+
+        const list = merged.map(
+          (i) => `${i.Code}:${i.CRUEI}:${i.Name}:${i.Name1}`,
+        );
+        setFreightForwarSuggestions(list);
+        setFilteredFreightForwarderSuggestions(list);
+      } catch (err) {
+        console.error("Failed to fetch importers", err);
+      }
+    };
+    fetchFreightForwarder();
+  }, []);
 
   // ======================== FREIGHTFORWARDER HANDLERS ========================
   const handleFreightForwarderChange = (e) => {
@@ -846,6 +858,7 @@ useEffect(() => {
     setFreightForwarderName1(name1);
     setShowFreightForwarderDropdown(false);
     setFreightForwarderError(false);
+    focusNextSection("freightForwarder");
   };
 
   // ======================== FREIGHTFORWARDER FOCUSOUT ========================
@@ -880,6 +893,7 @@ useEffect(() => {
         setFreightForwarderName(name);
         setFreightForwarderName1(name1);
         setFreightForwarderError(false);
+        focusNextSection("freightForwarder");
       } else {
         setFreightForwarder(null);
         // setFreightForwarderCruei("");
@@ -932,44 +946,56 @@ useEffect(() => {
   //   }
   // };
 
-
   const saveFreightForwarder = async () => {
-  if (!freightForwarderCode) {
-    setFreightForwarderError(true);
-    alert("Code is required!");
-    return;
-  }
-  const duplicate = commonFreightForwarderCodes.has(freightForwarderCode.toLowerCase());
-  if (duplicate) {
-    alert("Duplicate code found! Freight Forwarder not saved.");
-    return;
-  }
-  const payload = {
-    Id: freightForwarder?.Id || 0,
-    Code: freightForwarderCode || "",
-    CRUEI: freightForwarderCruei || "",
-    Name: freightForwardName || "",
-    Name1: freightForwardName1 || "",
-    TouchUser: (user?.username).toUpperCase(),
-    TouchTime: new Date().toISOString(),
-    Status: "Active",
-  };
-
-  try {
-    // Save to CommonFreightForwarderTable only
-    const response = await API.post("/postFreightForwarderTable/", payload);
-
-    alert(response.data?.message || response.data?.Result || "FreightForwarder saved successfully!");
-    console.log("Saved data:", response.data);
-
-    setCommonFreightForwarderCodes((prev) => new Set(prev).add(freightForwarderCode.toLowerCase()));
-  } catch (err) {
-    console.error("Failed to save FreightForwarder:", err.response?.data || err);
-    alert(
-      err.response?.data?.error || err.response?.data?.Result || "Failed to save FreightForwarder, check console for details"
+    if (!freightForwarderCode) {
+      setFreightForwarderError(true);
+      alert("Code is required!");
+      return;
+    }
+    const duplicate = commonFreightForwarderCodes.has(
+      freightForwarderCode.toLowerCase(),
     );
-  }
-};
+    if (duplicate) {
+      alert("Duplicate code found! Freight Forwarder not saved.");
+      return;
+    }
+    const payload = {
+      Id: freightForwarder?.Id || 0,
+      Code: freightForwarderCode || "",
+      CRUEI: freightForwarderCruei || "",
+      Name: freightForwardName || "",
+      Name1: freightForwardName1 || "",
+      TouchUser: (user?.username).toUpperCase(),
+      TouchTime: new Date().toISOString(),
+      Status: "Active",
+    };
+
+    try {
+      // Save to CommonFreightForwarderTable only
+      const response = await API.post("/postFreightForwarderTable/", payload);
+
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "FreightForwarder saved successfully!",
+      );
+      console.log("Saved data:", response.data);
+
+      setCommonFreightForwarderCodes((prev) =>
+        new Set(prev).add(freightForwarderCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error(
+        "Failed to save FreightForwarder:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save FreightForwarder, check console for details",
+      );
+    }
+  };
 
   // ======================== CLAIMANT PARTY========================
   const claimantCodeRef = useRef(null);
@@ -1002,53 +1028,61 @@ useEffect(() => {
   //   };
   //   fetchClaimant();
   // }, []);
-useEffect(() => {
-  const fetchClaimant = async () => {
-    try {
-      const [commonResult, inpaymentResult] = await Promise.allSettled([
-        API.get("/getCommonClaimantPartyTable/"),
-        API.get("inpayment/getInClaimantPartyTable/"),
-      ]);
+  useEffect(() => {
+    const fetchClaimant = async () => {
+      try {
+        const [commonResult, inpaymentResult] = await Promise.allSettled([
+          API.get("/getCommonClaimantPartyTable/"),
+          API.get("inpayment/getInClaimantPartyTable/"),
+        ]);
 
-      const commonData =
-        commonResult.status === "fulfilled" ? commonResult.value.data || [] : [];
-      const inpaymentData =
-        inpaymentResult.status === "fulfilled"
-          ? inpaymentResult.value.data || []
-          : [];
+        const commonData =
+          commonResult.status === "fulfilled"
+            ? commonResult.value.data || []
+            : [];
+        const inpaymentData =
+          inpaymentResult.status === "fulfilled"
+            ? inpaymentResult.value.data || []
+            : [];
 
-      if (commonResult.status === "rejected") {
-        console.error("Failed to fetch Common claimant party", commonResult.reason);
-      }
-      if (inpaymentResult.status === "rejected") {
-        console.error("Failed to fetch Inpayment claimant party", inpaymentResult.reason);
-      }
-
-      const commonCodes = new Set(
-        commonData.map((i) => String(i.ClaimantCode || "").toLowerCase()),
-      );
-      setCommonClaimantCodes(commonCodes);
-
-      const merged = [...commonData];
-      for (const item of inpaymentData) {
-        const code = String(item.ClaimantCode || "").toLowerCase();
-        if (!commonCodes.has(code)) {
-          merged.push(item);
+        if (commonResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Common claimant party",
+            commonResult.reason,
+          );
         }
-      }
+        if (inpaymentResult.status === "rejected") {
+          console.error(
+            "Failed to fetch Inpayment claimant party",
+            inpaymentResult.reason,
+          );
+        }
 
-      const list = merged.map(
-        (i) =>
-          `${i.ClaimantCode}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.ClaimantName}:${i.ClaimantName1}`,
-      );
-      setClaimantSuggestions(list);
-      setFilteredClaimantSuggestions(list);
-    } catch (err) {
-      console.error("Failed to fetch claimant party", err);
-    }
-  };
-  fetchClaimant();
-}, []);
+        const commonCodes = new Set(
+          commonData.map((i) => String(i.ClaimantCode || "").toLowerCase()),
+        );
+        setCommonClaimantCodes(commonCodes);
+
+        const merged = [...commonData];
+        for (const item of inpaymentData) {
+          const code = String(item.ClaimantCode || "").toLowerCase();
+          if (!commonCodes.has(code)) {
+            merged.push(item);
+          }
+        }
+
+        const list = merged.map(
+          (i) =>
+            `${i.ClaimantCode}:${i.CRUEI}:${i.Name}:${i.Name1}:${i.ClaimantName}:${i.ClaimantName1}`,
+        );
+        setClaimantSuggestions(list);
+        setFilteredClaimantSuggestions(list);
+      } catch (err) {
+        console.error("Failed to fetch claimant party", err);
+      }
+    };
+    fetchClaimant();
+  }, []);
 
   // ======================== CLAIMANT PARTY HANDLERS ========================
   const handleClaimantChange = (e) => {
@@ -1113,6 +1147,7 @@ useEffect(() => {
     setclaimantcmantName1(claimantName1);
     setShowClaimantDropdown(false);
     setClaimantError(false);
+    focusNextSection("claimant");
   };
   // ======================== CLAIMANT PARTY FOCUSOUT ========================
   const handleClaimantFocusOut = () => {
@@ -1150,6 +1185,8 @@ useEffect(() => {
         setclaimantcmantName(claimantName);
         setclaimantcmantName1(claimantName1);
         setClaimantError(false);
+
+        focusNextSection("claimant");
       } else {
         setClaimant(null);
         // setClaimantCruei("");
@@ -1207,45 +1244,82 @@ useEffect(() => {
   // };
 
   const saveClaimanParty = async () => {
-  if (!claimantCode) {
-    setClaimantError(true);
-    alert("Code is required!");
-    return;
-  }
-  const duplicate = commonClaimantCodes.has(claimantCode.toLowerCase());
-  if (duplicate) {
-    alert("Duplicate code found! Freight Forwarder not saved.");
-    return;
-  }
-  const payload = {
-    Id: claimant?.Id || 0,
-    Name: claimantName || "",
-    Name1: claimantName1 || "",
-    CRUEI: claimantCruei || "",
-    ClaimantName: claimantcmantName || "",
-    ClaimantName1: claimantcmantName1 || "",
-    ClaimantCode: claimantCode || "",
-    Name2: "",
-    TouchUser: (user?.username).toUpperCase(),
-    TouchTime: new Date().toISOString(),
-    Status: "Active",
+    if (!claimantCode) {
+      setClaimantError(true);
+      alert("Code is required!");
+      return;
+    }
+    const duplicate = commonClaimantCodes.has(claimantCode.toLowerCase());
+    if (duplicate) {
+      alert("Duplicate code found! Freight Forwarder not saved.");
+      return;
+    }
+    const payload = {
+      Id: claimant?.Id || 0,
+      Name: claimantName || "",
+      Name1: claimantName1 || "",
+      CRUEI: claimantCruei || "",
+      ClaimantName: claimantcmantName || "",
+      ClaimantName1: claimantcmantName1 || "",
+      ClaimantCode: claimantCode || "",
+      Name2: "",
+      TouchUser: (user?.username).toUpperCase(),
+      TouchTime: new Date().toISOString(),
+      Status: "Active",
+    };
+
+    try {
+      // Save to CommonClaimantPartyTable only
+      const response = await API.post("/postClaimantPartyTable/", payload);
+
+      alert(
+        response.data?.message ||
+          response.data?.Result ||
+          "Claimant Party saved successfully!",
+      );
+      console.log("Saved data:", response.data);
+
+      setCommonClaimantCodes((prev) =>
+        new Set(prev).add(claimantCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error(
+        "Failed to save Claimant Party:",
+        err.response?.data || err,
+      );
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.Result ||
+          "Failed to save Claimant Party, check console for details",
+      );
+    }
   };
 
-  try {
-    // Save to CommonClaimantPartyTable only
-    const response = await API.post("/postClaimantPartyTable/", payload);
+  // ============================Party Filled Order Check=========================
 
-    alert(response.data?.message || response.data?.Result || "Claimant Party saved successfully!");
-    console.log("Saved data:", response.data);
+  const getSectionOrder = () => [
+    { key: "importer", visible: true, ref: importerCodeRef },
+    { key: "inward", visible: true, ref: inwardCodeRef },
+    { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
+    { key: "claimant", visible: showClaimantPartyShow, ref: claimantCodeRef },
+  ];
 
-    setCommonClaimantCodes((prev) => new Set(prev).add(claimantCode.toLowerCase()));
-  } catch (err) {
-    console.error("Failed to save Claimant Party:", err.response?.data || err);
-    alert(
-      err.response?.data?.error || err.response?.data?.Result || "Failed to save Claimant Party, check console for details"
-    );
-  }
-};
+  const focusNextSection = (currentKey) => {
+    setTimeout(() => {
+      const order = getSectionOrder();
+      const currentIndex = order.findIndex((s) => s.key === currentKey);
+      if (currentIndex === -1) return;
+
+      for (let i = currentIndex + 1; i < order.length; i++) {
+        if (order[i].visible) {
+          order[i].ref.current?.focus();
+          return;
+        }
+      }
+
+      document.getElementById("PartySaveDraft")?.focus();
+    }, 0);
+  };
 
   //---------------------------- Popup-----------------------------------
   const [popupType, setPopupType] = useState(null);
@@ -1520,6 +1594,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.Code || ""}
               readOnly
+              tabIndex={1}
             />
           </div>
           <div className="col-sm-2">
@@ -1527,6 +1602,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.CRUEI || ""}
               readOnly
+              tabIndex={2}
             />
           </div>
           <div className="col-sm-3">
@@ -1534,6 +1610,7 @@ useEffect(() => {
               className="form-control"
               value={permitDetails?.name || ""}
               readOnly
+              tabIndex={3}
             />
           </div>
           <div className="col-sm-2">
@@ -1542,6 +1619,7 @@ useEffect(() => {
               placeholder="Name1"
               value={permitDetails?.name1 || ""}
               readOnly
+              tabIndex={4}
             />
           </div>
         </div>
@@ -1554,8 +1632,13 @@ useEffect(() => {
               className="me-3"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("importer")}
+              tabIndex={5}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveImporter} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveImporter}
+              tabIndex={6}
+            />
           </div>
           <div className="col-sm-2 position-relative">
             <input
@@ -1569,6 +1652,7 @@ useEffect(() => {
               onKeyDown={handleImporterKeyDown}
               onBlur={handleFocusOut}
               onFocus={() => setImporterError(false)}
+              tabIndex={7}
             />
             {showImporterDropdown && filteredSuggestions.length > 0 && (
               <div className="dropdown-suggestions">
@@ -1601,6 +1685,7 @@ useEffect(() => {
               placeholder="CRUEI"
               value={importer?.CRUEI || importerCruei || ""}
               onChange={(e) => setImporterCruei(e.target.value)}
+              tabIndex={8}
             />
             {showImporterCrueiError && (
               <span className="ErrorColor">CRUEI is required</span>
@@ -1614,6 +1699,7 @@ useEffect(() => {
               placeholder="NAME"
               value={importer?.Name || importerName || ""}
               onChange={(e) => setImporterName(e.target.value)}
+              tabIndex={9}
             />
             {showImporterNameError && (
               <span className="ErrorColor">Name is required</span>
@@ -1626,6 +1712,7 @@ useEffect(() => {
               placeholder="NAME1"
               value={importer?.Name1 || importerName1 || ""}
               onChange={(e) => setImporterName1(e.target.value)}
+              tabIndex={10}
             />
           </div>
         </div>
@@ -1640,8 +1727,13 @@ useEffect(() => {
               className="me-3"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("inward")}
+              tabIndex={11}
             />
-            <FaPlus style={{ cursor: "pointer" }} onClick={saveInward} />
+            <FaPlus
+              style={{ cursor: "pointer" }}
+              onClick={saveInward}
+              tabIndex={12}
+            />
           </div>
           <div className="col-sm-2 position-relative">
             <input
@@ -1655,6 +1747,7 @@ useEffect(() => {
               onKeyDown={handleInwardKeyDown}
               onBlur={handleInwardFocusOut}
               onFocus={() => setInwardError(false)}
+              tabIndex={13}
             />
             {showInwardDropdown && filteredInwardSuggestions.length > 0 && (
               <div className="dropdown-suggestions">
@@ -1686,6 +1779,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               id="inwardCruei"
+              tabIndex={14}
               className={
                 isSea || isAir ? "form-control-mandatory" : "form-control"
               }
@@ -1702,6 +1796,7 @@ useEffect(() => {
           <div className="col-sm-3">
             <input
               id="inwardName"
+              tabIndex={15}
               className={
                 isSea || isAir ? "form-control-mandatory" : "form-control"
               }
@@ -1713,6 +1808,7 @@ useEffect(() => {
           <div className="col-sm-2">
             <input
               id="inwardName1"
+              tabIndex={16}
               className="form-control"
               placeholder="NAME1"
               value={inwardAgent?.Name1 || inwardName1 || ""}
@@ -1720,6 +1816,7 @@ useEffect(() => {
             />
           </div>
         </div>
+
         {/* FREIGHT FORWARDER  */}
         <div className="row align-items-center compact-row">
           <label className="col-sm-2 col-form-label">FREIGHT FORWARDER</label>
@@ -1728,10 +1825,12 @@ useEffect(() => {
               className="me-3"
               style={{ cursor: "pointer" }}
               onClick={() => handleIconClick("freightForwarder")}
+              tabIndex={17}
             />
             <FaPlus
               style={{ cursor: "pointer" }}
               onClick={saveFreightForwarder}
+              tabIndex={18}
             />
           </div>
           <div className="col-sm-2 position-relative">
@@ -1745,6 +1844,7 @@ useEffect(() => {
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
+              tabIndex={19}
             />
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
@@ -1785,6 +1885,7 @@ useEffect(() => {
               placeholder="CRUEI"
               value={freightForwarder?.CRUEI || freightForwarderCruei || ""}
               onChange={(e) => setFreightForwarderCruei(e.target.value)}
+              tabIndex={20}
             />
           </div>
           <div className="col-sm-3">
@@ -1794,6 +1895,7 @@ useEffect(() => {
               placeholder="NAME"
               value={freightForwarder?.Name || freightForwardName || ""}
               onChange={(e) => setFreightForwarderName(e.target.value)}
+              tabIndex={21}
             />
           </div>
           <div className="col-sm-2">
@@ -1803,6 +1905,7 @@ useEffect(() => {
               placeholder="NAME1"
               value={freightForwarder?.Name1 || freightForwardName1 || ""}
               onChange={(e) => setFreightForwarderName1(e.target.value)}
+              tabIndex={22}
             />
           </div>
         </div>
@@ -1818,10 +1921,12 @@ useEffect(() => {
                   className="me-3"
                   style={{ cursor: "pointer" }}
                   onClick={() => handleIconClick("claimantparty")}
+                  tabIndex={23}
                 />
                 <FaPlus
                   style={{ cursor: "pointer" }}
                   onClick={saveClaimanParty}
+                  tabIndex={24}
                 />
               </div>
 
@@ -1837,6 +1942,7 @@ useEffect(() => {
                   onKeyDown={handleClaimantKeyDown}
                   onBlur={handleClaimantFocusOut}
                   onFocus={() => setClaimantError(false)}
+                  tabIndex={25}
                 />
 
                 {showClaimantDropdown &&
@@ -1880,6 +1986,7 @@ useEffect(() => {
                   placeholder="CRUEI"
                   value={claimant?.CRUEI || claimantCruei || ""}
                   onChange={(e) => setClaimantCruei(e.target.value)}
+                  tabIndex={26}
                 />
               </div>
 
@@ -1890,6 +1997,7 @@ useEffect(() => {
                   placeholder="NAME"
                   value={claimant?.Name || claimantName || ""}
                   onChange={(e) => setClaimantName(e.target.value)}
+                  tabIndex={27}
                 />
               </div>
 
@@ -1900,6 +2008,7 @@ useEffect(() => {
                   placeholder="NAME1"
                   value={claimant?.Name1 || claimantName1 || ""}
                   onChange={(e) => setClaimantName1(e.target.value)}
+                  tabIndex={28}
                 />
               </div>
             </div>
@@ -1917,6 +2026,7 @@ useEffect(() => {
                   placeholder="CLAIMANT ID"
                   value={claimant?.ClaimantName || claimantcmantName || ""}
                   onChange={(e) => setclaimantcmantName(e.target.value)}
+                  tabIndex={29}
                 />
               </div>
 
@@ -1928,6 +2038,7 @@ useEffect(() => {
                   placeholder="CLAIMANT NAME"
                   value={claimant?.ClaimantName1 || claimantcmantName1 || ""}
                   onChange={(e) => setclaimantcmantName1(e.target.value)}
+                  tabIndex={30}
                 />
               </div>
             </div>
@@ -1938,7 +2049,7 @@ useEffect(() => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             className="NextpageBtns view-nav-btn"
-            tabIndex="17"
+            tabIndex={31}
             id="PartySaveDraft"
             onClick={handleSaveAsDraftClick}
           >
@@ -1946,6 +2057,7 @@ useEffect(() => {
           </button>
           <button
             className="NextpageBtns view-nav-btn"
+            tabIndex={32}
             onClick={() => setActiveTab("HeaderTab")}
           >
             PREVIOUS
@@ -1957,6 +2069,7 @@ useEffect(() => {
           )}
           <button
             className="NextpageBtns view-nav-btn"
+            tabIndex={33}
             onClick={() => setActiveTab("CargoTab")}
           >
             NEXT

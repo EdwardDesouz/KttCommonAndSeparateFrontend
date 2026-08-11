@@ -1937,6 +1937,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showPermitFunction}
+              tabIndex={1}
             >
               PREV PERMIT NUMBER
             </button>
@@ -1946,6 +1947,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={showExRate}
+              tabIndex={2}
             >
               EX. RATE
             </button>
@@ -1956,6 +1958,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={formatRemark}
+              tabIndex={3}
               onChange={(e) => setFormatRemark(e.target.value)}
             />
           </div>
@@ -1964,6 +1967,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="button"
               className="ButtonClick SaveContainer"
               onClick={summaryConfigBtnFunction}
+              tabIndex={4}
             >
               CONFIG
             </button>
@@ -1972,6 +1976,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-3">
             <input
               type="text"
+              tabIndex={5}
               className="form-control"
               value={summaryCrossReference}
               onChange={(e) => setSummaryCrossReference(e.target.value)}
@@ -1985,6 +1990,7 @@ function Summary({ setActiveTab, isViewMode }) {
             <textarea
               className="form-control summary-remarks-textarea"
               value={summaryRemarks}
+              tabIndex={6}
               onChange={(e) => setSummaryRemarks(e.target.value)}
             />
           </div>
@@ -2007,6 +2013,7 @@ function Summary({ setActiveTab, isViewMode }) {
               type="text"
               className="form-control"
               value={summaryInternalReamarks}
+              tabIndex={7}
               onChange={(e) => setSummaryInternalRemarks(e.target.value)}
             />
           </div>
@@ -2028,8 +2035,9 @@ function Summary({ setActiveTab, isViewMode }) {
               <select
                 className="Dropdown HighLight mandatory"
                 value={summaryDeclaringFor}
+                tabIndex={8}
                 onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-                tabIndex="5"
+         
               >
                 <option value="">--Select--</option>
 
@@ -2151,6 +2159,7 @@ function Summary({ setActiveTab, isViewMode }) {
                   type="checkbox"
                   className="form-check-input"
                   checked={declarationChecked}
+                  tabIndex={9}
                   onChange={(e) => setDeclarationChecked(e.target.checked)}
                 />
               </div>
@@ -2200,7 +2209,7 @@ function Summary({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-          tabIndex="17"
+       
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2267,7 +2276,7 @@ function Summary({ setActiveTab, isViewMode }) {
             NEXT
           </button>
         ) : (
-          <button className="NextpageBtns" onClick={handleSavePermit}>
+          <button className="NextpageBtns" tabIndex={10} onClick={handleSavePermit}>
             SAVE
           </button>
         )}
