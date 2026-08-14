@@ -337,19 +337,20 @@ function Summary({ setActiveTab, isViewMode }) {
 
   // ── Remark Helpers ───────────────────────────────────────────────────────
   const showPermitFunction = () => {
-    if (prevPermitNo && prevPermitNo.trim() !== "") {
-      setShowPermit(true);
-      setSummaryRemarks(`PREVIOUS PERMIT NO : ${prevPermitNo}`);
-    } else {
-      setSummaryRemarks("PREVIOUS PERMIT NO :");
-    }
+    const text =
+      prevPermitNo && prevPermitNo.trim() !== ""
+        ? `PREVIOUS PERMIT NO : ${prevPermitNo}`
+        : "PREVIOUS PERMIT NO :";
+
+    setShowPermit(true);
+    setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + text);
   };
 
   const showExRate = () => {
     const grouped = {};
-    invoiceTable.forEach((inv) => {
-      const currency = inv.TICurrency || "";
-      const rate = Number(inv.TIExRate || 0);
+    itemTable.forEach((inv) => {
+      const currency = inv.UnitPriceCurrency || "";
+      const rate = Number(inv.ExchangeRate || 0);
       grouped[currency] = (grouped[currency] || 0) + rate;
     });
     const exRateText = Object.keys(grouped)
@@ -358,13 +359,17 @@ function Summary({ setActiveTab, isViewMode }) {
           `CURRENCY : ${cur} , EXCHANGE RATE : ${grouped[cur].toFixed(6)}`,
       )
       .join("\n");
+
     setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + exRateText);
+    setExRateAdded(true);
   };
 
   const summaryConfigBtnFunction = () => {
     setFormatRemark("");
     setSummaryRemarks((prev) => prev.replaceAll("\n", formatRemark));
   };
+
+  const [exRateAdded, setExRateAdded] = useState(false);
 
   // ── Time Handler ─────────────────────────────────────────────────────────
   const handleTimeBlur = (val) => {
@@ -1830,7 +1835,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-2">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={showPermitFunction}
               tabIndex={1}
             >
@@ -1838,11 +1843,17 @@ function Summary({ setActiveTab, isViewMode }) {
             </button>
           </div>
           <div className="col-sm-1">
-            <button
+               <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={showExRate}
-              tabIndex={2}
+              tabIndex={4}
+              disabled={exRateAdded}
+              style={
+                exRateAdded
+                  ? { opacity: 0.5, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               EX. RATE
             </button>
@@ -1860,7 +1871,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={summaryConfigBtnFunction}
               tabIndex={4}
             >
@@ -1883,7 +1894,7 @@ function Summary({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <div className="col-sm-12">
             <textarea
-              className="form-control summary-remarks-textarea"
+              className="summary-remarks-textarea"
               value={summaryRemarks}
               tabIndex={6}
               onChange={(e) => setSummaryRemarks(e.target.value)}

@@ -108,6 +108,13 @@ export const InnonpaymentProvider = ({ children }) => {
   const [freightForwarderCruei, setFreightForwarderCruei] = useState("");
   const [freightForwardName, setFreightForwarderName] = useState("");
   const [freightForwardName1, setFreightForwarderName1] = useState("");
+  const [showFreightForwarderMandatoryError, setShowFreightForwarderMandatoryError] = useState(false);
+const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] = useState(false);
+ const [showHawbDuplicateError, setShowHawbDuplicateError] = useState(false);
+  const [hawbDuplicateMessage, setHawbDuplicateMessage] = useState(
+    "Duplicate HBL/HAWB Found",
+  );
+
   // PARTY PAGE CLAIMANT STATES
   const [claimantCode, setClaimantCode] = useState("");
   const [claimantCruei, setClaimantCruei] = useState("");
@@ -326,6 +333,8 @@ export const InnonpaymentProvider = ({ children }) => {
   const [hsCode, setHsCode] = useState("");
   const [hsCodeDescription, setHsCodeDescription] = useState("");
   const [hsCodeRow, setHsCodeRow] = useState(null);
+ const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
+const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState([]);
   const [countryCode, setCountryCode] = useState("");
   const [countryDescription, setCountryDescription] = useState("");
   const [brand, setBrand] = useState("");
@@ -575,6 +584,10 @@ export const InnonpaymentProvider = ({ children }) => {
         setFreightForwarderName,
         freightForwardName1,
         setFreightForwarderName1,
+        showFreightForwarderMandatoryError,
+setShowFreightForwarderMandatoryError,
+showCargoHawbMandatoryError,
+setShowCargoHawbMandatoryError,
         // PARTY PAGE STATES CLAIMANT
         claimantCode,
         setClaimantCode,
@@ -761,6 +774,10 @@ export const InnonpaymentProvider = ({ children }) => {
         setTowingVesselName,
         containers,
         setContainers,
+                showHawbDuplicateError,
+        setShowHawbDuplicateError,
+        hawbDuplicateMessage,
+        setHawbDuplicateMessage,
         // invoice
         invoiceTable,
         setInvoiceTable,
@@ -853,7 +870,7 @@ export const InnonpaymentProvider = ({ children }) => {
         setShowOutItemHawbHbl,
         itemTable,
         setItemTable,
-               makingLot,
+        makingLot,
         setMakingLot,
         itemSerialNumber,
         setItemSerialNumber,
@@ -867,6 +884,10 @@ export const InnonpaymentProvider = ({ children }) => {
         setHsCodeDescription,
         hsCodeRow,
         setHsCodeRow,
+        hsCodeSuggestions,
+        setHsCodeSuggestions,
+        filteredHsCodeSuggestions,
+        setFilteredHsCodeSuggestions,
         countryCode,
         setCountryCode,
         countryDescription,

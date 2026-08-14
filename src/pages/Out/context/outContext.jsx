@@ -184,6 +184,12 @@ export const OutProvider = ({ children }) => {
   const [freightForwarderCruei, setFreightForwarderCruei] = useState("");
   const [freightForwardName, setFreightForwarderName] = useState("");
   const [freightForwardName1, setFreightForwarderName1] = useState("");
+  const [
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+  ] = useState(false);
+  const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] =
+    useState(false);
   // PARTY PAGE CLAIMANT STATES
   const [claimantCode, setClaimantCode] = useState("");
   const [claimantCruei, setClaimantCruei] = useState("");
@@ -326,6 +332,10 @@ export const OutProvider = ({ children }) => {
   const [flightNumber, setFlightNumber] = useState("");
   const [airCraftRegNumber, setAirCraftRegNumber] = useState("");
   const [mawbNumber, setMawbNumber] = useState("");
+  const [showHawbDuplicateError, setShowHawbDuplicateError] = useState(false);
+  const [hawbDuplicateMessage, setHawbDuplicateMessage] = useState(
+    "Duplicate HBL/HAWB Found",
+  );
   // States needed (add to context)
   const [outwardMode, setOutwardMode] = useState("");
   const [dischargePortCode, setDischargePortCode] = useState("");
@@ -432,6 +442,10 @@ export const OutProvider = ({ children }) => {
   const [hsCode, setHsCode] = useState("");
   const [hsCodeDescription, setHsCodeDescription] = useState("");
   const [hsCodeRow, setHsCodeRow] = useState(null);
+  const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
+  const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
+    [],
+  );
   const [countryCode, setCountryCode] = useState("");
   const [countryDescription, setCountryDescription] = useState("");
   const [brand, setBrand] = useState("");
@@ -807,6 +821,14 @@ export const OutProvider = ({ children }) => {
         setFreightForwarderName,
         freightForwardName1,
         setFreightForwarderName1,
+        showHawbDuplicateError,
+        setShowHawbDuplicateError,
+        hawbDuplicateMessage,
+        setHawbDuplicateMessage,
+        showFreightForwarderMandatoryError,
+        setShowFreightForwarderMandatoryError,
+        showCargoHawbMandatoryError,
+        setShowCargoHawbMandatoryError,
         // PARTY PAGE STATES CLAIMANT
         claimantCode,
         setClaimantCode,
@@ -1153,6 +1175,10 @@ export const OutProvider = ({ children }) => {
         setHsCodeDescription,
         hsCodeRow,
         setHsCodeRow,
+        hsCodeSuggestions,
+        setHsCodeSuggestions,
+        filteredHsCodeSuggestions,
+        setFilteredHsCodeSuggestions,
         countryCode,
         setCountryCode,
         countryDescription,

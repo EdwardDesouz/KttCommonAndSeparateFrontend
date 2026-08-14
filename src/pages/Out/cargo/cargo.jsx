@@ -345,6 +345,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     setExhibitionStartDate,
     exhibitionEndDate,
     setExhibitionEndDate,
+    setShowHawbDuplicateError,
+    showHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
   } = useOut();
 
   //  Calculate permit gross weight based on total gross weight and UOM
@@ -1538,9 +1546,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const saveContainer = async (container) => {
     const rowNo = getRowNo(container);
-    const regex = /^[A-Za-z]{4}\d{7}$/;
+    // const regex = /^[A-Za-z]{4}\d{7}$/;
     if (
-      !regex.test(container.number) ||
+      !container.number ||
       !container.sizeType ||
       container.sizeType === "--Select--" ||
       !container.weight ||
@@ -1636,6 +1644,39 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!outTransportMode) return "HAWB/HBL";
     return "HBL";
   };
+
+    const checkDuplicateHawb = async (value) => {
+      if (!value || !value.trim()) {
+        setShowHawbDuplicateError(false);
+        setHawbDuplicateMessage("");
+        return true;
+      }
+      try {
+        const response = await API.get(
+          `/checkDuplicateHawb/?HBL=${encodeURIComponent(value)}&INHAWB=${encodeURIComponent(value)}&outHAWB=${encodeURIComponent(value)}&PermitId=${permitDetails?.PermitId || ""}`,
+        );
+        if (response.data?.duplicate) {
+          setShowHawbDuplicateError(true);
+          setHawbDuplicateMessage(
+            response.data.message || "Duplicate HAWB found.",
+          );
+          return false;
+        } else {
+          setShowHawbDuplicateError(false);
+          setHawbDuplicateMessage("");
+          return true;
+        }
+      } catch (error) {
+        console.error("Error checking duplicate HAWB:", error);
+        return true;
+      }
+    };
+
+useEffect(() => {
+  if (permitDetails?.PermitId && outCargoHawb) {
+    checkDuplicateHawb(outCargoHawb);
+  }
+}, [permitDetails?.PermitId]);
 
   // =======================SAVE AS DRAFT MODEL================
   // =======================STATES==================
@@ -3184,12 +3225,32 @@ function Cargo({ setActiveTab, isViewMode }) {
                         {getOutCargoLabel()}
                       </label>
                       <div className="col-sm-7">
+                        {showHawbDuplicateError && (
+                          <span className="ErrorColor">
+                            {hawbDuplicateMessage}
+                          </span>
+                        )}
+                        {showCargoHawbMandatoryError && (
+                          <span className="ErrorColor">
+                            Out Cargo HAWB is required when Freight Forwarder is
+                            entered.
+                          </span>
+                        )}
                         <input
                           type="text"
                           tabIndex={42}
-                          className="form-control"
+                          className={
+                            showCargoHawbMandatoryError
+                              ? "form-control-mandatory is-invalid"
+                              : "form-control"
+                          }
                           value={outCargoHawb}
-                          onChange={(e) => updateOutCargoHawb(e.target.value)}
+                          onChange={(e) => {
+                            updateOutCargoHawb(e.target.value);
+                            if (showCargoHawbMandatoryError) {
+                              setShowCargoHawbMandatoryError(false);
+                            }
+                          }}
                         />
                       </div>
                     </div>

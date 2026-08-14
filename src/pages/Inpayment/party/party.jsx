@@ -54,6 +54,10 @@ function Party({ setActiveTab, isViewMode }) {
     setFreightForwarderName,
     freightForwardName1,
     setFreightForwarderName1,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
     claimantCode,
     setClaimantCode,
     claimantCruei,
@@ -1837,15 +1841,29 @@ function Party({ setActiveTab, isViewMode }) {
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
-              className="form-control"
+              className={
+                showFreightForwarderMandatoryError
+                  ? "form-control-mandatory"
+                  : "form-control"
+              }
               placeholder="CODE"
               value={freightForwarderCode}
-              onChange={handleFreightForwarderChange}
+                 onChange={(e) => {
+      handleFreightForwarderChange(e);
+      if (showFreightForwarderMandatoryError) {
+        setShowFreightForwarderMandatoryError(false);
+      }
+    }}
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
               tabIndex={19}
             />
+              {showFreightForwarderMandatoryError && (
+    <span className="ErrorColor">
+      Freight Forwarder is required when Cargo HAWB/HBL is entered.
+    </span>
+  )}
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
                 <div className="dropdown-suggestions">

@@ -249,11 +249,11 @@
 
 .form-control {
   width: 100%;
-   padding: 6px 10px;
+  padding: 6px 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
-   margin-bottom: 10px;
+  margin-bottom: 10px;
   transition: all 0.2s ease;
 }
 
@@ -273,10 +273,17 @@
   background-color: #b9c2c5;
 }
 
-.form-control summary-remarks-textarea {
+.summary-remarks-textarea {
   font-size: 0.65rem;
+  min-height: 60px;
+  height: 60px;
+  resize: vertical;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 10px 6px 14px;
+  box-sizing: border-box;
 }
-
 .form-check {
   display: flex;
   align-items: center;
@@ -1409,8 +1416,6 @@ textarea,
   letter-spacing: 0.5px;
 }
 
-
-
 /* ==============================
    COMPACT MODE — Cargo page only
 ============================== */
@@ -1421,7 +1426,7 @@ textarea,
 .cargo-compact .form-control,
 .cargo-compact .inputStyle,
 .cargo-compact .Dropdown {
-   font-size: 0.68rem !important;
+  font-size: 0.68rem !important;
   font-weight: 400 !important;
 }
 
@@ -1450,7 +1455,7 @@ textarea,
 
 .cargo-compact .compact-row .col-form-label {
   font-size: 0.66rem;
-   font-weight: 500 !important;
+  font-weight: 500 !important;
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -1472,7 +1477,7 @@ textarea,
 .cargo-compact .NewBtns,
 .cargo-compact .MoveOnButtons {
   padding: 5px 16px !important;
-  font-size: 0.70rem !important;   /* bumped from 0.68rem */
+  font-size: 0.7rem !important; /* bumped from 0.68rem */
   font-weight: 500 !important;
 }
 

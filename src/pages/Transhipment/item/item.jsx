@@ -50,6 +50,10 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeDescription,
     hsCodeRow,
     setHsCodeRow,
+            hsCodeSuggestions,
+setHsCodeSuggestions,
+filteredHsCodeSuggestions,
+setFilteredHsCodeSuggestions,
     countryCode,
     setCountryCode,
     countryDescription,
@@ -334,10 +338,10 @@ function Item({ setActiveTab, isViewMode }) {
   // ------------------ Hs Code ------------------
   const [controlledItem, setControlledItem] = useState("");
   const [hsCodeDescriptionError, setHsCodeDescriptioError] = useState(false);
-  const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
-  const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
-    [],
-  );
+  // const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
+  // const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
+  //   [],
+  // );
   const [showHscodeDropdown, setShowHsCodeDropdown] = useState(false);
   const [highlightedHsCodeIndex, setHighlightedHsCodeIndex] = useState(0);
   const [hsCodeError, setHsCodeError] = useState(false);
@@ -1140,7 +1144,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   const itemInvoiceQuantityFunction = () => {
     let itemqty = invoiceQuantity;
-    if (itemqty != "0.0000") {
+     if (Number(itemqty) !== 0) { 
       let hsopt = hsUom;
       let total;
 
@@ -1158,7 +1162,7 @@ function Item({ setActiveTab, isViewMode }) {
         total = itemqty;
       }
 
-      if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
+       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
         if (Number(itemqty) > Number(totalGrossWeight)) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
@@ -1169,8 +1173,7 @@ function Item({ setActiveTab, isViewMode }) {
       if (hsQuantity === "0.00" || hsQuantity === "") {
         setHsQuantity(total);
       }
-
-      if (itemqty != "0.00" || hsQuantity != "") {
+      if (Number(itemqty) !== 0 && hsQuantity !== "") {
         setHsQuantity(total);
       }
     }
@@ -3326,9 +3329,12 @@ setPreferentialCode(item.PreferentialCode || "");
   // ==================Delete hawb from all items when hawb deleted from header==================
   const deleteHblHawb = async () => {
     const permitId = permitDetails?.PermitId;
+    let commonCleared = false;
+
     try {
       await API.delete(`/deleteHawbByPermitId/${permitId}/`);
-      alert("All HAWB/HBL cleared successfully");
+      commonCleared = true;
+
       setItemTable((prev) =>
         prev.map((item) => ({
           ...item,
@@ -3336,12 +3342,24 @@ setPreferentialCode(item.PreferentialCode || "");
           OutHAWBOBL: "",
         })),
       );
+
+      await API.delete(`transhipment/deleteInHawbByPermitId/${permitId}/`);
+
+      // alert("All HAWB/HBL cleared successfully from both tables");
     } catch (error) {
       console.error(error);
-      alert("Failed to clear HAWB/HBL");
+
+      if (commonCleared) {
+        alert(
+          "Warning: HAWB/HBL was cleared in CommonItemDtl but FAILED to clear in ItemDtl. " +
+            "Please contact support or retry.\n\n" +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else {
+        alert("Failed to clear HAWB/HBL");
+      }
     }
   };
-
   const fetchMakingLot = async () => {
     try {
       const response = await API.get("/getMakingLotFromCommonMaster/");
@@ -3391,6 +3409,9 @@ setPreferentialCode(item.PreferentialCode || "");
     }
   };
 
+    const sortedItemTable = useMemo(() => {
+      return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
+    }, [itemTable]);
   // ===================== SAVE AS DRAFT =====================
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftReason, setDraftReason] = useState("");
@@ -4713,6 +4734,36 @@ setPreferentialCode(item.PreferentialCode || "");
                 </div>
               </div>
             </div>
+                        {/* CIF / FOB */}
+            {/* <div className="row mt-1">
+              <div className="row">
+                <div className="col-5">IN MAWB/OBL</div>
+                <div className="col-7">
+                  <input
+                    type="text"
+                    placeholder="0.00"
+                    className="inputStyle"
+                    value={cifFob}
+                    onChange={(e) => setCifFob(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div> */}
+                        {/* CIF / FOB */}
+            {/* <div className="row mt-1">
+              <div className="row">
+                <div className="col-5">OUT MAWB/OBL</div>
+                <div className="col-7">
+                  <input
+                    type="text"
+                    placeholder="0.00"
+                    className="inputStyle"
+                    value={cifFob}
+                    onChange={(e) => setCifFob(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div> */}
 
             {/* LAST SELLING PRICE */}
             {/* <div className="row mt-3">
@@ -5490,20 +5541,23 @@ setPreferentialCode(item.PreferentialCode || "");
             </thead>
 
             <tbody>
-              {itemTable.length === 0 ? (
+              {sortedItemTable.length === 0 ? (
                 <tr>
                   <td colSpan={14} style={{ textAlign: "center" }}>
                     No Record
                   </td>
                 </tr>
               ) : (
-                itemTable.map((item, index) => {
+                sortedItemTable.map((item, index) => {
                   const hsRow = hsCodeSuggestions.find(
                     (h) =>
                       h.HSCode?.toLowerCase() === item.HSCode?.toLowerCase(),
                   );
                   const isControlled = hsRow?.Out === "1";
-
+           const cellStyle = {
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  };
                   return (
                     <tr
                       key={item.SNo}
@@ -5532,18 +5586,18 @@ setPreferentialCode(item.PreferentialCode || "");
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-                    <td>{item.ItemNo}</td>
-                      <td>{item.HSCode}</td>
-                      <td>{item.Description}</td>
-                      <td>{item.Contry}</td>
-                      <td>{item.InHAWBOBL}</td>
-                      <td>{item.OutHAWBOBL}</td>
-                      <td>{item.UnitPriceCurrency}</td>
-                      <td>{fmt(item.CIFFOB, 2)}</td>
-                      <td>{fmt(item.HSQty, 4)}</td>
-                      <td>{item.HSUOM}</td>
-                      <td>{fmt(item.TotalLineAmount, 2)}</td>
-                                        <td>
+                    <td style={cellStyle}>{item.ItemNo}</td>
+                      <td style={cellStyle}>{item.HSCode}</td>
+                      <td style={cellStyle}>{item.Description}</td>
+                      <td style={cellStyle}>{item.Contry}</td>
+                      <td style={cellStyle}>{item.InHAWBOBL}</td>
+                      <td style={cellStyle}>{item.OutHAWBOBL}</td>
+                      <td style={cellStyle}>{item.UnitPriceCurrency}</td>
+                      <td style={cellStyle}>{fmt(item.CIFFOB, 2)}</td>
+                      <td style={cellStyle}>{fmt(item.HSQty, 4)}</td>
+                      <td style={cellStyle}>{item.HSUOM}</td>
+                      <td style={cellStyle}>{fmt(item.TotalLineAmount, 2)}</td>
+                                        <td style={cellStyle}>
                                               <FaPlus
                                                 className="view-show"
                                                 style={{ width: "30px", cursor: "pointer" }}

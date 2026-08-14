@@ -213,6 +213,13 @@ function Party({ setActiveTab, isViewMode }) {
     airCraftRegNumber,
     showMawbNumber,
     mawbNumber,
+    setShowHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
   } = useOut();
 
   useEffect(() => {
@@ -1908,13 +1915,13 @@ function Party({ setActiveTab, isViewMode }) {
       Name: exporterName || "",
       Name1: exporterName1 || "",
 
-    Address: exporterAddress || "",
-    Address1: exporterAddress1 || "",
-    City: exporterCity || "",
-    SubCode: exporterSubCode || "",
-    Sub: exporterSubDivision || "",
-    Postal: exporterPostal || "",
-    Country: exporterCountryCode || "",
+      Address: exporterAddress || "",
+      Address1: exporterAddress1 || "",
+      City: exporterCity || "",
+      SubCode: exporterSubCode || "",
+      Sub: exporterSubDivision || "",
+      Postal: exporterPostal || "",
+      Country: exporterCountryCode || "",
 
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
@@ -3733,15 +3740,29 @@ function Party({ setActiveTab, isViewMode }) {
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
-              className="form-control"
+                className={
+    showFreightForwarderMandatoryError
+      ? "form-control-mandatory"
+      : "form-control"
+  }
               placeholder="CODE"
               tabIndex={38}
               value={freightForwarderCode}
-              onChange={handleFreightForwarderChange}
+                onChange={(e) => {
+    handleFreightForwarderChange(e);
+    if (showFreightForwarderMandatoryError) {
+      setShowFreightForwarderMandatoryError(false);
+    }
+  }}
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
             />
+            {showFreightForwarderMandatoryError && (
+  <span className="ErrorColor">
+    Freight Forwarder is required when Cargo HAWB is entered.
+  </span>
+)}
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
                 <div className="dropdown-suggestions">

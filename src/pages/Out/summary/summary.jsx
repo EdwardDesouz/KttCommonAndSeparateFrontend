@@ -192,6 +192,13 @@ function Summary({ setActiveTab, isViewMode }) {
     showAirCraftRegNumber,
     showMawbNumber,
     // prepareCpcData,
+    setShowHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
   } = useOut();
 
   // ── Party master table check ──────────────────────────────────────────
@@ -331,12 +338,13 @@ function Summary({ setActiveTab, isViewMode }) {
 
   // ── Remark Helpers ───────────────────────────────────────────────────────
   const showPermitFunction = () => {
-    if (prevPermitNo && prevPermitNo.trim() !== "") {
-      setShowPermit(true);
-      setSummaryRemarks(`PREVIOUS PERMIT NO : ${prevPermitNo}`);
-    } else {
-      setSummaryRemarks("PREVIOUS PERMIT NO :");
-    }
+    const text =
+      prevPermitNo && prevPermitNo.trim() !== ""
+        ? `PREVIOUS PERMIT NO : ${prevPermitNo}`
+        : "PREVIOUS PERMIT NO :";
+
+    setShowPermit(true);
+    setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + text);
   };
 
   const showExRate = () => {
@@ -352,13 +360,17 @@ function Summary({ setActiveTab, isViewMode }) {
           `CURRENCY : ${cur} , EXCHANGE RATE : ${grouped[cur].toFixed(6)}`,
       )
       .join("\n");
+
     setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + exRateText);
+    setExRateAdded(true);
   };
 
   const summaryConfigBtnFunction = () => {
     setFormatRemark("");
     setSummaryRemarks((prev) => prev.replaceAll("\n", formatRemark));
   };
+
+  const [exRateAdded, setExRateAdded] = useState(false);
 
   // ── Time Handler ─────────────────────────────────────────────────────────
   const handleTimeBlur = (val) => {
@@ -400,6 +412,33 @@ function Summary({ setActiveTab, isViewMode }) {
       summary: [],
     };
     let isValid = true;
+
+    // ── FREIGHT FORWARDER <-> HAWB CROSS VALIDATION (HAWB only) ─────────
+setShowFreightForwarderMandatoryError(false);
+setShowCargoHawbMandatoryError(false);
+
+const isHawbMode = outTransportMode === "4 : Air" || !outTransportMode; // matches getOutCargoLabel()
+const hasFreightForwarder =
+  freightForwarderCode && freightForwarderCode.trim() !== "";
+const hasCargoHawb = outCargoHawb && outCargoHawb.trim() !== "";
+
+if (isHawbMode) {
+  if (hasFreightForwarder && !hasCargoHawb) {
+    errors.cargo.push(
+      "OUT CARGO HAWB IS REQUIRED WHEN FREIGHT FORWARDER IS ENTERED",
+    );
+    setShowCargoHawbMandatoryError(true);
+    isValid = false;
+  }
+
+  if (hasCargoHawb && !hasFreightForwarder) {
+    errors.party.push(
+      "FREIGHT FORWARDER IS REQUIRED WHEN OUT CARGO HAWB IS ENTERED",
+    );
+    setShowFreightForwarderMandatoryError(true);
+    isValid = false;
+  }
+}
 
     // ── HEADER ──────────────────────────────────────────────────────────
     setShowDeclarationTypeError(false);
@@ -1935,7 +1974,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-2">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={showPermitFunction}
               tabIndex={1}
             >
@@ -1945,9 +1984,15 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={showExRate}
-              tabIndex={2}
+              tabIndex={4}
+              disabled={exRateAdded}
+              style={
+                exRateAdded
+                  ? { opacity: 0.5, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               EX. RATE
             </button>
@@ -1965,7 +2010,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={summaryConfigBtnFunction}
               tabIndex={4}
             >
@@ -1988,7 +2033,7 @@ function Summary({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <div className="col-sm-12">
             <textarea
-              className="form-control summary-remarks-textarea"
+              className="summary-remarks-textarea"
               value={summaryRemarks}
               tabIndex={6}
               onChange={(e) => setSummaryRemarks(e.target.value)}
@@ -2037,7 +2082,6 @@ function Summary({ setActiveTab, isViewMode }) {
                 value={summaryDeclaringFor}
                 tabIndex={8}
                 onChange={(e) => setSummaryDeclaringFor(e.target.value)}
-         
               >
                 <option value="">--Select--</option>
 
@@ -2209,7 +2253,6 @@ function Summary({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-       
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >
@@ -2276,7 +2319,11 @@ function Summary({ setActiveTab, isViewMode }) {
             NEXT
           </button>
         ) : (
-          <button className="NextpageBtns" tabIndex={10} onClick={handleSavePermit}>
+          <button
+            className="NextpageBtns"
+            tabIndex={10}
+            onClick={handleSavePermit}
+          >
             SAVE
           </button>
         )}

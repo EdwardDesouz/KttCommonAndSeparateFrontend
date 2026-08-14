@@ -127,7 +127,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
     setHandlingAgentCruei,
     setHandlingAgentName,
     setHandlingAgentName1,
-
+    setShowHandlingAgent,
     // Cargo
     setContainers,
     setInwardTransport,
@@ -230,7 +230,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
     setCargoOutwardTransportMode,
     setSummaryImporterCruei,
     setSummaryImporterName,
-
+setShowSeaStore,
     // Summary
     setSummaryCrossReference,
     setSummaryRemarks,
@@ -407,82 +407,39 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       const decTypeValue = d.DeclarationType || "";
       setDecType(decTypeValue);
       console.log("declaration type from API:", d.DeclarationType);
-      // RESET all declaration-driven visibility first
-      setShowOutItemHawbHbl(false);
-      setShowExhibitionStartDate(false);
-      setShowLoadingPort(true);
-      setShowExhibition(false);
-      setShowExhibitionEndDate(false);
-      setShowInwardMode(false);
+
+      // RESET — mirrors Header.jsx's DeclarationChange()
       setShowInwardTransport(true);
       setShowOutwardTransport(false);
-      setShowClaimantPartyShow(false);
-      setShowCongineeShow(true);
-      setShowExporter(false);
+      setShowPartyImporter(false);
+      setShowInwardCarrier(false);
       setShowOutwardCarrier(false);
-      setShowStorageLocation(true);
-      setShowInHawbInward(false);
+      setShowHandlingAgent(true);
 
-      if (
-        decTypeValue ===
-        "BKT : BLANKET [INCLUDING BLANKET GST RELIEF (& DUTY EXEMPTION)]"
-      ) {
-        setShowLoadingPort(false);
-        setShowExhibitionStartDate(true);
-        setShowInHawbInward(false);
-        setShowExhibition(true);
+
+      if (decTypeValue === "BRE : BLANKET REMOVAL") {
+        setShowPartyImporter(true);
         setShowInwardTransport(false);
-        setShowCongineeShow(false);
-        setShowClaimantPartyShow(true);
-      } else if (decTypeValue === "DES : DESTRUCTION") {
-        setShowInHawbInward(true);
-      } else if (decTypeValue === "APS : APPROVED PREMISES/SCHEMES") {
-        // no extra toggles
-      } else if (
-        decTypeValue === "TCI : TEMPORARY EXPORT / RE-IMPORTED GOODS"
-      ) {
         setShowOutwardTransport(false);
+        setShowHandlingAgent(false);
+      } else if (decTypeValue === "IGM : INTER-GATEWAY MOVEMENT") {
+        setShowPartyImporter(true);
+        setShowOutwardCarrier(true);
+        setShowInwardCarrier(true);
+        setShowOutwardTransport(true);
+        setShowHandlingAgent(false);
+      } else if (decTypeValue === "REM : REMOVAL") {
+        setShowPartyImporter(true);
+        setShowOutwardTransport(false);
+        setShowHandlingAgent(false);
       } else if (
-        decTypeValue ===
-          "TCE : TEMPORARY IMPORT FOR EXHIBITION/AUCTIONS WITHOUT SALES" ||
-        decTypeValue === "TCO : TEMPORARY IMPORT FOR OTHER PURPOSES" ||
-        decTypeValue === "TCR : TEMPORARY IMPORT FOR REPAIRS" ||
-        decTypeValue ===
-          "TCS : TEMPORARY IMPORT FOR EXHIBITION/AUCTIONS WITH SALES"
+        decTypeValue === "TTF : THRU TRANSHIPMENT WITHIN SAME FTZ" ||
+        decTypeValue === "TTI : THRU TRANSHIPMENT WITH INTER-GATEWAY MOVEMENT"
       ) {
-        setShowCongineeShow(false);
-        setShowInwardMode(true);
-        setShowExhibition(true);
-        setShowExhibitionStartDate(true);
-        setShowExhibitionEndDate(true);
-      } else if (decTypeValue === "REX : FOR RE-EXPORT") {
-        setShowOutItemHawbHbl(true);
-        setShowOutwardTransport(true);
-        setShowExporter(true);
+        setShowHandlingAgent(true);
         setShowOutwardCarrier(true);
-        setShowInwardMode(true);
-        setShowInHawbInward(true);
-      } else if (decTypeValue === "SFZ : STORAGE IN FTZ") {
-        setShowOutItemHawbHbl(true);
+        setShowInwardCarrier(true);
         setShowOutwardTransport(true);
-        setShowOutwardCarrier(true);
-        setShowInwardMode(true);
-      } else {
-        setShowCongineeShow(false);
-        setShowInHawbInward(true);
-        if (decTypeValue === "GTR : GST RELIEF (& DUTY EXEMPTION)") {
-          setShowClaimantPartyShow(true);
-          setShowInwardMode(true);
-        } else if (decTypeValue === "TCR : TEMPORARY IMPORT FOR REPAIRS") {
-          setShowExhibition(true);
-          setShowExhibitionStartDate(true);
-          setShowExhibitionEndDate(true);
-        } else if (decTypeValue === "SHO : SHUT-OUT") {
-          setShowInwardMode(true);
-          setShowStorageLocation(false);
-        } else {
-          setShowCongineeShow(true);
-        }
       }
 
       // Previous Permit No
@@ -527,11 +484,12 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       }
 
       // ── INWARD TRANSPORT MODE ───────────────────────────────────
+    // ── INWARD TRANSPORT MODE ───────────────────────────────────
       const transportValue = d.InwardTransportMode || "";
       setTransportMode(transportValue);
       setInwardTransport(transportValue);
 
-      // RESET inward visibility
+      // RESET inward visibility — mirrors Header.jsx's InwardTrasnPortModeChange()
       setShowVoyageNumber(false);
       setShowVesselName(false);
       setShowOblNumber(false);
@@ -541,16 +499,22 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       setShowAirCraftRegNumber(false);
       setShowMawbNumber(false);
       setShowNotRequired(true);
-      setShowInWardDetails(true);
+      setShowInWardDetails(false);
       setShowInwardTransport(true);
       setShowPartyImporter(false);
       setShowInwardCarrier(false);
+
+      const isThruTranshipment =
+        decTypeValue === "TTF : THRU TRANSHIPMENT WITHIN SAME FTZ" ||
+        decTypeValue === "TTI : THRU TRANSHIPMENT WITH INTER-GATEWAY MOVEMENT";
 
       if (transportValue === "" || transportValue === "--Select--") {
         setShowPartyImporter(false);
         setShowInWardDetails(false);
       } else {
-        setShowPartyImporter(true);
+        if (!isThruTranshipment) {
+          setShowPartyImporter(true);
+        }
       }
 
       if (transportValue === "1 : Sea") {
@@ -565,14 +529,14 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
         setShowInwardMode(true);
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+        setShowInwardCarrier(true);
         setShowInWardDetails(true);
       } else if (transportValue === "3 : Road") {
-        setShowInwardMode(true);
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
+        setShowInwardCarrier(true);
         setShowInWardDetails(true);
       } else if (transportValue === "4 : Air") {
-        setShowInwardMode(true);
         setShowFlightNumber(true);
         setShowAirCraftRegNumber(true);
         setShowMawbNumber(true);
@@ -586,18 +550,18 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
         setShowconveyanceNumber(true);
         setShowTransportDetails(true);
         setShowInWardDetails(true);
-        setShowInwardMode(true);
+        setShowInwardCarrier(true);
       } else if (transportValue === "N : Not Required") {
         setShowInWardDetails(false);
-        setShowNotRequired(false);
+        setShowInwardCarrier(true);
       }
 
-      // ── OUTWARD TRANSPORT MODE ──────────────────────────────────
+       // ── OUTWARD TRANSPORT MODE ──────────────────────────────────
       const outTransportValue = d.OutwardTransportMode || "";
       setOutTransportMode(outTransportValue);
       setCargoOutwardTransportMode(outTransportValue);
 
-      // RESET outward visibility
+      // RESET outward visibility — mirrors Header.jsx's OutwardTransportModeChange()
       setShowOutWardDetails(true);
       setShowOutwardCarrier(false);
       setShowOutVoyage(false);
@@ -616,6 +580,7 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
       setShowTowingVesselName(false);
       setShowNextPort(false);
       setShowLastPort(false);
+      setShowSeaStore(true);
       setOutHblHawbLabel("HAWB/HBL");
 
       if (
@@ -650,6 +615,8 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
           setShowOutConveyanceNumber(true);
           setShowOutTransportDetails(true);
           setOutHblHawbLabel("HBL");
+          setShowSeaStore(false);
+          setShowOutwardCarrier(true);
         } else if (outTransportValue === "4 : Air") {
           setShowOutHblHawb(true);
           setShowOutFlightNumber(true);
@@ -657,10 +624,12 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
           setShowOutMawb(true);
           setOutHblHawbLabel("HAWB");
           setShowOutwardCarrier(true);
+          setShowSeaStore(false);
         }
       } else if (outTransportValue === "N : Not Required") {
         setShowOutWardDetails(false);
       }
+
       setCoType(d.COType || "");
       const coTypeValue = d.COType || "";
       setShowCertificateOfOrgin(false);

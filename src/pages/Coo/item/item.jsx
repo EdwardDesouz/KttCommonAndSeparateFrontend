@@ -291,7 +291,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   useEffect(() => {
     if (editingSNo !== null) {
-      const el = document.getElementById("ItemHawbNo");
+      const el = document.getElementById("ITEMNUMBER");
       if (el) {
         el.focus();
         el.select();
@@ -2084,7 +2084,7 @@ function Item({ setActiveTab, isViewMode }) {
     setOutHawb(item.OutHAWBOBL || "");
 
     // Dutiable
- setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2123,7 +2123,7 @@ function Item({ setActiveTab, isViewMode }) {
     setImmostPackQuantity(item.ImPQty || 0);
     setImmostPackQuantityUom(item.ImPUOM || "");
 
-// Duty
+    // Duty
     setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
@@ -2154,7 +2154,7 @@ function Item({ setActiveTab, isViewMode }) {
         : null,
     );
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2169,7 +2169,7 @@ function Item({ setActiveTab, isViewMode }) {
       setManuDate("");
     }
 
-  setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
 
@@ -2259,8 +2259,7 @@ function Item({ setActiveTab, isViewMode }) {
     setCifFob(recalcCif.toFixed(2));
   };
 
-
-    // ---------------------------COPY ITEM -----------------
+  // ---------------------------COPY ITEM -----------------
 
   const copyItem = async (itemNo) => {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
@@ -2292,7 +2291,7 @@ function Item({ setActiveTab, isViewMode }) {
     setOutHawb(item.OutHAWBOBL || "");
 
     // Dutiable
- setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2331,7 +2330,7 @@ function Item({ setActiveTab, isViewMode }) {
     setImmostPackQuantity(item.ImPQty || 0);
     setImmostPackQuantityUom(item.ImPUOM || "");
 
-// Duty
+    // Duty
     setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
@@ -2362,7 +2361,7 @@ function Item({ setActiveTab, isViewMode }) {
         : null,
     );
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2377,10 +2376,10 @@ function Item({ setActiveTab, isViewMode }) {
       setManuDate("");
     }
 
-  setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
-     
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2469,9 +2468,9 @@ function Item({ setActiveTab, isViewMode }) {
 
   //------------------------Decimel helper------------------------
   const fmt = (val, decimals = 2) => {
-  const num = parseFloat(val);
-  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
-};
+    const num = parseFloat(val);
+    return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
     // ---------------- BASIC DETAILS ----------------
@@ -3102,6 +3101,10 @@ function Item({ setActiveTab, isViewMode }) {
       alert("No previous item found.");
     }
   };
+
+  const sortedItemTable = useMemo(() => {
+    return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
+  }, [itemTable]);
 
   // ===================== SAVE AS DRAFT =====================
   const [showDraftModal, setShowDraftModal] = useState(false);
@@ -4424,24 +4427,27 @@ function Item({ setActiveTab, isViewMode }) {
             </thead>
 
             <tbody>
-              {itemTable.length === 0 ? (
+              {sortedItemTable.length === 0 ? (
                 <tr>
                   <td colSpan={14} style={{ textAlign: "center" }}>
                     No Record
                   </td>
                 </tr>
               ) : (
-                itemTable.map((item, index) => {
+                sortedItemTable.map((item, index) => {
                   const hsRow = hsCodeSuggestions.find(
                     (h) =>
                       h.HSCode?.toLowerCase() === item.HSCode?.toLowerCase(),
                   );
-                  const isControlled = hsRow?.Out === "1";
-
+                  const isControlled = hsRow?.Co === "1";
+                  const cellStyle = {
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  };
                   return (
                     <tr
                       key={item.SNo}
-                      style={{ color: isControlled ? "red" : "inherit" }}
+                      // style={{ color: isControlled ? "red" : "inherit" }}
                     >
                       {!isViewMode && (
                         <td>
@@ -4466,27 +4472,27 @@ function Item({ setActiveTab, isViewMode }) {
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-<td>{item.ItemNo}</td>
-                      <td>{item.HSCode}</td>
-                      <td>{item.Description}</td>
-                      <td>{item.Contry}</td>
-                      <td>{item.UnitPriceCurrency}</td>
-                      <td>{fmt(item.CIFFOB, 2)}</td>
-                      <td>{fmt(item.HSQty, 4)}</td>
-                      <td>{item.HSUOM}</td>
-                      <td>{fmt(item.TotalLineAmount, 2)}</td>
-                      <td>{fmt(item.CerItemQty, 2)}</td>
-                      <td>{item.CerItemUOM}</td>
-                      <td>{fmt(item.CIFValOfCer, 2)}</td>
-                                         <td>
-                                            <FaPlus
-                                              className="view-show"
-                                              style={{ width: "30px", cursor: "pointer" }}
-                                              className="AddContainerBtn"
-                                              onClick={() => copyItem(item.ItemNo)}
-                                            />
-                                          </td>
-                                        </tr>
+                      <td style={cellStyle}>{item.ItemNo}</td>
+                      <td style={cellStyle}>{item.HSCode}</td>
+                      <td style={cellStyle}>{item.Description}</td>
+                      <td style={cellStyle}>{item.Contry}</td>
+                      <td style={cellStyle}>{item.UnitPriceCurrency}</td>
+                      <td style={cellStyle}>{fmt(item.CIFFOB, 2)}</td>
+                      <td style={cellStyle}>{fmt(item.HSQty, 4)}</td>
+                      <td style={cellStyle}>{item.HSUOM}</td>
+                      <td style={cellStyle}>{fmt(item.TotalLineAmount, 2)}</td>
+                      <td style={cellStyle}>{fmt(item.CerItemQty, 2)}</td>
+                      <td style={cellStyle}>{item.CerItemUOM}</td>
+                      <td style={cellStyle}>{fmt(item.CIFValOfCer, 2)}</td>
+                      <td style={cellStyle}>
+                        <FaPlus
+                          className="view-show"
+                          style={{ width: "30px", cursor: "pointer" }}
+                          className="AddContainerBtn"
+                          onClick={() => copyItem(item.ItemNo)}
+                        />
+                      </td>
+                    </tr>
                   );
                 })
               )}

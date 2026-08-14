@@ -51,6 +51,10 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeDescription,
     hsCodeRow,
     setHsCodeRow,
+            hsCodeSuggestions,
+setHsCodeSuggestions,
+filteredHsCodeSuggestions,
+setFilteredHsCodeSuggestions,
     countryCode,
     setCountryCode,
     countryDescription,
@@ -327,10 +331,10 @@ function Item({ setActiveTab, isViewMode }) {
   // const [hsCode, setHsCode] = useState("");
   // const [hsCodeDescription, setHsCodeDescription] = useState("");
   const [hsCodeDescriptionError, setHsCodeDescriptioError] = useState(false);
-  const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
-  const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
-    [],
-  );
+  // const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
+  // const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
+  //   [],
+  // );
   const [showHscodeDropdown, setShowHsCodeDropdown] = useState(false);
   const [highlightedHsCodeIndex, setHighlightedHsCodeIndex] = useState(0);
   const [hsCodeError, setHsCodeError] = useState(false);
@@ -1175,7 +1179,7 @@ function Item({ setActiveTab, isViewMode }) {
       }
 
       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
-        if (itemqty > totalGrossWeight) {
+         if (Number(itemqty) > Number(totalGrossWeight)) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
           );
@@ -1186,7 +1190,7 @@ function Item({ setActiveTab, isViewMode }) {
         setHsQuantity(total);
       }
 
-      if (itemqty != "0.00" || hsQuantity != "") {
+      if (Number(itemqty) !== 0 && hsQuantity !== "") {
         setHsQuantity(total);
       }
     }
@@ -1762,21 +1766,43 @@ function Item({ setActiveTab, isViewMode }) {
   };
 
   // ----------------------- PREFERENTIAL CODE Out Function ---------------------------
-  const itemPreferntialCodeOut = (value) => {
+  // const itemPreferntialCodeOut = (value) => {
+  //   console.log("PreferentialCode:", value);
+
+  //   if (value == "PRF : if goods are imported under preferential duty rates") {
+  //     setCustomsDutyRate(0);
+  //     setCustomsDutyUom("--Select--");
+  //     setCustomsDutyAmount(0);
+  //   }
+  //   // else if (
+  //   //   value == "PRI : if goods exported qualify for overseas preferential rates"
+  //   // ) {
+  //   //   setCustomsDutyRate(0);
+  //   //   setCustomsDutyUom();
+  //   //   setCustomsDutyAmount(0.0);
+  //   // }
+  //   dutiableQtyFunction();
+  // };
+
+    const itemPreferntialCodeOut = (value) => {
     console.log("PreferentialCode:", value);
 
-    if (value == "PRF : if goods are imported under preferential duty rates") {
-      setCustomsDutyRate(0);
+    if (value === "PRF : if goods are imported under preferential duty rates") {
+      setCustomsDutyRate("0.00");
       setCustomsDutyUom("--Select--");
-      setCustomsDutyAmount(0);
+      setCustomsDutyAmount("0.00");
+    } else {
+      if (hsCodeRow) {
+        const restoredRate = hsCodeRow.Customsdutyrate || 0;
+        const restoredUom =
+          hsCodeRow.Customsdutyuom == 0
+            ? "--Select--"
+            : hsCodeRow.Customsdutyuom;
+
+        setCustomsDutyRate(restoredRate);
+        setCustomsDutyUom(restoredUom);
+      }
     }
-    // else if (
-    //   value == "PRI : if goods exported qualify for overseas preferential rates"
-    // ) {
-    //   setCustomsDutyRate(0);
-    //   setCustomsDutyUom();
-    //   setCustomsDutyAmount(0.0);
-    // }
     dutiableQtyFunction();
   };
   // ----------------------- Last Selling Price Function ---------------------------
@@ -2395,7 +2421,7 @@ function Item({ setActiveTab, isViewMode }) {
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
 
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2406,7 +2432,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
     setEngineCapacityUom(item.EngineCapUOM || "");
     setOriginalRegistrationDate(item.orignaldatereg || "");
     //  ----------------------------------------------
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2450,7 +2476,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2484,7 +2510,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setShippingMarks2(item.ShippingMarks2 || "");
     setShippingMarks3(item.ShippingMarks3 || "");
     setShippingMarks4(item.ShippingMarks4 || "");
-setOptionalCharges(fmt(item.Optioncahrge, 2));
+    setOptionalCharges(fmt(item.Optioncahrge, 2));
     // setOptionlAmount(item.OptionalSumtotal || 0);
     setSelectedCurrency(
       item.OptionalChrgeUOM
@@ -2552,12 +2578,12 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
   };
 
   // -----------------------------COPY ITEM---------------
-    const copyItem = async (itemNo) => {
+  const copyItem = async (itemNo) => {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
     if (!item) return;
     const permitId = permitDetails?.PermitId;
     // setSerialNumber(item.ItemNo?.toString().padStart(3));
-   const selectedHs = hsCodeSuggestions.find(
+    const selectedHs = hsCodeSuggestions.find(
       (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
     );
     if (selectedHs) {
@@ -2576,7 +2602,7 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
 
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2587,7 +2613,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
     setEngineCapacityUom(item.EngineCapUOM || "");
     setOriginalRegistrationDate(item.orignaldatereg || "");
     //  ----------------------------------------------
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2631,7 +2657,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2665,7 +2691,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setShippingMarks2(item.ShippingMarks2 || "");
     setShippingMarks3(item.ShippingMarks3 || "");
     setShippingMarks4(item.ShippingMarks4 || "");
-setOptionalCharges(fmt(item.Optioncahrge, 2));
+    setOptionalCharges(fmt(item.Optioncahrge, 2));
     // setOptionlAmount(item.OptionalSumtotal || 0);
     setSelectedCurrency(
       item.OptionalChrgeUOM
@@ -2732,11 +2758,11 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
     }
   };
 
-    //------------------------Decimel helper------------------------
+  //------------------------Decimel helper------------------------
   const fmt = (val, decimals = 2) => {
-  const num = parseFloat(val);
-  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
-};
+    const num = parseFloat(val);
+    return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
 
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
@@ -3396,11 +3422,14 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
   };
 
   // ==================Delete hawb from all items when hawb deleted from header==================
-  const deleteHblHawb = async () => {
+   const deleteHblHawb = async () => {
     const permitId = permitDetails?.PermitId;
+    let commonCleared = false;
+
     try {
       await API.delete(`/deleteHawbByPermitId/${permitId}/`);
-      alert("All HAWB/HBL cleared successfully");
+      commonCleared = true;
+
       setItemTable((prev) =>
         prev.map((item) => ({
           ...item,
@@ -3408,9 +3437,22 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
           OutHAWBOBL: "",
         })),
       );
+
+      await API.delete(`innonpayment/deleteInHawbByPermitId/${permitId}/`);
+
+      // alert("All HAWB/HBL cleared successfully from both tables");
     } catch (error) {
       console.error(error);
-      alert("Failed to clear HAWB/HBL");
+
+      if (commonCleared) {
+        alert(
+          "Warning: HAWB/HBL was cleared in CommonItemDtl but FAILED to clear in ItemDtl. " +
+            "Please contact support or retry.\n\n" +
+            `Error: ${error.response?.data?.error || error.message}`,
+        );
+      } else {
+        alert("Failed to clear HAWB/HBL");
+      }
     }
   };
 
@@ -3462,6 +3504,10 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
       alert("No previous item found.");
     }
   };
+
+  const sortedItemTable = useMemo(() => {
+    return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
+  }, [itemTable]);
 
   // ===================== SAVE AS DRAFT =====================
   const [showDraftModal, setShowDraftModal] = useState(false);
@@ -4991,6 +5037,7 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
                     placeholder="0.00"
                     className="inputStyle"
                     value={cifFob}
+                    onChange={(e)=>setCifFob(e.target.value)}
                   />
                 </div>
               </div>
@@ -5756,7 +5803,7 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
             </thead>
 
             <tbody>
-              {itemTable.length === 0 ? (
+              {sortedItemTable.length === 0 ? (
                 <tr>
                   <td
                     colSpan={isViewMode ? 13 : 14}
@@ -5766,12 +5813,16 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
                   </td>
                 </tr>
               ) : (
-                itemTable.map((item, index) => {
+                sortedItemTable.map((item, index) => {
                   const hsRow = hsCodeSuggestions.find(
                     (h) =>
                       h.HSCode?.toLowerCase() === item.HSCode?.toLowerCase(),
                   );
                   const isControlled = hsRow?.InnonPayment === "1";
+                  const cellStyle = {
+                    textTransform: "uppercase",
+                    fontWeight: "bold",
+                  };
 
                   return (
                     <tr
@@ -5801,19 +5852,19 @@ setOptionalCharges(fmt(item.Optioncahrge, 2));
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-<td>{item.ItemNo}</td>
-                      <td>{item.HSCode}</td>
-                      <td>{item.Description}</td>
-                      <td>{item.Contry}</td>
-                      <td>{item.InHAWBOBL}</td>
-                      <td>{item.OutHAWBOBL}</td>
-                      <td>{item.UnitPriceCurrency}</td>
-                      <td>{fmt(item.CIFFOB, 2)}</td>
-                      <td>{fmt(item.HSQty, 4)}</td>
-                      <td>{item.HSUOM}</td>
-                      <td>{fmt(item.GSTAmount, 2)}</td>
-                      <td>{fmt(item.TotalLineAmount, 2)}</td>
-                      <td>
+                      <td style={cellStyle}>{item.ItemNo}</td>
+                      <td style={cellStyle}>{item.HSCode}</td>
+                      <td style={cellStyle}>{item.Description}</td>
+                      <td style={cellStyle}>{item.Contry}</td>
+                      <td style={cellStyle}>{item.InHAWBOBL}</td>
+                      <td style={cellStyle}>{item.OutHAWBOBL}</td>
+                      <td style={cellStyle}>{item.UnitPriceCurrency}</td>
+                      <td style={cellStyle}>{fmt(item.CIFFOB, 2)}</td>
+                      <td style={cellStyle}>{fmt(item.HSQty, 4)}</td>
+                      <td style={cellStyle}>{item.HSUOM}</td>
+                      <td style={cellStyle}>{fmt(item.GSTAmount, 2)}</td>
+                      <td style={cellStyle}>{fmt(item.TotalLineAmount, 2)}</td>
+                      <td style={cellStyle}>
                         <FaPlus
                           className="view-show"
                           style={{ width: "30px", cursor: "pointer" }}

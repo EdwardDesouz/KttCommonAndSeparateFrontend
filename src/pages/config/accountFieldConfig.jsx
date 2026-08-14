@@ -11,6 +11,9 @@ export const ACCOUNT_FIELD_CONFIG = {
   LOGWIN: {
     showDeclaringFor: false,
   },
+  SGL: {
+    showDeclaringFor: false,
+  },
   DEFAULT: {
     showDeclaringFor: true,
   },

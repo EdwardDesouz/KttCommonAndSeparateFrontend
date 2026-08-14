@@ -540,13 +540,28 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
     setShowPartyImporter(false);
     setShowInwardCarrier(false);
 
+    // if (value === "" || value === "--Select--") {
+    //   setShowInwardTransportError(true);
+    //   setShowPartyImporter(false);
+    //   setShowInWardDetails(false);
+    // } else {
+    //   setShowInwardTransportError(false);
+    //   setShowPartyImporter(true);
+    // }
+
+    const isThruTranshipment =
+      decType === "TTF : THRU TRANSHIPMENT WITHIN SAME FTZ" ||
+      decType === "TTI : THRU TRANSHIPMENT WITH INTER-GATEWAY MOVEMENT";
+
     if (value === "" || value === "--Select--") {
       setShowInwardTransportError(true);
       setShowPartyImporter(false);
       setShowInWardDetails(false);
     } else {
       setShowInwardTransportError(false);
-      setShowPartyImporter(true);
+      if (!isThruTranshipment) {
+        setShowPartyImporter(true);
+      }
     }
 
     console.log("Selected Inward Transport Mode:", value);
@@ -1153,7 +1168,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
             <select
               className="Dropdown HighLight mandatory"
               id="declarationType"
-          
               value={decType}
               // onChange={(e) => setDecType(e.target.value)}
               tabIndex={1}
@@ -1184,7 +1198,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
             <input
               type="text"
               className="form-control"
-            tabIndex={2}
+              tabIndex={2}
               value={prevPermitNo}
               onChange={(e) => setPrevPermitNo(e.target.value)}
             />
@@ -1197,7 +1211,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
           <div className="col-sm-8">
             <select
               className="Dropdown HighLight mandatory"
-           tabIndex={3}
+              tabIndex={3}
               value={cargo}
               onChange={CargoPackTypeChange}
             >
@@ -1231,7 +1245,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                 className="Dropdown HighLight mandatory"
                 value={transportMode}
                 onChange={InwardTrasnPortModeChange}
-               tabIndex={4}
+                tabIndex={4}
               >
                 <option value="">--Select--</option>
                 {transportMode &&
@@ -1292,7 +1306,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
           </div>
         )}
 
-
         {/* DECLARING FOR */}
         {fieldConfig.showDeclaringFor && (
           <div className="row align-items-center compact-row">
@@ -1306,7 +1319,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                   setDeclFor(e.target.value);
                   if (e.target.value) setShowDeclaringForError(false);
                 }}
-             
               >
                 <option value="">--Select--</option>
                 {declFor && !declaringFor.find((d) => d.Name === declFor) && (
@@ -1336,7 +1348,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               value={bgInd}
               onChange={(e) => setBgInd(e.target.value)}
               tabIndex={7}
-          
             >
               <option value="">--Select--</option>
               {bgInd && !bgIndicator.find((b) => b.Name === bgInd) && (
@@ -1375,7 +1386,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
               checked={supplyInd}
               tabIndex={9}
               onChange={(e) => setSupplyInd(e.target.checked)}
-          
             />
           </div>
         </div>
@@ -1702,7 +1712,11 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
                 </div>
 
                 <div className="col-2">
-                  <button className="NextpageBtns" tabIndex={21} onClick={handleAttach}>
+                  <button
+                    className="NextpageBtns"
+                    tabIndex={21}
+                    onClick={handleAttach}
+                  >
                     ATTACH
                   </button>
                 </div>
@@ -1765,8 +1779,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
           </fieldset>
         )}
       </div>
-
-   
 
       {isViewMode && permitConditions && (
         <div className="col-12 mt-3">
@@ -1947,7 +1959,6 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-         
           id="HeaderSaveDraft"
           onClick={handleSaveAsDraftClick}
           tabIndex={22}

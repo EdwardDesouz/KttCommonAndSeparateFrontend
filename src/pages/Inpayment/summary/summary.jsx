@@ -50,6 +50,10 @@ function Summary({ setActiveTab, isViewMode }) {
     setShowInwardNameError,
     freightForwarderCode,
     claimantCode,
+        showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
     // Cargo
     cargoHawb,
     arrivalDate,
@@ -216,11 +220,10 @@ function Summary({ setActiveTab, isViewMode }) {
     0,
   );
 
-
   const totalInvoiceGstAmount = invoiceTable.reduce(
-  (sum, inv) => sum + (parseFloat(inv.GSTSUMAmount) || 0),
-  0,
-);
+    (sum, inv) => sum + (parseFloat(inv.GSTSUMAmount) || 0),
+    0,
+  );
 
   const sumOfExciseDutyAmount = itemTable.reduce(
     (sum, item) => sum + (parseFloat(item.ExciseDutyAmount) || 0),
@@ -291,12 +294,13 @@ function Summary({ setActiveTab, isViewMode }) {
 
   // ── Remark Helpers ───────────────────────────────────────────────────────
   const showPermitFunction = () => {
-    if (prevPermitNo && prevPermitNo.trim() !== "") {
-      setShowPermit(true);
-      setSummaryRemarks(`PREVIOUS PERMIT NO : ${prevPermitNo}`);
-    } else {
-      setSummaryRemarks("PREVIOUS PERMIT NO :");
-    }
+    const text =
+      prevPermitNo && prevPermitNo.trim() !== ""
+        ? `PREVIOUS PERMIT NO : ${prevPermitNo}`
+        : "PREVIOUS PERMIT NO :";
+
+    setShowPermit(true);
+    setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + text);
   };
 
   const showExRate = () => {
@@ -312,13 +316,17 @@ function Summary({ setActiveTab, isViewMode }) {
           `CURRENCY : ${cur} , EXCHANGE RATE : ${grouped[cur].toFixed(6)}`,
       )
       .join("\n");
+
     setSummaryRemarks((prev) => prev + (prev ? "\n" : "") + exRateText);
+    setExRateAdded(true);
   };
 
   const summaryConfigBtnFunction = () => {
     setFormatRemark("");
     setSummaryRemarks((prev) => prev.replaceAll("\n", formatRemark));
   };
+
+  const [exRateAdded, setExRateAdded] = useState(false);
 
   // ── Time Handler ─────────────────────────────────────────────────────────
   const handleTimeBlur = (val) => {
@@ -360,6 +368,11 @@ function Summary({ setActiveTab, isViewMode }) {
       summary: [],
     };
     let isValid = true;
+
+    // _______FREIGHT FORWARDER CARGO HAWB_________________________________
+    
+
+
 
     // ── HEADER ──────────────────────────────────────────────────────────
     setShowDeclarationTypeError(false);
@@ -532,6 +545,32 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
+     // ── FREIGHT FORWARDER <-> HAWB CROSS VALIDATION ─────────────────────
+    setShowFreightForwarderMandatoryError(false);
+    setShowCargoHawbMandatoryError(false);
+
+    const isHawbMode = transportMode === "4 : Air" || !transportMode; // matches getCargoLabel() logic
+    const hasFreightForwarder =
+      freightForwarderCode && freightForwarderCode.trim() !== "";
+    const hasCargoHawb = cargoHawb && cargoHawb.trim() !== "";
+
+    if (isHawbMode) {
+      if (hasFreightForwarder && !hasCargoHawb) {
+        errors.cargo.push(
+          "CARGO HAWB IS REQUIRED WHEN FREIGHT FORWARDER IS ENTERED",
+        );
+        setShowCargoHawbMandatoryError(true);
+        isValid = false;
+      }
+
+      if (hasCargoHawb && !hasFreightForwarder) {
+        errors.party.push(
+          "FREIGHT FORWARDER IS REQUIRED WHEN CARGO HAWB IS ENTERED",
+        );
+        setShowFreightForwarderMandatoryError(true);
+        isValid = false;
+      }
+    }
     // ── INVOICE ──────────────────────────────────────────────────────────
     if (invoiceTable.length < 1) {
       errors.invoice.push("PLEASE ADD AT LEAST ONE INVOICE");
@@ -1741,7 +1780,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-2">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               tabIndex={3}
               onClick={showPermitFunction}
             >
@@ -1751,9 +1790,15 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={showExRate}
               tabIndex={4}
+              disabled={exRateAdded}
+              style={
+                exRateAdded
+                  ? { opacity: 0.5, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               EX. RATE
             </button>
@@ -1771,7 +1816,7 @@ function Summary({ setActiveTab, isViewMode }) {
           <div className="col-sm-1">
             <button
               type="button"
-              className="ButtonClick SaveContainer"
+              className="StdBtns"
               onClick={summaryConfigBtnFunction}
               tabIndex={6}
             >
@@ -1794,7 +1839,7 @@ function Summary({ setActiveTab, isViewMode }) {
         <div className="row align-items-center compact-row">
           <div className="col-sm-12">
             <textarea
-              className="form-control summary-remarks-textarea"
+              className="summary-remarks-textarea"
               value={summaryRemarks}
               tabIndex={8}
               onChange={(e) => setSummaryRemarks(e.target.value)}
@@ -1882,7 +1927,8 @@ function Summary({ setActiveTab, isViewMode }) {
               <div className="row">
                 <div className="col-6">IMPORTER</div>
                 <div className="col-6">
-                  {summaryImporterCruei.toUpperCase()}-{summaryImporterName.toUpperCase()}
+                  {summaryImporterCruei.toUpperCase()}-
+                  {summaryImporterName.toUpperCase()}
                 </div>
               </div>
             </div>
@@ -1899,7 +1945,12 @@ function Summary({ setActiveTab, isViewMode }) {
                 <div className="col-6">MAWB/OBL</div>
                 <div className="col-6">
                   {" "}
-                  {(showMawbNumber ? mawbNumber : showOblNumber ? obl : "").toUpperCase()}
+                  {(showMawbNumber
+                    ? mawbNumber
+                    : showOblNumber
+                      ? obl
+                      : ""
+                  ).toUpperCase()}
                 </div>
               </div>
             </div>

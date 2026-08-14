@@ -207,6 +207,10 @@ function Cargo({ setActiveTab, isViewMode }) {
     setShowHawbDuplicateError,
     hawbDuplicateMessage,
     setHawbDuplicateMessage,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
     // EXISTING STATES FOR SAVE AS DRAFT
     decType,
     prevPermitNo,
@@ -920,9 +924,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const saveContainer = async (container) => {
     const rowNo = getRowNo(container);
-    const regex = /^[A-Za-z]{4}\d{7}$/;
+    // const regex = /^[A-Za-z]{4}\d{7}$/;
     if (
-      !regex.test(container.number) ||
+      !container.number ||
       !container.sizeType ||
       container.sizeType === "--Select--" ||
       !container.weight ||
@@ -1699,17 +1703,30 @@ function Cargo({ setActiveTab, isViewMode }) {
                   {showHawbDuplicateError && (
                     <span className="ErrorColor">{hawbDuplicateMessage}</span>
                   )}
+                  {showCargoHawbMandatoryError && (
+                    <span className="ErrorColor">
+                      Cargo HAWB/HBL is required when Freight Forwarder is
+                      entered.
+                    </span>
+                  )}
                   <input
                     type="text"
                     id="CargoHbl"
                     tabIndex={11}
-                    className={`form-control ${showHawbDuplicateError ? "is-invalid" : ""}`}
+                    className={
+                      showHawbDuplicateError || showCargoHawbMandatoryError
+                        ? "form-control-mandatory is-invalid"
+                        : "form-control"
+                    }
                     value={cargoHawb}
                     onChange={(e) => {
                       updateCargoHawb(e.target.value);
                       if (showHawbDuplicateError) {
                         setShowHawbDuplicateError(false);
                         setHawbDuplicateMessage("");
+                      }
+                      if (showCargoHawbMandatoryError) {
+                        setShowCargoHawbMandatoryError(false);
                       }
                     }}
                     onBlur={(e) => checkDuplicateHawb(e.target.value)}

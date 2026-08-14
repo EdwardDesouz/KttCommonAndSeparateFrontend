@@ -225,6 +225,8 @@ function Party({ setActiveTab, isViewMode }) {
     airCraftRegNumber,
     showMawbNumber,
     mawbNumber,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
   } = useTranshipment();
 
   useEffect(() => {
@@ -3562,15 +3564,29 @@ function Party({ setActiveTab, isViewMode }) {
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
-              className="form-control"
+              className={
+                showFreightForwarderMandatoryError
+                  ? "form-control-mandatory"
+                  : "form-control"
+              }
               tabIndex={31}
               placeholder="CODE"
               value={freightForwarderCode}
-              onChange={handleFreightForwarderChange}
+              onChange={(e) => {
+                handleFreightForwarderChange(e);
+                if (showFreightForwarderMandatoryError) {
+                  setShowFreightForwarderMandatoryError(false);
+                }
+              }}
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
             />
+            {showFreightForwarderMandatoryError && (
+              <span className="ErrorColor">
+                Freight Forwarder is required when Out Cargo HAWB is entered.
+              </span>
+            )}
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
                 <div className="dropdown-suggestions">

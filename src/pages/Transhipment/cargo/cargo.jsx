@@ -107,7 +107,6 @@ export const DateField = ({ value, setValue, tabIndex }) => {
   );
 };
 
-
 function Cargo({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -343,6 +342,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     setExhibitionStartDate,
     exhibitionEndDate,
     setExhibitionEndDate,
+    setShowHawbDuplicateError,
+    showHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
   } = useTranshipment();
 
   //  Calculate permit gross weight based on total gross weight and UOM
@@ -1531,9 +1538,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const saveContainer = async (container) => {
     const rowNo = getRowNo(container);
-    const regex = /^[A-Za-z]{4}\d{7}$/;
+    // const regex = /^[A-Za-z]{4}\d{7}$/;
     if (
-      !regex.test(container.number) ||
+      !container.number ||
       !container.sizeType ||
       container.sizeType === "--Select--" ||
       !container.weight ||
@@ -1628,6 +1635,39 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!outTransportMode) return "HAWB/HBL";
     return "HBL";
   };
+
+  const checkDuplicateHawb = async (value) => {
+    if (!value || !value.trim()) {
+      setShowHawbDuplicateError(false);
+      setHawbDuplicateMessage("");
+      return true;
+    }
+    try {
+      const response = await API.get(
+        `/checkDuplicateHawb/?HBL=${encodeURIComponent(value)}&INHAWB=${encodeURIComponent(value)}&outHAWB=${encodeURIComponent(value)}&PermitId=${permitDetails?.PermitId || ""}`,
+      );
+      if (response.data?.duplicate) {
+        setShowHawbDuplicateError(true);
+        setHawbDuplicateMessage(
+          response.data.message || "Duplicate HAWB found.",
+        );
+        return false;
+      } else {
+        setShowHawbDuplicateError(false);
+        setHawbDuplicateMessage("");
+        return true;
+      }
+    } catch (error) {
+      console.error("Error checking duplicate HAWB:", error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    if (permitDetails?.PermitId && outCargoHawb) {
+      checkDuplicateHawb(outCargoHawb);
+    }
+  }, [permitDetails?.PermitId]);
 
   // =======================SAVE AS DRAFT MODEL================
   // =======================STATES==================
@@ -2279,7 +2319,6 @@ function Cargo({ setActiveTab, isViewMode }) {
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -2819,12 +2858,32 @@ function Cargo({ setActiveTab, isViewMode }) {
                         {getOutCargoLabel()}
                       </label>
                       <div className="col-sm-7">
+                        {showHawbDuplicateError && (
+                          <span className="ErrorColor">
+                            {hawbDuplicateMessage}
+                          </span>
+                        )}
+                        {showCargoHawbMandatoryError && (
+                          <span className="ErrorColor">
+                            Out Cargo HAWB is required when Freight Forwarder is
+                            entered.
+                          </span>
+                        )}
                         <input
-                        tabIndex={29}
+                          tabIndex={29}
                           type="text"
-                          className="form-control"
+                          className={
+                            showCargoHawbMandatoryError
+                              ? "form-control-mandatory is-invalid"
+                              : "form-control"
+                          }
                           value={outCargoHawb}
-                          onChange={(e) => updateOutCargoHawb(e.target.value)}
+                          onChange={(e) => {
+                            updateOutCargoHawb(e.target.value);
+                            if (showCargoHawbMandatoryError) {
+                              setShowCargoHawbMandatoryError(false);
+                            }
+                          }}
                         />
                       </div>
                     </div>
@@ -2868,7 +2927,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <input
-                        tabIndex={31}
+                          tabIndex={31}
                           type="text"
                           className="form-control"
                           value={vesselNetRegisterTonnage}
@@ -2888,7 +2947,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <select
-                        tabIndex={32}
+                          tabIndex={32}
                           className="Dropdown"
                           value={vesselNationality}
                           onChange={(e) => setVesselNationality(e.target.value)}
@@ -3265,7 +3324,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                     <tr key={container.id}>
                       <td>
                         <input
-                        tabIndex={45}
+                          tabIndex={45}
                           type="checkbox"
                           checked={container.isChecked || false}
                           onChange={(e) =>
@@ -3307,7 +3366,6 @@ function Cargo({ setActiveTab, isViewMode }) {
                         <input
                           type="text"
                           value={index + 1}
-                       
                           disabled
                           className="inputStyle"
                           style={{ width: "50px" }}
@@ -3316,7 +3374,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <td>
                         <input
                           type="text"
-                             tabIndex={48}
+                          tabIndex={48}
                           className="inputStyle"
                           value={container.number}
                           onChange={(e) =>
@@ -3438,7 +3496,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       <div className="mt-3 d-flex justify-content-center gap-3">
         <button
           className="NextpageBtns view-nav-btn"
-tabIndex={53}
+          tabIndex={53}
           id="PartySaveDraft"
           onClick={handleSaveAsDraftClick}
         >

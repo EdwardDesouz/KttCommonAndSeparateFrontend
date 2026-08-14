@@ -65,7 +65,19 @@ const CustomDateInput = forwardRef(
   },
 );
 
-export const DateField = ({ value, setValue, tabIndex }) => {
+const addDaysToDate = (dateStr, days) => {
+  if (!dateStr || dateStr.length !== 10) return "";
+  const [dd, mm, yyyy] = dateStr.split("/");
+  const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  if (isNaN(date.getTime())) return "";
+  date.setDate(date.getDate() + days);
+  const newDay = String(date.getDate()).padStart(2, "0");
+  const newMonth = String(date.getMonth() + 1).padStart(2, "0");
+  const newYear = date.getFullYear();
+  return `${newDay}/${newMonth}/${newYear}`;
+};
+
+export const DateField = ({ value, setValue, tabIndex, onDateConfirmed }) => {
   const { error, parseDate, handleBlur, handleKeyDown } = useCargoDate();
   const dpRef = useRef(null);
 
@@ -96,7 +108,13 @@ export const DateField = ({ value, setValue, tabIndex }) => {
         className={`form-control ${error ? "is-invalid" : ""}`}
         wrapperClassName="w-100"
         onChangeRaw={(e) => setValue(e.target.value)}
-        onBlur={() => handleBlur(value, setValue, () => {})}
+        // onBlur={() => handleBlur(value, setValue, () => {})}
+        onBlur={() => {
+          handleBlur(value, setValue, () => {});
+          if (value && value.length === 10) {
+            onDateConfirmed?.(value); // fires ONLY on focusout (typed input)
+          }
+        }}
         onKeyDown={(e) => handleKeyDown(e, setValue)}
         showMonthDropdown
         showYearDropdown
@@ -184,6 +202,14 @@ function Cargo({ setActiveTab, isViewMode }) {
     setStorageLocationDescription,
     cargoHawb,
     setCargoHawb,
+    showHawbDuplicateError,
+    hawbDuplicateMessage,
+    setHawbDuplicateMessage,
+    setShowHawbDuplicateError,
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
     outCargoHawb,
     setOutCargoHawb,
     showInWardDetails,
@@ -1551,9 +1577,9 @@ function Cargo({ setActiveTab, isViewMode }) {
 
   const saveContainer = async (container) => {
     const rowNo = getRowNo(container);
-    const regex = /^[A-Za-z]{4}\d{7}$/;
+    // const regex = /^[A-Za-z]{4}\d{7}$/;
     if (
-      !regex.test(container.number) ||
+      !container.number ||
       !container.sizeType ||
       container.sizeType === "--Select--" ||
       !container.weight ||
@@ -1649,6 +1675,39 @@ function Cargo({ setActiveTab, isViewMode }) {
     if (!outTransportMode) return "HAWB/HBL";
     return "HBL";
   };
+
+  const checkDuplicateHawb = async (value) => {
+    if (!value || !value.trim()) {
+      setShowHawbDuplicateError(false);
+      setHawbDuplicateMessage("");
+      return true;
+    }
+    try {
+      const response = await API.get(
+        `/checkDuplicateHawb/?HBL=${encodeURIComponent(value)}&INHAWB=${encodeURIComponent(value)}&outHAWB=${encodeURIComponent(value)}&PermitId=${permitDetails?.PermitId || ""}`,
+      );
+      if (response.data?.duplicate) {
+        setShowHawbDuplicateError(true);
+        setHawbDuplicateMessage(
+          response.data.message || "Duplicate HAWB found.",
+        );
+        return false;
+      } else {
+        setShowHawbDuplicateError(false);
+        setHawbDuplicateMessage("");
+        return true;
+      }
+    } catch (error) {
+      console.error("Error checking duplicate HAWB:", error);
+      return true;
+    }
+  };
+
+  useEffect(() => {
+    if (permitDetails?.PermitId && cargoHawb) {
+      checkDuplicateHawb(cargoHawb);
+    }
+  }, [permitDetails?.PermitId]);
 
   // =======================SAVE AS DRAFT MODEL================
   // =======================STATES==================
@@ -2436,13 +2495,34 @@ function Cargo({ setActiveTab, isViewMode }) {
                         {getCargoLabel()}
                       </label>
                       <div className="col-sm-7">
+                        {showHawbDuplicateError && (
+                          <span className="ErrorColor">
+                            {hawbDuplicateMessage}
+                          </span>
+                        )}
+                        {showCargoHawbMandatoryError && (
+                          <span className="ErrorColor">
+                            Cargo HAWB is required when Freight Forwarder is
+                            entered.
+                          </span>
+                        )}
                         <input
                           type="text"
                           tabIndex={14}
                           id="CargoHbl"
-                          className="form-control"
+                          className={
+                            showCargoHawbMandatoryError
+                              ? "form-control-mandatory is-invalid"
+                              : "form-control"
+                          }
                           value={cargoHawb}
-                          onChange={(e) => updateCargoHawb(e.target.value)}
+                          onChange={(e) => {
+                            updateCargoHawb(e.target.value);
+                            if (showCargoHawbMandatoryError) {
+                              setShowCargoHawbMandatoryError(false);
+                            }
+                          }}
+                          onBlur={(e) => checkDuplicateHawb(e.target.value)}
                         />
                       </div>
                     </div>
@@ -3249,6 +3329,9 @@ function Cargo({ setActiveTab, isViewMode }) {
                         tabIndex={46}
                         value={exhibitionStartDate}
                         setValue={setExhibitionStartDate}
+                        onDateConfirmed={(val) => {
+                          setExhibitionEndDate(addDaysToDate(val, 180));
+                        }}
                       />
                     </div>
                   )}
