@@ -465,8 +465,8 @@ setShowCargoHawbMandatoryError,
     ) {
       if (!outTransportMode || outTransportMode === "--Select--") {
         errors.header.push("CHECK THE OUTWARD TRANSPORT MODE");
-        setShowOutwardTransportError(true);
-        isValid = false;
+        // setShowOutwardTransportError(true);
+        // isValid = false;
       }
     }
 

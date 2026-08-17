@@ -50,10 +50,10 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeDescription,
     hsCodeRow,
     setHsCodeRow,
-            hsCodeSuggestions,
-setHsCodeSuggestions,
-filteredHsCodeSuggestions,
-setFilteredHsCodeSuggestions,
+    hsCodeSuggestions,
+    setHsCodeSuggestions,
+    filteredHsCodeSuggestions,
+    setFilteredHsCodeSuggestions,
     countryCode,
     setCountryCode,
     countryDescription,
@@ -102,6 +102,12 @@ setFilteredHsCodeSuggestions,
     setTotalInvoiceCharge,
     cifFob,
     setCifFob,
+    inMawbObl,
+    setInMawbObl,
+    outMawbObl,
+    setOutMawbObl,
+    showMawbObl,
+    setShowMawbObl,
     exciseDutyRate,
     setExciseDutyRate,
     exciseDutyUom,
@@ -1144,7 +1150,7 @@ setFilteredHsCodeSuggestions,
 
   const itemInvoiceQuantityFunction = () => {
     let itemqty = invoiceQuantity;
-     if (Number(itemqty) !== 0) { 
+    if (Number(itemqty) !== 0) {
       let hsopt = hsUom;
       let total;
 
@@ -1162,7 +1168,7 @@ setFilteredHsCodeSuggestions,
         total = itemqty;
       }
 
-       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
+      if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
         if (Number(itemqty) > Number(totalGrossWeight)) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
@@ -1881,6 +1887,8 @@ setFilteredHsCodeSuggestions,
       Model: model || "",
       InHAWBOBL: (hawb || cargoHawbList[0] || "").toUpperCase(),
       OutHAWBOBL: (outHawb || outCargoHawbList[0] || "").toUpperCase(),
+      InMAWBOBL: inMawbObl || "",
+      OutMAWBOBL: outMawbObl || "",
       DutiableQty: duitableQuantity || 0,
       DutiableUOM: duitableQuantityUom || "",
       TotalDutiableQty: totalDuitableQuantity || 0,
@@ -2322,8 +2330,9 @@ setFilteredHsCodeSuggestions,
     setModel(item.Model || "");
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
-
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setInMawbObl(item.InMAWBOBL || "");
+    setOutMawbObl(item.OutMAWBOBL || "");
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2334,7 +2343,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
     setEngineCapacityUom(item.EngineCapUOM || "");
     setOriginalRegistrationDate(item.orignaldatereg || "");
 
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2379,7 +2388,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2416,7 +2425,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setOptionalCharges(item.Optioncahrge || 0);
     // setOptionlAmount(item.OptionalSumtotal || 0);
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2429,10 +2438,10 @@ setPreferentialCode(item.PreferentialCode || "");
       setManuDate(`${day}/${month}/${year}`);
     }
 
-  setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
-   
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2521,7 +2530,7 @@ setPreferentialCode(item.PreferentialCode || "");
     }
   };
 
-    // ---------------------------COPY ITEM -----------------
+  // ---------------------------COPY ITEM -----------------
 
   const copyItem = async (itemNo) => {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
@@ -2546,8 +2555,10 @@ setPreferentialCode(item.PreferentialCode || "");
     setModel(item.Model || "");
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
+    setInMawbObl(item.InMAWBOBL || "");
+    setOutMawbObl(item.OutMAWBOBL || "");
 
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2558,7 +2569,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
     setEngineCapacityUom(item.EngineCapUOM || "");
     setOriginalRegistrationDate(item.orignaldatereg || "");
 
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2603,7 +2614,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2640,7 +2651,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setOptionalCharges(item.Optioncahrge || 0);
     // setOptionlAmount(item.OptionalSumtotal || 0);
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2653,10 +2664,10 @@ setPreferentialCode(item.PreferentialCode || "");
       setManuDate(`${day}/${month}/${year}`);
     }
 
-  setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
-   
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2745,11 +2756,11 @@ setPreferentialCode(item.PreferentialCode || "");
     }
   };
 
-    //------------------------Decimel helper------------------------
+  //------------------------Decimel helper------------------------
   const fmt = (val, decimals = 2) => {
-  const num = parseFloat(val);
-  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
-};
+    const num = parseFloat(val);
+    return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
     // ---------------- BASIC DETAILS ----------------
@@ -2762,7 +2773,8 @@ setPreferentialCode(item.PreferentialCode || "");
     setModel("");
     setHawb(cargoHawbList?.[0] || "");
     setOutHawb((outCargoHawbList?.[0] || "").toUpperCase());
-
+    setInMawbObl("");
+    setOutMawbObl("");
     // ---------------- DUTIABLE ----------------
     setDuitableQuantity("");
     setDuitableQuantityUom("--Select--");
@@ -3409,9 +3421,9 @@ setPreferentialCode(item.PreferentialCode || "");
     }
   };
 
-    const sortedItemTable = useMemo(() => {
-      return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
-    }, [itemTable]);
+  const sortedItemTable = useMemo(() => {
+    return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
+  }, [itemTable]);
   // ===================== SAVE AS DRAFT =====================
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftReason, setDraftReason] = useState("");
@@ -4734,37 +4746,41 @@ setPreferentialCode(item.PreferentialCode || "");
                 </div>
               </div>
             </div>
-                        {/* CIF / FOB */}
-            {/* <div className="row mt-1">
-              <div className="row">
-                <div className="col-5">IN MAWB/OBL</div>
-                <div className="col-7">
-                  <input
-                    type="text"
-                    placeholder="0.00"
-                    className="inputStyle"
-                    value={cifFob}
-                    onChange={(e) => setCifFob(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div> */}
-                        {/* CIF / FOB */}
-            {/* <div className="row mt-1">
-              <div className="row">
-                <div className="col-5">OUT MAWB/OBL</div>
-                <div className="col-7">
-                  <input
-                    type="text"
-                    placeholder="0.00"
-                    className="inputStyle"
-                    value={cifFob}
-                    onChange={(e) => setCifFob(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div> */}
 
+            {/* IN MAWB/OBL */}
+            {showMawbObl && (
+              <div className="row mt-1">
+                <div className="row">
+                  <div className="col-5">IN MAWB/OBL</div>
+                  <div className="col-7">
+                    <input
+                      type="text"
+                      placeholder="0.00"
+                      className="inputStyle"
+                      value={inMawbObl}
+                      onChange={(e) => setInMawbObl(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* OUT MAWB/OBL */}
+            {showMawbObl && (
+              <div className="row mt-1">
+                <div className="row">
+                  <div className="col-5">OUT MAWB/OBL</div>
+                  <div className="col-7">
+                    <input
+                      type="text"
+                      placeholder="0.00"
+                      className="inputStyle"
+                      value={outMawbObl}
+                      onChange={(e) => setOutMawbObl(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
             {/* LAST SELLING PRICE */}
             {/* <div className="row mt-3">
               <div className="row">
@@ -5554,7 +5570,7 @@ setPreferentialCode(item.PreferentialCode || "");
                       h.HSCode?.toLowerCase() === item.HSCode?.toLowerCase(),
                   );
                   const isControlled = hsRow?.Out === "1";
-           const cellStyle = {
+                  const cellStyle = {
                     textTransform: "uppercase",
                     fontWeight: "bold",
                   };
@@ -5586,7 +5602,7 @@ setPreferentialCode(item.PreferentialCode || "");
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-                    <td style={cellStyle}>{item.ItemNo}</td>
+                      <td style={cellStyle}>{item.ItemNo}</td>
                       <td style={cellStyle}>{item.HSCode}</td>
                       <td style={cellStyle}>{item.Description}</td>
                       <td style={cellStyle}>{item.Contry}</td>
@@ -5597,14 +5613,14 @@ setPreferentialCode(item.PreferentialCode || "");
                       <td style={cellStyle}>{fmt(item.HSQty, 4)}</td>
                       <td style={cellStyle}>{item.HSUOM}</td>
                       <td style={cellStyle}>{fmt(item.TotalLineAmount, 2)}</td>
-                                        <td style={cellStyle}>
-                                              <FaPlus
-                                                className="view-show"
-                                                style={{ width: "30px", cursor: "pointer" }}
-                                                className="AddContainerBtn"
-                                                onClick={() => copyItem(item.ItemNo)}
-                                              />
-                                            </td>
+                      <td style={cellStyle}>
+                        <FaPlus
+                          className="view-show"
+                          style={{ width: "30px", cursor: "pointer" }}
+                          className="AddContainerBtn"
+                          onClick={() => copyItem(item.ItemNo)}
+                        />
+                      </td>
                     </tr>
                   );
                 })

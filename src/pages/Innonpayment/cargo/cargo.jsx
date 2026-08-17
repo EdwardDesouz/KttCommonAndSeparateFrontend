@@ -2701,6 +2701,26 @@ function Cargo({ setActiveTab, isViewMode }) {
                     </div>
                   </div>
 
+                                    {/* DEPARTURE DATE */}
+                  {/* {showDepartureDate && ( */}
+                  <div className="row align-items-center compact-row mt-1 mt-3">
+                    <label className="col-sm-4 col-form-label">
+                      DEPARTURE DATE
+                    </label>
+                    <DateField
+                      tabIndex={23}
+                      value={departureDate}
+                      setValue={(val) => {
+                        setDepartureDate(val);
+                        // if (val) setShowDepartureDateError(false);
+                      }}
+                    />
+                    {/* {showDepartureDateError && (
+                        <span className="ErrorColor">FILL DEPARTURE DATE</span>
+                      )} */}
+                  </div>
+                  {/* )} */}
+
                   {/* DISCHARGE PORT */}
                   {showDischargePort && (
                     <div className="row align-items-center compact-row">
@@ -2716,7 +2736,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       <div className="col-sm-2 position-relative">
                         <input
                           type="text"
-                          tabIndex={23}
+                          tabIndex={24}
                           className="form-control"
                           value={dischargePortCode}
                           onChange={handleDischargePortChange}
@@ -2772,7 +2792,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                           type="text"
                           className="form-control"
                           value={dischargePortName}
-                          tabIndex={24}
+                          tabIndex={25}
                           onChange={(e) => setDischargePortName(e.target.value)}
                           readOnly
                         />
@@ -2787,7 +2807,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                       </label>
                       <div className="col-sm-7">
                         <select
-                          tabIndex={25}
+                          tabIndex={26}
                           className="Dropdown HighLight"
                           value={finalDestinationCountry}
                           onChange={(e) =>
@@ -2816,25 +2836,7 @@ function Cargo({ setActiveTab, isViewMode }) {
                     </div>
                   )}
 
-                  {/* DEPARTURE DATE */}
-                  {/* {showDepartureDate && ( */}
-                  <div className="row align-items-center compact-row mt-1 mt-3">
-                    <label className="col-sm-4 col-form-label">
-                      DEPARTURE DATE
-                    </label>
-                    <DateField
-                      tabIndex={26}
-                      value={departureDate}
-                      setValue={(val) => {
-                        setDepartureDate(val);
-                        if (val) setShowDepartureDateError(false);
-                      }}
-                    />
-                    {/* {showDepartureDateError && (
-                        <span className="ErrorColor">FILL DEPARTURE DATE</span>
-                      )} */}
-                  </div>
-                  {/* )} */}
+
 
                   {/* SEA STORE */}
                   {showSeaStore && (

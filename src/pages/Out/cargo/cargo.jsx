@@ -3218,7 +3218,23 @@ useEffect(() => {
                       </div>
                     </div>
                   )}
-                  {/* OUT HAWB/HBL */}
+
+                  {/* MAWB */}
+                  {showOutMawb && (
+                    <div className="row align-items-center compact-row mt-1">
+                      <label className="col-sm-4 col-form-label">MAWB</label>
+                      <div className="col-sm-7">
+                        <input
+                          type="text"
+                          tabIndex={42}
+                          className="form-control"
+                          value={outMawbNumber}
+                          onChange={(e) => setOutMawbNumber(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                                    {/* OUT HAWB/HBL */}
                   {showOutHblHawb && (
                     <div className="row align-items-center compact-row mt-2">
                       <label className="col-sm-4 col-form-label">
@@ -3238,7 +3254,7 @@ useEffect(() => {
                         )}
                         <input
                           type="text"
-                          tabIndex={42}
+                          tabIndex={43}
                           className={
                             showCargoHawbMandatoryError
                               ? "form-control-mandatory is-invalid"
@@ -3251,21 +3267,6 @@ useEffect(() => {
                               setShowCargoHawbMandatoryError(false);
                             }
                           }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {/* MAWB */}
-                  {showOutMawb && (
-                    <div className="row align-items-center compact-row mt-1">
-                      <label className="col-sm-4 col-form-label">MAWB</label>
-                      <div className="col-sm-7">
-                        <input
-                          type="text"
-                          tabIndex={43}
-                          className="form-control"
-                          value={outMawbNumber}
-                          onChange={(e) => setOutMawbNumber(e.target.value)}
                         />
                       </div>
                     </div>

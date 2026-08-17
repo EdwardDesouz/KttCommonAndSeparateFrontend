@@ -475,6 +475,9 @@ export const TranshipmentProvider = ({ children }) => {
   const [totalLineAmount, setTotalLineAmount] = useState("");
   const [totalInvoiceCharge, setTotalInvoiceCharge] = useState(0.0);
   const [cifFob, setCifFob] = useState("");
+  const [inMawbObl, setInMawbObl] = useState("");
+  const [outMawbObl, setOutMawbObl] = useState("");
+  const [showMawbObl, setShowMawbObl] = useState(false);
   const [exciseDutyRate, setExciseDutyRate] = useState(0.0);
   const [exciseDutyUom, setExciseDutyUom] = useState("");
   const [exciseDutyAmount, setExciseDutyAmount] = useState(0.0);
@@ -1239,6 +1242,12 @@ export const TranshipmentProvider = ({ children }) => {
         setTotalInvoiceCharge,
         cifFob,
         setCifFob,
+        inMawbObl,
+        setInMawbObl,
+        outMawbObl,
+        setOutMawbObl,
+        showMawbObl,
+        setShowMawbObl,
         exciseDutyRate,
         setExciseDutyRate,
         exciseDutyUom,

@@ -79,9 +79,9 @@ function Party({ setActiveTab, isViewMode }) {
     freightForwardName1,
     setFreightForwarderName1,
     showFreightForwarderMandatoryError,
-setShowFreightForwarderMandatoryError,
-showCargoHawbMandatoryError,
-setShowCargoHawbMandatoryError,
+    setShowFreightForwarderMandatoryError,
+    showCargoHawbMandatoryError,
+    setShowCargoHawbMandatoryError,
     claimantCode,
     setClaimantCode,
     claimantCruei,
@@ -90,6 +90,10 @@ setShowCargoHawbMandatoryError,
     setClaimantName,
     claimantName1,
     setClaimantName1,
+    claimantcmantName,
+    setclaimantcmantName,
+    claimantcmantName1,
+    setclaimantcmantName1,
 
     congineeCode,
     setCongineeCode,
@@ -338,7 +342,7 @@ setShowCargoHawbMandatoryError,
         setImporterName(name);
         setImporterName1(name1);
         setImporterError(false);
-          focusNextSection("importer");
+        focusNextSection("importer");
       } else {
         setImporter(null);
         // setImporterCruei("");
@@ -593,7 +597,7 @@ setShowCargoHawbMandatoryError,
     setInwardName1(name1);
     setShowInwardDropdown(false);
     setInwardError(false);
-     focusNextSection("inward"); 
+    focusNextSection("inward");
   };
   // ======================== INWARD FOCUSOUT ========================
   const handleInwardFocusOut = () => {
@@ -618,7 +622,7 @@ setShowCargoHawbMandatoryError,
         setInwardName(name);
         setInwardName1(name1);
         setInwardError(false);
-              focusNextSection("inward");
+        focusNextSection("inward");
       } else {
         setInwardAgent(null);
         // setInwardCruei("");
@@ -862,7 +866,7 @@ setShowCargoHawbMandatoryError,
     setFreightForwarderName1(name1);
     setShowFreightForwarderDropdown(false);
     setFreightForwarderError(false);
-     focusNextSection("freightForwarder"); 
+    focusNextSection("freightForwarder");
   };
 
   // ======================== FREIGHTFORWARDER FOCUSOUT ========================
@@ -897,7 +901,7 @@ setShowCargoHawbMandatoryError,
         setFreightForwarderName(name);
         setFreightForwarderName1(name1);
         setFreightForwarderError(false);
-          focusNextSection("freightForwarder");
+        focusNextSection("freightForwarder");
       } else {
         setFreightForwarder(null);
         // setFreightForwarderCruei("");
@@ -1001,8 +1005,6 @@ setShowCargoHawbMandatoryError,
   const claimantCodeRef = useRef(null);
   const [claimant, setClaimant] = useState(null);
 
-  const [claimantcmantName, setclaimantcmantName] = useState("");
-  const [claimantcmantName1, setclaimantcmantName1] = useState("");
   const [claimantSuggestions, setClaimantSuggestions] = useState([]);
   const [filteredClaimantSuggestions, setFilteredClaimantSuggestions] =
     useState([]);
@@ -1136,7 +1138,7 @@ setShowCargoHawbMandatoryError,
     setclaimantcmantName1(claimantName1);
     setShowClaimantDropdown(false);
     setClaimantError(false);
-     focusNextSection("claimant");
+    focusNextSection("claimant");
   };
   // ======================== CLAIMANT PARTY FOCUSOUT ========================
   const handleClaimantFocusOut = () => {
@@ -1172,7 +1174,7 @@ setShowCargoHawbMandatoryError,
         setclaimantcmantName(claimantName);
         setclaimantcmantName1(claimantName1);
         setClaimantError(false);
-         focusNextSection("claimant");
+        focusNextSection("claimant");
       } else {
         setClaimant(null);
         setClaimantError(true);
@@ -1200,12 +1202,13 @@ setShowCargoHawbMandatoryError,
       CRUEI: claimantCruei || "",
       ClaimantName: claimantcmantName || "",
       ClaimantName1: claimantcmantName1 || "",
-      ClaimantCode: claimantCruei || "",
+      ClaimantCode: claimantCode || "",
       Name2: "",
       TouchUser: (user?.username).toUpperCase(),
       TouchTime: new Date().toISOString(),
       Status: "Active",
     };
+    console.log("Data:", payload);
 
     try {
       const response = await API.post("/postClaimantPartyTable/", payload);
@@ -1501,7 +1504,7 @@ setShowCargoHawbMandatoryError,
         setCongineePostel(postal);
         setCongineeCountryCode(country);
         setCongineeError(false);
-              focusNextSection("consignee");
+        focusNextSection("consignee");
       } else {
         setConsignee(null);
         setCongineeError(true);
@@ -1724,7 +1727,7 @@ setShowCargoHawbMandatoryError,
     setExporterName1(name1);
     setShowExporterDropdown(false);
     setExporterError(false);
-      focusNextSection("exporter"); 
+    focusNextSection("exporter");
   };
 
   // ======================== EXPORTER FOCUSOUT ========================
@@ -1752,7 +1755,7 @@ setShowCargoHawbMandatoryError,
         setExporterName(name);
         setExporterName1(name1);
         setExporterError(false);
-         focusNextSection("exporter");
+        focusNextSection("exporter");
       } else {
         setExporter(null);
         setExporterError(true);
@@ -2013,7 +2016,7 @@ setShowCargoHawbMandatoryError,
         setOutwardName(name);
         setOutwardName1(name1);
         setOutwardError(false);
-           focusNextSection("outward");
+        focusNextSection("outward");
       } else {
         setOutwardAgent(null);
         setOutwardError(true);
@@ -2407,34 +2410,34 @@ setShowCargoHawbMandatoryError,
   //   delay: 2000,
   // });
 
-// ============================Party Filled Order Check=========================
+  // ============================Party Filled Order Check=========================
 
-const getSectionOrder = () => [
-  { key: "importer", visible: true, ref: importerCodeRef },
-  { key: "exporter", visible: showExporter, ref: exporterCodeRef },
-  { key: "inward", visible: true, ref: inwardCodeRef },
-  { key: "outward", visible: showOutwardCarrier, ref: outwardCodeRef },
-  { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
-  { key: "claimant", visible: showClaimantPartyShow, ref: claimantCodeRef },
-  { key: "consignee", visible: showCongineeShow, ref: congineeCodeRef },
-];
+  const getSectionOrder = () => [
+    { key: "importer", visible: true, ref: importerCodeRef },
+    { key: "exporter", visible: showExporter, ref: exporterCodeRef },
+    { key: "inward", visible: true, ref: inwardCodeRef },
+    { key: "outward", visible: showOutwardCarrier, ref: outwardCodeRef },
+    { key: "freightForwarder", visible: true, ref: freightForwarderCodeRef },
+    { key: "claimant", visible: showClaimantPartyShow, ref: claimantCodeRef },
+    { key: "consignee", visible: showCongineeShow, ref: congineeCodeRef },
+  ];
 
-const focusNextSection = (currentKey) => {
-  setTimeout(() => {
-    const order = getSectionOrder();
-    const currentIndex = order.findIndex((s) => s.key === currentKey);
-    if (currentIndex === -1) return;
+  const focusNextSection = (currentKey) => {
+    setTimeout(() => {
+      const order = getSectionOrder();
+      const currentIndex = order.findIndex((s) => s.key === currentKey);
+      if (currentIndex === -1) return;
 
-    for (let i = currentIndex + 1; i < order.length; i++) {
-      if (order[i].visible) {
-        order[i].ref.current?.focus();
-        return;
+      for (let i = currentIndex + 1; i < order.length; i++) {
+        if (order[i].visible) {
+          order[i].ref.current?.focus();
+          return;
+        }
       }
-    }
 
-    document.getElementById("PartySaveDraft")?.focus();
-  }, 0);
-};
+      document.getElementById("PartySaveDraft")?.focus();
+    }, 0);
+  };
 
   // ------------------------------UI---------------------
   return (
@@ -2903,29 +2906,29 @@ const focusNextSection = (currentKey) => {
             <input
               ref={freightForwarderCodeRef}
               id="freightForwarderCode"
-                  className={
-      showFreightForwarderMandatoryError
-        ? "form-control-mandatory"
-        : "form-control"
-    }
+              className={
+                showFreightForwarderMandatoryError
+                  ? "form-control-mandatory"
+                  : "form-control"
+              }
               placeholder="CODE"
               tabIndex={31}
               value={freightForwarderCode}
-                onChange={(e) => {
-      handleFreightForwarderChange(e);
-      if (showFreightForwarderMandatoryError) {
-        setShowFreightForwarderMandatoryError(false);
-      }
-    }}
+              onChange={(e) => {
+                handleFreightForwarderChange(e);
+                if (showFreightForwarderMandatoryError) {
+                  setShowFreightForwarderMandatoryError(false);
+                }
+              }}
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
             />
-              {showFreightForwarderMandatoryError && (
-    <span className="ErrorColor">
-      Freight Forwarder is required when Cargo HAWB is entered.
-    </span>
-  )}
+            {showFreightForwarderMandatoryError && (
+              <span className="ErrorColor">
+                Freight Forwarder is required when Cargo HAWB is entered.
+              </span>
+            )}
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
                 <div className="dropdown-suggestions">

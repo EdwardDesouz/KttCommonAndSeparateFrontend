@@ -1202,7 +1202,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
             </label>
             <div className="col-sm-8">
               <select
-                className="Dropdown HighLight mandatory"
+                className="Dropdown HighLight"
                 value={outTransportMode}
                 onChange={OutwardTransportModeChange}
                 tabIndex={5}

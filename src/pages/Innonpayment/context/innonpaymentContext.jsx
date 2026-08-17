@@ -108,9 +108,13 @@ export const InnonpaymentProvider = ({ children }) => {
   const [freightForwarderCruei, setFreightForwarderCruei] = useState("");
   const [freightForwardName, setFreightForwarderName] = useState("");
   const [freightForwardName1, setFreightForwarderName1] = useState("");
-  const [showFreightForwarderMandatoryError, setShowFreightForwarderMandatoryError] = useState(false);
-const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] = useState(false);
- const [showHawbDuplicateError, setShowHawbDuplicateError] = useState(false);
+  const [
+    showFreightForwarderMandatoryError,
+    setShowFreightForwarderMandatoryError,
+  ] = useState(false);
+  const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] =
+    useState(false);
+  const [showHawbDuplicateError, setShowHawbDuplicateError] = useState(false);
   const [hawbDuplicateMessage, setHawbDuplicateMessage] = useState(
     "Duplicate HBL/HAWB Found",
   );
@@ -120,6 +124,9 @@ const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] = useState(f
   const [claimantCruei, setClaimantCruei] = useState("");
   const [claimantName, setClaimantName] = useState("");
   const [claimantName1, setClaimantName1] = useState("");
+  const [claimantcmantName, setclaimantcmantName] = useState("");
+  const [claimantcmantName1, setclaimantcmantName1] = useState("");
+
   // PARTY PAGE CONGINEE STATES
   const [congineeCode, setCongineeCode] = useState("");
   const [congineeCruei, setCongineeCruei] = useState("");
@@ -326,15 +333,17 @@ const [showCargoHawbMandatoryError, setShowCargoHawbMandatoryError] = useState(f
   const [hawbList, setHawbList] = useState([]);
   const [showOutItemHawbHbl, setShowOutItemHawbHbl] = useState(false);
   const [itemTable, setItemTable] = useState([]);
-    const[makingLot,setMakingLot]=useState([]);
+  const [makingLot, setMakingLot] = useState([]);
   const [itemSerialNumber, setItemSerialNumber] = useState(1);
   const [hawb, setHawb] = useState("");
   const [outHawb, setOutHawb] = useState("");
   const [hsCode, setHsCode] = useState("");
   const [hsCodeDescription, setHsCodeDescription] = useState("");
   const [hsCodeRow, setHsCodeRow] = useState(null);
- const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
-const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState([]);
+  const [hsCodeSuggestions, setHsCodeSuggestions] = useState([]);
+  const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState(
+    [],
+  );
   const [countryCode, setCountryCode] = useState("");
   const [countryDescription, setCountryDescription] = useState("");
   const [brand, setBrand] = useState("");
@@ -585,9 +594,9 @@ const [filteredHsCodeSuggestions, setFilteredHsCodeSuggestions] = useState([]);
         freightForwardName1,
         setFreightForwarderName1,
         showFreightForwarderMandatoryError,
-setShowFreightForwarderMandatoryError,
-showCargoHawbMandatoryError,
-setShowCargoHawbMandatoryError,
+        setShowFreightForwarderMandatoryError,
+        showCargoHawbMandatoryError,
+        setShowCargoHawbMandatoryError,
         // PARTY PAGE STATES CLAIMANT
         claimantCode,
         setClaimantCode,
@@ -597,6 +606,11 @@ setShowCargoHawbMandatoryError,
         setClaimantName,
         claimantName1,
         setClaimantName1,
+        claimantcmantName,
+        setclaimantcmantName,
+        claimantcmantName1,
+        setclaimantcmantName1,
+
         // PARTY PAGE STATES CONGINEE
         congineeCode,
         setCongineeCode,
@@ -774,7 +788,7 @@ setShowCargoHawbMandatoryError,
         setTowingVesselName,
         containers,
         setContainers,
-                showHawbDuplicateError,
+        showHawbDuplicateError,
         setShowHawbDuplicateError,
         hawbDuplicateMessage,
         setHawbDuplicateMessage,

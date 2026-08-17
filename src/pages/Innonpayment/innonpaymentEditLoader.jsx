@@ -58,6 +58,8 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
     setClaimantCruei,
     setClaimantName,
     setClaimantName1,
+    setclaimantcmantName,
+    setclaimantcmantName1,
 
     setCongineeCode,
     setCongineeCruei,
@@ -706,6 +708,8 @@ function InnonpaymentEditLoader({ permitId, isEditMode }) {
             setClaimantCruei(matched.CRUEI || "");
             setClaimantName(matched.Name || "");
             setClaimantName1(matched.Name1 || "");
+            setclaimantcmantName(matched.ClaimantName || "");
+            setclaimantcmantName1(matched.ClaimantName1 || "");
           }
         } catch (err) {
           console.error("Failed to fetch claimant details:", err);

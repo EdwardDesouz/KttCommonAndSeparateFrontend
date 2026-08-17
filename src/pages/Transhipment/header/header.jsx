@@ -315,6 +315,8 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
     setExhibitionStartDate,
     exhibitionEndDate,
     setExhibitionEndDate,
+    showMawbObl,
+    setShowMawbObl,
   } = useTranshipment();
 
   useEffect(() => {
@@ -483,6 +485,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
     setShowPartyImporter(false);
     setShowInwardCarrier(false);
     setShowOutwardCarrier(false);
+    setShowMawbObl(false);
     setShowHandlingAgent(true);
     if (!value || value === "--Select--") {
       setShowDeclarationTypeError(true);
@@ -512,6 +515,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
       setShowOutwardCarrier(true);
       setShowInwardCarrier(true);
       setShowOutwardTransport(true);
+      setShowMawbObl(true);
     }
   };
 

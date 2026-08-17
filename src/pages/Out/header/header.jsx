@@ -637,6 +637,7 @@ function Header({ setActiveTab, isViewMode, isEditMode }) {
     if (value === "N : Not Required") {
       // Hide entire outward section & exhibition
       setShowOutWardDetails(false);
+      setShowOutwardCarrier(true);
       // setShowExhibition(false);
       // Clear all outward field values
       setOutVoyageNumber("");

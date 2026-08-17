@@ -972,7 +972,7 @@ setFilteredHsCodeSuggestions,
     // VEHICLE (HSCode starts with 87)
     if (HSCode && HSCode.startsWith("87")) {
       setShowVehicle(true);
-      setShowDutiableQuantity(true);
+      setShowDutiableQuantity(false);
       setShowOptionalCharges(true);
 
       setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);

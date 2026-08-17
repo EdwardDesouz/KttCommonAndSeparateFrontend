@@ -230,7 +230,10 @@ function TranshipmentEditLoader({ permitId, isEditMode }) {
     setCargoOutwardTransportMode,
     setSummaryImporterCruei,
     setSummaryImporterName,
-setShowSeaStore,
+    setShowSeaStore,
+    // Item
+    showMawbObl,
+    setShowMawbObl,
     // Summary
     setSummaryCrossReference,
     setSummaryRemarks,
@@ -414,8 +417,8 @@ setShowSeaStore,
       setShowPartyImporter(false);
       setShowInwardCarrier(false);
       setShowOutwardCarrier(false);
+      setShowMawbObl(false);
       setShowHandlingAgent(true);
-
 
       if (decTypeValue === "BRE : BLANKET REMOVAL") {
         setShowPartyImporter(true);
@@ -440,6 +443,7 @@ setShowSeaStore,
         setShowOutwardCarrier(true);
         setShowInwardCarrier(true);
         setShowOutwardTransport(true);
+        setShowMawbObl(true);
       }
 
       // Previous Permit No
@@ -484,7 +488,7 @@ setShowSeaStore,
       }
 
       // ── INWARD TRANSPORT MODE ───────────────────────────────────
-    // ── INWARD TRANSPORT MODE ───────────────────────────────────
+      // ── INWARD TRANSPORT MODE ───────────────────────────────────
       const transportValue = d.InwardTransportMode || "";
       setTransportMode(transportValue);
       setInwardTransport(transportValue);
@@ -556,7 +560,7 @@ setShowSeaStore,
         setShowInwardCarrier(true);
       }
 
-       // ── OUTWARD TRANSPORT MODE ──────────────────────────────────
+      // ── OUTWARD TRANSPORT MODE ──────────────────────────────────
       const outTransportValue = d.OutwardTransportMode || "";
       setOutTransportMode(outTransportValue);
       setCargoOutwardTransportMode(outTransportValue);
