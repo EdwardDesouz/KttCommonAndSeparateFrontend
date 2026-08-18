@@ -1509,3 +1509,35 @@ textarea,
   width: 14px !important;
   height: 14px !important;
 }
+
+
+/* Module color tokens — now genuinely different per module */
+.page-bg--inpayment {
+  --module-accent-start: #0e5a79; 
+  --module-accent-end: #f77b7d;
+}
+.page-bg--innonpayment {
+  --module-accent-start: #1b7a3d; /* green */
+  --module-accent-end: #8fd19e;
+}
+.page-bg--out {
+  --module-accent-start: #7a1b6b; /* purple/magenta */
+  --module-accent-end: #d18fc4;
+}
+.page-bg--transhipment {
+  --module-accent-start: #b8860b; /* gold/amber */
+  --module-accent-end: #f4d35e;
+}
+.page-bg--coo {
+  --module-accent-start: #2c3e91; /* indigo/blue */
+  --module-accent-end: #7c8cf0;
+}
+
+/* This IS the correct target — confirmed from ListButtons.jsx */
+.navbar {
+  background: linear-gradient(
+    to left,
+    var(--module-accent-start, rgba(14, 90, 121, 0.9)),
+    var(--module-accent-end, rgba(247, 123, 125, 0.9))
+  );
+}
