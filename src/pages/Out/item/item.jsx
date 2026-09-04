@@ -696,7 +696,7 @@ setFilteredHsCodeSuggestions,
 
     const filtered = hsCodeSuggestions.filter(
       (i) =>
-        i.HSCode.toLowerCase().includes(val.toLowerCase()) ||
+        i.HSCode.toLowerCase().startsWith(val.toLowerCase()) ||
         i.Description.toLowerCase().includes(val.toLowerCase()),
     );
 

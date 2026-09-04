@@ -1241,8 +1241,8 @@ function Invoice({ setActiveTab, isViewMode }) {
     
 
     setInvoiceCurrency(invoice.TICurrency);
-    // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
+    setInvoiceExRate(invoice.TIExRate);
+    // setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 

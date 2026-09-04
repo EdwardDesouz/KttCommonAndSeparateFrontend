@@ -1180,29 +1180,29 @@ function Invoice({ setActiveTab, isViewMode }) {
     };
 
     setInvoiceCurrency(invoice.TICurrency);
-    // setInvoiceExRate(invoice.TIExRate);
-    setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
+    setInvoiceExRate(invoice.TIExRate);
+    // setInvoiceExRate(findInvoiceFormattedRate(invoice.TICurrency));
     setInvoiceAmount(invoice.TIAmount);
     setInvoiceDollar(invoice.TISAmount);
 
     setOtherValueCharges(invoice.OTCCharge);
     setOtherValueCurrency(invoice.OTCCurrency);
-    // setOtherValueExRate(invoice.OTCExRate);
-    setOtherValueExRate(findOtheresFormattedRate(invoice.OTCCurrency));
+    setOtherValueExRate(invoice.OTCExRate);
+    // setOtherValueExRate(findOtheresFormattedRate(invoice.OTCCurrency));
     setOtherValueAmount(invoice.OTCAmount);
     setOtherValueDollar(invoice.OTCSAmount);
 
     setFreightValueCharges(invoice.FCCharge);
     setFreightValueCurrency(invoice.FCCurrency);
-    // setFreightValueExRate(invoice.FCExRate);
-    setFreightValueExRate(findFreightFormattedRate(invoice.FCCurrency));
+    setFreightValueExRate(invoice.FCExRate);
+    // setFreightValueExRate(findFreightFormattedRate(invoice.FCCurrency));
     setFreightValueAmount(invoice.FCAmount);
     setFreightValueDollar(invoice.FCSAmount);
 
     setInsuranceCharges(invoice.ICCharge);
     setInsuranceValueCurrency(invoice.ICCurrency);
-    // setInsuranceValueExRate(invoice.ICExRate);
-    setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency));
+    setInsuranceValueExRate(invoice.ICExRate);
+    // setInsuranceValueExRate(findInsuranceFormattedRate(invoice.ICCurrency));
     setInsuranceValueAmount(invoice.ICAmount);
     setInsuranceValueDollar(invoice.ICSAmount);
 

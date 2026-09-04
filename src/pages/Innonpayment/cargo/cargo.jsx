@@ -666,7 +666,7 @@ function Cargo({ setActiveTab, isViewMode }) {
       const search = val.toLowerCase();
       return (
         Code.toLowerCase().startsWith(search) ||
-        Description.toLowerCase().includes(search)
+        Description.toLowerCase().startsWith(search)
       );
     });
 

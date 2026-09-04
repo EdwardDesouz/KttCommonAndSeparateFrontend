@@ -26,7 +26,7 @@ function Inpayment() {
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
   const tableDataRef = useRef([]);
-
+  const showAllRef = useRef(false);
   //   //=========Button Visible State===========================
 
   const [btnState, setBtnState] = useState({
@@ -139,6 +139,18 @@ function Inpayment() {
         enabled.DOWNLOADCCP = true;
         enabled.PRINTCCP = true;
         enabled.SUBMIT = false;
+      }
+      if (status === "LLMNEW" || status === "LLMDRF" || status === "LLMQRY") {
+        enabled.SUBMIT = false;
+        enabled.PRINTREFUND = false;
+        enabled.REFUND = false;
+        enabled.AMEND = false;
+        enabled.CANCEL = false;
+        enabled.PRINTSTATUS = false;
+        enabled.GSTSTATUS = true;
+        enabled.PRINTGSTALL = true;
+        enabled.DOWNLOADCCP = true;
+        enabled.PRINTCCP = true;
       }
       if (
         status === "SAVEASDRF" ||
@@ -390,25 +402,33 @@ function Inpayment() {
     fetchTableData(false);
     fetchMailData();
     fetchInnonpaymentDeclarationTypeDate();
+
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchTableData(showAllRef.current, true);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  const fetchTableData = async (all = false) => {
+  const fetchTableData = async (all = false, silent = false) => {
     try {
+      if (!silent) setLoading(true);
       const userData = JSON.parse(localStorage.getItem("user"));
       const Username = userData?.username;
-      console.log("Fetching inpayment list for user:", Username);
       const response = await API.get("inpaymentList/", {
         params: { user: Username, all: all ? "true" : "false" },
       });
+
       setTableData(response.data);
       tableDataRef.current = response.data;
-      setLoading(false);
+      if (!silent) setLoading(false);
     } catch (error) {
       console.error("Error fetching table data:", error);
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
-
   const editPermit = async (permitId) => {
     try {
       const response = await API.get("/getCommonHeaderByPermitId/", {
@@ -771,6 +791,7 @@ function Inpayment() {
                   onClick={() => {
                     const next = !showAll;
                     setShowAll(next);
+                    showAllRef.current = next;
                     fetchTableData(next);
                   }}
                 >
@@ -1097,6 +1118,9 @@ function Inpayment() {
                                     "SAVEASDRF",
                                     "DISCONNECT",
                                     "WFA",
+                                    "LLMNEW",
+                                    "LLMDRF",
+                                    "LLMQRY",
                                   ].includes((row.Status || "").toUpperCase());
                                   return (
                                     <td key={col.accessor}>
