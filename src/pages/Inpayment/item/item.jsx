@@ -798,6 +798,7 @@ function Item({ setActiveTab, isViewMode }) {
 
   // ======================== FETCH LOADING PORT========================
   const handleHsCodeSelect = async (item) => {
+    console.log("handleHsCodeSelect fired with item:", item);
     setHsCode(item.HSCode);
     setHsCodeDescription(item.Description);
     setHsCodeRow(item);
@@ -816,6 +817,178 @@ function Item({ setActiveTab, isViewMode }) {
     }
   };
 
+  // const applyHsLogic = (item) => {
+  //   const {
+  //     HSCode,
+  //     UOM,
+  //     DUTYTYPID,
+  //     Kgmvisible,
+  //     DuitableUom,
+  //     Excisedutyuom,
+  //     Excisedutyrate,
+  //     Customsdutyuom,
+  //     Customsdutyrate,
+  //   } = item;
+
+  //   setDutyTypeId(DUTYTYPID);
+  //   setKgmVisible(Kgmvisible);
+
+  //   // RESET
+  //   setShowVehicle(false);
+  //   setShowPacking(false);
+  //   setShowAlcholPercentage(false);
+  //   setShowDutiableQuantity(false);
+  //   setShowOptionalCharges(false);
+  //   setShowItemCasc(false);
+
+  //   setHsUom(UOM);
+  //   setCorrectUom(UOM);
+  //   setHsUomError("");
+  //   setDuitableQuantityUom(UOM);
+  //   setTotalDuitableQuantityUom(DuitableUom);
+
+  //   setExciseDutyRate(0);
+  //   setExciseDutyUom("--Select--");
+  //   setCustomsDutyRate(0);
+  //   setCustomsDutyUom("--Select--");
+
+  //   // UOM
+  //   if (UOM !== "LTR") {
+  //     setShowPacking(false);
+  //   }
+
+  //   // ItemCasc
+  //   if (Number(item.Inpayment) === 1) {
+  //     setItemCascChecked(true);
+  //     setShowItemCasc(true);
+  //   } else {
+  //     setItemCascChecked(false);
+  //     setShowItemCasc(false);
+  //   }
+
+  //   // DUTY TYPE 62 & 63
+  //   if (DUTYTYPID === 62 || DUTYTYPID === 63) {
+  //     if (DUTYTYPID === 62 && UOM === "LTR") {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(true);
+  //       setShowPacking(true);
+  //       setPackingChecked(true);
+  //     } else if (
+  //       (DUTYTYPID === 63 && UOM === "KGM") ||
+  //       (DUTYTYPID === 62 && UOM !== "LTR")
+  //     ) {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //     } else {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(true);
+  //       setShowPacking(true);
+  //       setPackingChecked(true);
+  //     }
+
+  //     if (DuitableUom === "A") {
+  //       setDuitableQuantityUom("--Select--");
+  //     }
+
+  //     setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
+  //     setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
+  //     setExciseDutyRate(Excisedutyrate);
+  //     setCustomsDutyRate(Customsdutyrate);
+  //   }
+
+  //   // DUTY TYPE 64
+  //   else if (DUTYTYPID === 64) {
+  //     if (UOM !== "LTR") {
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(false);
+  //     } else {
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(true);
+  //       setShowPacking(true);
+  //       setPackingChecked(true);
+  //     }
+
+  //     if (DuitableUom === "A") {
+  //       setDuitableQuantityUom("--Select--");
+  //     }
+
+  //     setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
+  //     setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
+  //     setExciseDutyRate(Excisedutyrate);
+  //     setCustomsDutyRate(Customsdutyrate);
+  //   }
+
+  //   // DUTY TYPE 61
+  //   else if (DUTYTYPID === 61) {
+  //     if (UOM === "LTR") {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(true);
+  //       setShowPacking(true);
+  //       setPackingChecked(true);
+  //     } else if (UOM === "KGM") {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(false);
+  //     } else {
+  //       setShowDutiableQuantity(false);
+  //       setShowAlcholPercentage(false);
+  //     }
+
+  //     setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
+  //     setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
+  //     setExciseDutyRate(Excisedutyrate);
+  //     setCustomsDutyRate(Customsdutyrate);
+  //   }
+
+  //   // DUTY TYPE 67
+  //   else if (DUTYTYPID === 67) {
+  //     if (UOM === "LTR") {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(true);
+  //       setShowPacking(true);
+  //       setPackingChecked(true);
+  //     } else if (UOM === "KGM") {
+  //       setDuitableQuantityUom(UOM);
+  //       setTotalDuitableQuantityUom(DuitableUom);
+  //       setShowDutiableQuantity(true);
+  //       setShowAlcholPercentage(false);
+  //     } else {
+  //       setShowDutiableQuantity(false);
+  //       setShowAlcholPercentage(false);
+  //     }
+
+  //     setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
+  //     setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
+  //     setExciseDutyRate(Excisedutyrate);
+  //     setCustomsDutyRate(Customsdutyrate);
+  //   }
+
+  //   // VEHICLE (HSCode starts with 87)
+  //   if (HSCode && HSCode.startsWith("87")) {
+  //     setShowVehicle(true);
+  //     setShowDutiableQuantity(true);
+  //     setShowOptionalCharges(true);
+
+  //     setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
+  //     setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
+  //     setExciseDutyRate(Excisedutyrate);
+  //     setCustomsDutyRate(Customsdutyrate);
+
+  //     setDuitableQuantityUom(UOM);
+  //     setTotalDuitableQuantityUom(DuitableUom);
+  //   }
+  // };
+
   const applyHsLogic = (item) => {
     const {
       HSCode,
@@ -829,8 +1002,22 @@ function Item({ setActiveTab, isViewMode }) {
       Customsdutyrate,
     } = item;
 
+    console.log("========== applyHsLogic START ==========");
+    console.log("Raw HS Code Row Selected:", item);
+    console.log("HSCode:", HSCode);
+    console.log("UOM:", UOM);
+    console.log("DUTYTYPID:", DUTYTYPID, "(type:", typeof DUTYTYPID, ")");
+    console.log("Kgmvisible:", Kgmvisible);
+    console.log("DuitableUom:", DuitableUom);
+    console.log("Excisedutyuom:", Excisedutyuom);
+    console.log("Excisedutyrate:", Excisedutyrate);
+    console.log("Customsdutyuom:", Customsdutyuom);
+    console.log("Customsdutyrate:", Customsdutyrate);
+
     setDutyTypeId(DUTYTYPID);
     setKgmVisible(Kgmvisible);
+    console.log("SET dutyTypeId ->", DUTYTYPID);
+    console.log("SET kgmVisible ->", Kgmvisible);
 
     // RESET
     setShowVehicle(false);
@@ -839,34 +1026,51 @@ function Item({ setActiveTab, isViewMode }) {
     setShowDutiableQuantity(false);
     setShowOptionalCharges(false);
     setShowItemCasc(false);
+    console.log("RESET all show flags -> false");
 
     setHsUom(UOM);
     setCorrectUom(UOM);
     setHsUomError("");
     setDuitableQuantityUom(UOM);
     setTotalDuitableQuantityUom(DuitableUom);
+    console.log("SET hsUom ->", UOM);
+    console.log("SET correctUom ->", UOM);
+    console.log("SET duitableQuantityUom ->", UOM);
+    console.log("SET totalDuitableQuantityUom ->", DuitableUom);
 
     setExciseDutyRate(0);
-    setExciseDutyUom("--Select--");
+    setExciseDutyUom("");
     setCustomsDutyRate(0);
-    setCustomsDutyUom("--Select--");
+    setCustomsDutyUom("0.00");
+    console.log("RESET exciseDutyRate -> 0, exciseDutyUom -> --Select--");
+    console.log("RESET customsDutyRate -> 0, customsDutyUom -> --Select--");
 
     // UOM
     if (UOM !== "LTR") {
       setShowPacking(false);
+      console.log("UOM !== LTR -> SET showPacking -> false");
     }
 
     // ItemCasc
     if (Number(item.Inpayment) === 1) {
       setItemCascChecked(true);
       setShowItemCasc(true);
+      console.log(
+        "Inpayment === 1 -> SET itemCascChecked -> true, showItemCasc -> true",
+      );
     } else {
       setItemCascChecked(false);
       setShowItemCasc(false);
+      console.log(
+        "Inpayment !== 1 -> SET itemCascChecked -> false, showItemCasc -> false",
+      );
     }
+
+    console.log("Entering DUTYTYPID branch logic. DUTYTYPID =", DUTYTYPID);
 
     // DUTY TYPE 62 & 63
     if (DUTYTYPID === 62 || DUTYTYPID === 63) {
+      console.log("Matched branch: DUTYTYPID 62 or 63");
       if (DUTYTYPID === 62 && UOM === "LTR") {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
@@ -874,6 +1078,9 @@ function Item({ setActiveTab, isViewMode }) {
         setShowAlcholPercentage(true);
         setShowPacking(true);
         setPackingChecked(true);
+        console.log(
+          "Sub-branch: 62 + LTR -> showDutiableQuantity, showAlcohol, showPacking, packingChecked = true",
+        );
       } else if (
         (DUTYTYPID === 63 && UOM === "KGM") ||
         (DUTYTYPID === 62 && UOM !== "LTR")
@@ -881,6 +1088,9 @@ function Item({ setActiveTab, isViewMode }) {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
         setShowDutiableQuantity(true);
+        console.log(
+          "Sub-branch: (63+KGM) or (62+non-LTR) -> showDutiableQuantity = true only",
+        );
       } else {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
@@ -888,42 +1098,79 @@ function Item({ setActiveTab, isViewMode }) {
         setShowAlcholPercentage(true);
         setShowPacking(true);
         setPackingChecked(true);
+        console.log(
+          "Sub-branch: fallback -> showDutiableQuantity, showAlcohol, showPacking, packingChecked = true",
+        );
       }
 
       if (DuitableUom === "A") {
         setDuitableQuantityUom("--Select--");
+        console.log(
+          "DuitableUom === 'A' -> duitableQuantityUom reset to --Select--",
+        );
       }
 
       setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
       setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
       setExciseDutyRate(Excisedutyrate);
       setCustomsDutyRate(Customsdutyrate);
+      console.log(
+        "SET exciseDutyUom ->",
+        Excisedutyuom == 0 ? "--Select--" : Excisedutyuom,
+      );
+      console.log(
+        "SET customsDutyUom ->",
+        Customsdutyuom == 0 ? "--Select--" : Customsdutyuom,
+      );
+      console.log("SET exciseDutyRate ->", Excisedutyrate);
+      console.log("SET customsDutyRate ->", Customsdutyrate);
     }
 
     // DUTY TYPE 64
     else if (DUTYTYPID === 64) {
+      console.log("Matched branch: DUTYTYPID 64");
       if (UOM !== "LTR") {
         setShowDutiableQuantity(true);
         setShowAlcholPercentage(false);
+        console.log(
+          "64 + non-LTR -> showDutiableQuantity = true, showAlcohol = false",
+        );
       } else {
         setShowDutiableQuantity(true);
         setShowAlcholPercentage(true);
         setShowPacking(true);
         setPackingChecked(true);
+        console.log(
+          "64 + LTR -> showDutiableQuantity, showAlcohol, showPacking, packingChecked = true",
+        );
       }
 
       if (DuitableUom === "A") {
         setDuitableQuantityUom("--Select--");
+        console.log(
+          "DuitableUom === 'A' -> duitableQuantityUom reset to --Select--",
+        );
       }
 
       setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
       setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
       setExciseDutyRate(Excisedutyrate);
       setCustomsDutyRate(Customsdutyrate);
+      console.log(
+        "SET exciseDutyUom ->",
+        Excisedutyuom == 0 ? "--Select--" : Excisedutyuom,
+      );
+      console.log(
+        "SET customsDutyUom ->",
+        Customsdutyuom == 0 ? "--Select--" : Customsdutyuom,
+      );
+      console.log("SET exciseDutyRate ->", Excisedutyrate);
+      console.log("SET customsDutyRate ->", Customsdutyrate);
     }
 
     // DUTY TYPE 61
     else if (DUTYTYPID === 61) {
+      console.log("Matched branch: DUTYTYPID 61");
       if (UOM === "LTR") {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
@@ -931,24 +1178,44 @@ function Item({ setActiveTab, isViewMode }) {
         setShowAlcholPercentage(true);
         setShowPacking(true);
         setPackingChecked(true);
+        console.log(
+          "61 + LTR -> showDutiableQuantity, showAlcohol, showPacking, packingChecked = true",
+        );
       } else if (UOM === "KGM") {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
         setShowDutiableQuantity(true);
         setShowAlcholPercentage(false);
+        console.log(
+          "61 + KGM -> showDutiableQuantity = true, showAlcohol = false",
+        );
       } else {
         setShowDutiableQuantity(false);
         setShowAlcholPercentage(false);
+        console.log(
+          "61 + other UOM -> showDutiableQuantity = false, showAlcohol = false",
+        );
       }
 
       setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
       setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
       setExciseDutyRate(Excisedutyrate);
       setCustomsDutyRate(Customsdutyrate);
+      console.log(
+        "SET exciseDutyUom ->",
+        Excisedutyuom == 0 ? "--Select--" : Excisedutyuom,
+      );
+      console.log(
+        "SET customsDutyUom ->",
+        Customsdutyuom == 0 ? "--Select--" : Customsdutyuom,
+      );
+      console.log("SET exciseDutyRate ->", Excisedutyrate);
+      console.log("SET customsDutyRate ->", Customsdutyrate);
     }
 
     // DUTY TYPE 67
     else if (DUTYTYPID === 67) {
+      console.log("Matched branch: DUTYTYPID 67");
       if (UOM === "LTR") {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
@@ -956,20 +1223,43 @@ function Item({ setActiveTab, isViewMode }) {
         setShowAlcholPercentage(true);
         setShowPacking(true);
         setPackingChecked(true);
+        console.log(
+          "67 + LTR -> showDutiableQuantity, showAlcohol, showPacking, packingChecked = true",
+        );
       } else if (UOM === "KGM") {
         setDuitableQuantityUom(UOM);
         setTotalDuitableQuantityUom(DuitableUom);
         setShowDutiableQuantity(true);
         setShowAlcholPercentage(false);
+        console.log(
+          "67 + KGM -> showDutiableQuantity = true, showAlcohol = false",
+        );
       } else {
         setShowDutiableQuantity(false);
         setShowAlcholPercentage(false);
+        console.log(
+          "67 + other UOM -> showDutiableQuantity = false, showAlcohol = false",
+        );
       }
 
       setExciseDutyUom(Excisedutyuom == 0 ? "--Select--" : Excisedutyuom);
       setCustomsDutyUom(Customsdutyuom == 0 ? "--Select--" : Customsdutyuom);
       setExciseDutyRate(Excisedutyrate);
       setCustomsDutyRate(Customsdutyrate);
+      console.log(
+        "SET exciseDutyUom ->",
+        Excisedutyuom == 0 ? "--Select--" : Excisedutyuom,
+      );
+      console.log(
+        "SET customsDutyUom ->",
+        Customsdutyuom == 0 ? "--Select--" : Customsdutyuom,
+      );
+      console.log("SET exciseDutyRate ->", Excisedutyrate);
+      console.log("SET customsDutyRate ->", Customsdutyrate);
+    } else {
+      console.log("NO DUTYTYPID branch matched for value:", DUTYTYPID);
+      setDuitableQuantityUom("--Select--");
+      setTotalDuitableQuantityUom("--Select--");
     }
 
     // VEHICLE (HSCode starts with 87)
@@ -985,9 +1275,20 @@ function Item({ setActiveTab, isViewMode }) {
 
       setDuitableQuantityUom(UOM);
       setTotalDuitableQuantityUom(DuitableUom);
+      console.log("HSCode starts with 87 -> VEHICLE branch triggered");
+      console.log(
+        "SET showVehicle -> true, showDutiableQuantity -> true, showOptionalCharges -> true",
+      );
+      console.log(
+        "SET duitableQuantityUom ->",
+        UOM,
+        ", totalDuitableQuantityUom ->",
+        DuitableUom,
+      );
     }
-  };
 
+    console.log("========== applyHsLogic END ==========");
+  };
   //-------------Hscode focus out logic --------
 
   const handleHsCodeFocusOut = () => {
@@ -1006,7 +1307,7 @@ function Item({ setActiveTab, isViewMode }) {
         setTotalDuitableQuantityUom("--Select--");
         setHsUom("--Select--");
         setExciseDutyRate(0.0);
-        setExciseDutyUom(0.0);
+        setExciseDutyUom("--Select--");
         return;
       }
 
@@ -1024,6 +1325,7 @@ function Item({ setActiveTab, isViewMode }) {
       setHsCodeDescription(selected.Description);
       setHsCodeError(false);
 
+      console.log("handleHsCodeFocusOut -> matched HS row:", selected);
       applyHsLogic(selected);
 
       setTimeout(() => {
@@ -1980,7 +2282,7 @@ function Item({ setActiveTab, isViewMode }) {
       MessageType: "IPTDEC",
       HSCode: hsCode || "",
       Description: hsCodeDescription.toUpperCase() || "",
-      DGIndicator: dgIndicator ? "Yes" : "No",
+      DGIndicator: dgIndicator ? "True" : "False",
       Contry: countryCode || "",
       EndUserDescription: "",
       Brand: brand || "",
@@ -2005,13 +2307,13 @@ function Item({ setActiveTab, isViewMode }) {
       InvoiceCharges: totalInvoiceCharge || 0,
       CIFFOB: Number(cifFob || 0).toFixed(2),
       OPQty: outerPackQuantity || 0,
-      OPUOM: outerPackQuantityUom || "",
+      OPUOM: outerPackQuantityUom || "--Select--",
       IPQty: inPackQuantity || 0,
-      IPUOM: inPackQuantityUom || "",
+      IPUOM: inPackQuantityUom || "--Select--",
       InPqty: innerPackQuantity || 0,
-      InPUOM: innerPackQuantityUom || "",
+      InPUOM: innerPackQuantityUom || "--Select--",
       ImPQty: immostPackQuantity || 0,
-      ImPUOM: immostPackQuantityUom || "",
+      ImPUOM: immostPackQuantityUom || "--Select--",
       PreferentialCode: preferentialCode || "",
       GSTRate: gstRateValue,
       GSTUOM: gstUom || "",
@@ -2023,25 +2325,25 @@ function Item({ setActiveTab, isViewMode }) {
       CustomsDutyUOM: customsDutyUom || "",
       CustomsDutyAmount: customsDutyAmount || 0,
       OtherTaxRate: otherTaxRate || 0,
-      OtherTaxUOM: otherTaxUom || "",
+      OtherTaxUOM: otherTaxUom || "--Select--",
       OtherTaxAmount: otherTaxAmount || 0,
       LSPValue: lastSellingPrice || 0,
       CurrentLot: currentLot || "",
       PreviousLot: previousLot || "",
-      Making: making || "",
+      Making: making || "--Select--",
       ShippingMarks1: shippingMarks1 || "",
       ShippingMarks2: shippingMarks2 || "",
       ShippingMarks3: shippingMarks3 || "",
       ShippingMarks4: shippingMarks4 || "",
       TouchUser: user.username.toUpperCase() || "",
       TouchTime: new Date().toISOString(),
-      VehicleType: vehicleType || "",
-      OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "",
+      VehicleType: vehicleType || "--Select--",
+      OptionalChrgeUOM: selectedCurrency?.CurrencyUOM || "--Select--",
       EngineCapcity: engineCapacityValue || "",
       Optioncahrge: optionalCharges || 0,
       OptionalSumtotal: optionlAmount || 0,
       OptionalSumExchage: selectedCurrency?.CurrencyRate || 0,
-      EngineCapUOM: engineCapacityUom || "",
+      EngineCapUOM: engineCapacityUom || "--Select--",
       orignaldatereg: originalRegistrationDate || "",
     };
     console.log("payload:", payload);
@@ -3503,7 +3805,10 @@ function Item({ setActiveTab, isViewMode }) {
             item.ChkUnitPrice === 1 ||
             item.ChkUnitPrice === "1" ||
             (typeof item.ChkUnitPrice === "string" &&
-              ["true", "yes"].includes(item.ChkUnitPrice.trim().toLowerCase())),
+              ["true", "yes"].includes(item.ChkUnitPrice.trim().toLowerCase()))
+              ? "True"
+              : "False",
+
           UnitPrice: item.UnitPrice || 0,
           UnitPriceCurrency:
             matchedInvoice?.TICurrency || item.UnitPriceCurrency || "",

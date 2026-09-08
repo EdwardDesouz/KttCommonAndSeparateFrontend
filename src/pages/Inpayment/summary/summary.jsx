@@ -1085,7 +1085,7 @@ function Summary({ setActiveTab, isViewMode }) {
           ? permitGrossWeight
           : totalGrossWeight || "",
       TotalGrossWeightUOM: grossUOM || "",
-      BlanketStartDate: formatDate(blanketStartDate) || null,
+      BlanketStartDate: formatDate(blanketStartDate) || "1900-01-01",
       GrossReference: summaryCrossReference || "",
       TradeRemarks: summaryRemarks.toUpperCase() || "",
       InternalRemarks: summaryInternalReamarks.toUpperCase() || "",
@@ -1119,12 +1119,15 @@ function Summary({ setActiveTab, isViewMode }) {
       // if (cpcData.length > 0) {
       await API.post(`/postCpcTable/?PermitId=${permitIdForCpc}`, cpcData);
       // }
-      await API.post("/postCommonHeaderTable/", headerPayload);
+      const commonResponse = await API.post(
+        "/postCommonHeaderTable/",
+        headerPayload,
+      );
       commonSaved = true;
 
       const inHeaderPayload = {
         ...headerPayload,
-        JobId: commonResponse.data.JobId, 
+        JobId: commonResponse.data.JobId,
         MSGId: commonResponse.data.MSGId,
         ReleaseLocName: releaseLocationDescription || "",
       };
