@@ -34,6 +34,7 @@ export const InpaymentProvider = ({ children }) => {
       ...(typeof newDetails === "function" ? newDetails(prev) : newDetails),
     }));
   };
+  
   // HEADER PAGE STATES
   const [decType, setDecType] = useState("");
   const [prevPermitNo, setPrevPermitNo] = useState("");

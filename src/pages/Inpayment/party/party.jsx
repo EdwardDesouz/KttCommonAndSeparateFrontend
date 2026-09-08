@@ -305,6 +305,60 @@ function Party({ setActiveTab, isViewMode }) {
     }, 150);
   };
   // // ======================== IMPORTER SAVE FUNCTION ========================
+  // const saveImporter = async () => {
+  //   if (!importerCode) {
+  //     setImporterError(true);
+  //     alert("Code is required!");
+  //     return;
+  //   }
+  //   const duplicate = commonImporterCodes.has(importerCode.toLowerCase());
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Importer not saved.");
+  //     return;
+  //   }
+  //   if (duplicate) {
+  //     alert("Duplicate code found! Importer not saved.");
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     Id: importer?.Id || 0,
+  //     Code: (importerCode || "").toUpperCase(),
+  //     CRUEI: (importerCruei || "").toUpperCase(),
+  //     Name: (importerName || "").toUpperCase(),
+  //     Name1: (importerName1 || "").toUpperCase(),
+  //     TouchUser: (user?.username).toUpperCase(),
+  //     TouchTime: new Date().toISOString(),
+  //     Status: "Active",
+  //     MES: "",
+  //     APS: "",
+  //   };
+
+  //   console.log("Payload to save:", payload);
+
+  //   try {
+  //     const response = await API.post("/postImporterTable/", payload);
+
+  //     alert(
+  //       response.data?.message ||
+  //         response.data?.Result ||
+  //         "Importer saved successfully!",
+  //     );
+  //     console.log("Saved data:", response.data);
+
+  //     setCommonImporterCodes((prev) =>
+  //       new Set(prev).add(importerCode.toLowerCase()),
+  //     );
+  //   } catch (err) {
+  //     console.error("Failed to save importer:", err.response?.data || err);
+  //     alert(
+  //       err.response?.data?.error ||
+  //         err.response?.data?.Result ||
+  //         "Failed to save importer, check console for details",
+  //     );
+  //   }
+  // };
+
   const saveImporter = async () => {
     if (!importerCode) {
       setImporterError(true);
@@ -316,122 +370,76 @@ function Party({ setActiveTab, isViewMode }) {
       alert("Duplicate code found! Importer not saved.");
       return;
     }
-    if (duplicate) {
-      alert("Duplicate code found! Importer not saved.");
-      return;
-    }
 
-    const payload = {
+    const code = (importerCode || "").toUpperCase();
+    const cruei = (importerCruei || "").toUpperCase();
+    const name = (importerName || "").toUpperCase();
+    const name1 = (importerName1 || "").toUpperCase();
+    const touchUser = (user?.username || "").toUpperCase();
+    const touchTime = new Date().toISOString();
+
+    const commonPayload = {
       Id: importer?.Id || 0,
-      Code: (importerCode || "").toUpperCase(),
-      CRUEI: (importerCruei || "").toUpperCase(),
-      Name: (importerName || "").toUpperCase(),
-      Name1: (importerName1 || "").toUpperCase(),
-      TouchUser: (user?.username).toUpperCase(),
-      TouchTime: new Date().toISOString(),
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
       Status: "Active",
       MES: "",
       APS: "",
     };
 
-    console.log("Payload to save:", payload);
+    const inpaymentPayload = {
+      Id: importer?.Id || 0,
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
 
+    let commonSaved = false;
     try {
-      const response = await API.post("/postImporterTable/", payload);
-
-      alert(
-        response.data?.message ||
-          response.data?.Result ||
-          "Importer saved successfully!",
+      const commonResponse = await API.post(
+        "/postImporterTable/",
+        commonPayload,
       );
-      console.log("Saved data:", response.data);
+      commonSaved = true;
+      console.log("Saved to CommonImporter:", commonResponse.data);
 
+      const inpaymentResponse = await API.post(
+        "inpayment/postInImporterTable/",
+        inpaymentPayload,
+      );
+      console.log("Saved to Importer:", inpaymentResponse.data);
+
+      alert("Importer saved successfully in both tables!");
       setCommonImporterCodes((prev) =>
         new Set(prev).add(importerCode.toLowerCase()),
       );
     } catch (err) {
       console.error("Failed to save importer:", err.response?.data || err);
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.Result ||
-          "Failed to save importer, check console for details",
-      );
+      if (commonSaved) {
+        alert(
+          `Warning: Code "${code}" was saved to CommonImporter but FAILED to save to Importer table. ` +
+            `Tables are now inconsistent.\n\nError: ${err.response?.data?.error || err.response?.data?.Result || err.message}`,
+        );
+        setCommonImporterCodes((prev) =>
+          new Set(prev).add(importerCode.toLowerCase()),
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.Result ||
+            "Failed to save importer, check console for details",
+        );
+      }
     }
   };
-
-  // const saveImporter = async () => {
-  //   if (!importerCode) {
-  //     setImporterError(true);
-  //     alert("Code is required!");
-  //     return;
-  //   }
-
-  //   const duplicate = importerSuggestions.some(
-  //     (i) => i.split(":")[0].toLowerCase() === importerCode.toLowerCase(),
-  //   );
-  //   if (duplicate) {
-  //     alert("Duplicate code found! Importer not saved.");
-  //     return;
-  //   }
-
-  //   const code = (importerCode || "").toUpperCase();
-
-  //   const commonPayload = {
-  //     Id: importer?.Id || 0,
-  //     Code: code,
-  //     CRUEI: (importerCruei || "").toUpperCase(),
-  //     Name: (importerName || "").toUpperCase(),
-  //     Name1: (importerName1 || "").toUpperCase(),
-  //     TouchUser: (user?.username).toUpperCase(),
-  //     TouchTime: new Date().toISOString(),
-  //     Status: "Active",
-  //     MES: "",
-  //     APS: "",
-  //   };
-
-  //   const inpaymentPayload = {
-  //     Id: importer?.Id || 0,
-  //     Code: code,
-  //     CRUEI: (importerCruei || "").toUpperCase(),
-  //     Name: (importerName || "").toUpperCase(),
-  //     Name1: (importerName1 || "").toUpperCase(),
-  //     TouchUser: (user?.username).toUpperCase(),
-  //     TouchTime: new Date().toISOString(),
-  //     Status: "Active",
-  //   };
-
-  //   console.log("Payload to save (Common):", commonPayload);
-  //   console.log("Payload to save (Inpayment):", inpaymentPayload);
-
-  //   let commonSaved = false;
-
-  //   try {
-  //     // Step 1: Save to CommonImporter
-  //     const commonResponse = await API.post("/postImporterTable/", commonPayload);
-  //     commonSaved = true;
-  //     console.log("Saved to CommonImporter:", commonResponse.data);
-
-  //     // Step 2: Save to Importer (inpayment)
-  //     const inpaymentResponse = await API.post("/inpayment/postInpaymentImporterTable/", inpaymentPayload);
-  //     console.log("Saved to Importer:", inpaymentResponse.data);
-
-  //     alert("Importer saved successfully in both tables!");
-  //   } catch (err) {
-  //     console.error("Failed to save importer:", err);
-
-  //     if (commonSaved) {
-  //       alert(
-  //         `Warning: Code "${code}" was saved to CommonImporter but FAILED to save to Importer. ` +
-  //         `Please contact support or retry — this code is now inconsistent between tables.\n\n` +
-  //         `Error: ${err.response?.data?.error || err.message}`
-  //       );
-  //     } else if (err.response?.status === 400) {
-  //       alert(err.response.data?.error || err.response.data?.Result || "Failed to save importer");
-  //     } else {
-  //       alert("Failed to save importer, check console for details");
-  //     }
-  //   }
-  // };
 
   // iNVOICE PAGE
   useEffect(() => {
@@ -621,6 +629,86 @@ function Party({ setActiveTab, isViewMode }) {
     }, 150);
   };
   // ======================== INWARD SAVE FUNCTION ========================
+  const saveInward = async () => {
+    if (!inwardCode) {
+      setInwardError(true);
+      alert("Code is required!");
+      return;
+    }
+    const duplicate = commonInwardCodes.has(inwardCode.toLowerCase());
+    if (duplicate) {
+      alert("Duplicate code found! Inward Carrier Agent not saved.");
+      return;
+    }
+
+    const code = (inwardCode || "").toUpperCase();
+    const cruei = inwardCruei || "";
+    const name = inwardName || "";
+    const name1 = inwardName1 || "";
+    const touchUser = (user?.username || "").toUpperCase();
+    const touchTime = new Date().toISOString();
+
+    const commonPayload = {
+      Id: inwardAgent?.Id || 0,
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    const inpaymentPayload = {
+      Id: inwardAgent?.Id || 0,
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    let commonSaved = false;
+    try {
+      const commonResponse = await API.post(
+        "/postInwardCarrierAgentTable/",
+        commonPayload,
+      );
+      commonSaved = true;
+      console.log("Saved to CommonInwardCarrierAgent:", commonResponse.data);
+
+      const inpaymentResponse = await API.post(
+        "inpayment/postInInwardCarrierAgentTable/",
+        inpaymentPayload,
+      );
+      console.log("Saved to InwardCarrierAgent:", inpaymentResponse.data);
+
+      alert("Inward Carrier Agent saved successfully in both tables!");
+      setCommonInwardCodes((prev) =>
+        new Set(prev).add(inwardCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error("Failed to save Inward:", err.response?.data || err);
+      if (commonSaved) {
+        alert(
+          `Warning: Code "${code}" was saved to CommonInwardCarrierAgent but FAILED to save to InwardCarrierAgent table. ` +
+            `Tables are now inconsistent.\n\nError: ${err.response?.data?.error || err.response?.data?.Result || err.message}`,
+        );
+        setCommonInwardCodes((prev) =>
+          new Set(prev).add(inwardCode.toLowerCase()),
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.Result ||
+            "Failed to save Inward, check console for details",
+        );
+      }
+    }
+  };
+
   // const saveInward = async () => {
   //   if (!inwardCode) {
   //     setInwardError(true);
@@ -628,10 +716,7 @@ function Party({ setActiveTab, isViewMode }) {
   //     return;
   //   }
 
-  //   // Check for duplicate
-  //   const duplicate = inwardSuggestions.some(
-  //     (i) => i.split(":")[0].toLowerCase() === inwardCode.toLowerCase(),
-  //   );
+  //   const duplicate = commonInwardCodes.has(inwardCode.toLowerCase());
   //   if (duplicate) {
   //     alert("Duplicate code found! Inward Carrier Agent not saved.");
   //     return;
@@ -646,67 +731,30 @@ function Party({ setActiveTab, isViewMode }) {
   //     TouchTime: new Date().toISOString(),
   //     Status: "Active",
   //   };
-  //   console.log("Payload to save:", payload);
+
   //   try {
+  //     // Save to CommonInwardCarrierAgentTable only
   //     const response = await API.post("/postInwardCarrierAgentTable/", payload);
-  //     alert(response.data?.message || "Inward saved successfully!");
+
+  //     alert(
+  //       response.data?.message ||
+  //         response.data?.Result ||
+  //         "Inward saved successfully!",
+  //     );
   //     console.log("Saved data:", response.data);
+
+  //     setCommonInwardCodes((prev) =>
+  //       new Set(prev).add(inwardCode.toLowerCase()),
+  //     );
   //   } catch (err) {
-  //     if (err.response?.status === 400) {
-  //       alert(err.response.data?.error || "Failed to save Inward");
-  //     } else {
-  //       console.error("Failed to save Inward:", err);
-  //       alert("Failed to save Inward, check console for details");
-  //     }
+  //     console.error("Failed to save Inward:", err.response?.data || err);
+  //     alert(
+  //       err.response?.data?.error ||
+  //         err.response?.data?.Result ||
+  //         "Failed to save Inward, check console for details",
+  //     );
   //   }
   // };
-
-  const saveInward = async () => {
-    if (!inwardCode) {
-      setInwardError(true);
-      alert("Code is required!");
-      return;
-    }
-
-    const duplicate = commonInwardCodes.has(inwardCode.toLowerCase());
-    if (duplicate) {
-      alert("Duplicate code found! Inward Carrier Agent not saved.");
-      return;
-    }
-    const payload = {
-      Id: inwardAgent?.Id || 0,
-      Code: inwardCode || "",
-      CRUEI: inwardCruei || "",
-      Name: inwardName || "",
-      Name1: inwardName1 || "",
-      TouchUser: (user?.username).toUpperCase(),
-      TouchTime: new Date().toISOString(),
-      Status: "Active",
-    };
-
-    try {
-      // Save to CommonInwardCarrierAgentTable only
-      const response = await API.post("/postInwardCarrierAgentTable/", payload);
-
-      alert(
-        response.data?.message ||
-          response.data?.Result ||
-          "Inward saved successfully!",
-      );
-      console.log("Saved data:", response.data);
-
-      setCommonInwardCodes((prev) =>
-        new Set(prev).add(inwardCode.toLowerCase()),
-      );
-    } catch (err) {
-      console.error("Failed to save Inward:", err.response?.data || err);
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.Result ||
-          "Failed to save Inward, check console for details",
-      );
-    }
-  };
 
   // ======================== FETCH FREIGHTFORWARDER  ========================
   const freightForwarderCodeRef = useRef(null);
@@ -910,16 +958,99 @@ function Party({ setActiveTab, isViewMode }) {
   };
 
   // ======================== FREIGHTFORWARDER SAVE FUNCTION ========================
+  const saveFreightForwarder = async () => {
+    if (!freightForwarderCode) {
+      setFreightForwarderError(true);
+      alert("Code is required!");
+      return;
+    }
+    const duplicate = commonFreightForwarderCodes.has(
+      freightForwarderCode.toLowerCase(),
+    );
+    if (duplicate) {
+      alert("Duplicate code found! Freight Forwarder not saved.");
+      return;
+    }
+
+    const code = (freightForwarderCode || "").toUpperCase();
+    const cruei = freightForwarderCruei || "";
+    const name = freightForwardName || "";
+    const name1 = freightForwardName1 || "";
+    const touchUser = (user?.username || "").toUpperCase();
+    const touchTime = new Date().toISOString();
+
+    const commonPayload = {
+      Id: freightForwarder?.Id || 0,
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    const inpaymentPayload = {
+      Id: freightForwarder?.Id || 0,
+      Code: code,
+      CRUEI: cruei,
+      Name: name,
+      Name1: name1,
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    let commonSaved = false;
+    try {
+      const commonResponse = await API.post(
+        "/postFreightForwarderTable/",
+        commonPayload,
+      );
+      commonSaved = true;
+      console.log("Saved to CommonFreightForwarder:", commonResponse.data);
+
+      const inpaymentResponse = await API.post(
+        "inpayment/postInFreightForwarderTable/",
+        inpaymentPayload,
+      );
+      console.log("Saved to FreightForwarder:", inpaymentResponse.data);
+
+      alert("FreightForwarder saved successfully in both tables!");
+      setCommonFreightForwarderCodes((prev) =>
+        new Set(prev).add(freightForwarderCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error(
+        "Failed to save FreightForwarder:",
+        err.response?.data || err,
+      );
+      if (commonSaved) {
+        alert(
+          `Warning: Code "${code}" was saved to CommonFreightForwarder but FAILED to save to FreightForwarder table. ` +
+            `Tables are now inconsistent.\n\nError: ${err.response?.data?.error || err.response?.data?.Result || err.message}`,
+        );
+        setCommonFreightForwarderCodes((prev) =>
+          new Set(prev).add(freightForwarderCode.toLowerCase()),
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.Result ||
+            "Failed to save FreightForwarder, check console for details",
+        );
+      }
+    }
+  };
+
   // const saveFreightForwarder = async () => {
   //   if (!freightForwarderCode) {
   //     setFreightForwarderError(true);
   //     alert("Code is required!");
   //     return;
   //   }
-  //   // Check for duplicate
-  //   const duplicate = freightForwarderSuggestions.some(
-  //     (i) =>
-  //       i.split(":")[0].toLowerCase() === freightForwarderCode.toLowerCase(),
+  //   const duplicate = commonFreightForwarderCodes.has(
+  //     freightForwarderCode.toLowerCase(),
   //   );
   //   if (duplicate) {
   //     alert("Duplicate code found! Freight Forwarder not saved.");
@@ -935,71 +1066,33 @@ function Party({ setActiveTab, isViewMode }) {
   //     TouchTime: new Date().toISOString(),
   //     Status: "Active",
   //   };
-  //   console.log("Payload to save:", payload);
+
   //   try {
+  //     // Save to CommonFreightForwarderTable only
   //     const response = await API.post("/postFreightForwarderTable/", payload);
-  //     alert(response.data?.message || "FreightForwarder saved successfully!");
+
+  //     alert(
+  //       response.data?.message ||
+  //         response.data?.Result ||
+  //         "FreightForwarder saved successfully!",
+  //     );
   //     console.log("Saved data:", response.data);
+
+  //     setCommonFreightForwarderCodes((prev) =>
+  //       new Set(prev).add(freightForwarderCode.toLowerCase()),
+  //     );
   //   } catch (err) {
-  //     if (err.response?.status === 400) {
-  //       alert(err.response.data?.error || "Failed to save FreightForwarder");
-  //     } else {
-  //       console.error("Failed to save FreightForwarder:", err);
-  //       alert("Failed to save FreightForwarder, check console for details");
-  //     }
+  //     console.error(
+  //       "Failed to save FreightForwarder:",
+  //       err.response?.data || err,
+  //     );
+  //     alert(
+  //       err.response?.data?.error ||
+  //         err.response?.data?.Result ||
+  //         "Failed to save FreightForwarder, check console for details",
+  //     );
   //   }
   // };
-
-  const saveFreightForwarder = async () => {
-    if (!freightForwarderCode) {
-      setFreightForwarderError(true);
-      alert("Code is required!");
-      return;
-    }
-    const duplicate = commonFreightForwarderCodes.has(
-      freightForwarderCode.toLowerCase(),
-    );
-    if (duplicate) {
-      alert("Duplicate code found! Freight Forwarder not saved.");
-      return;
-    }
-    const payload = {
-      Id: freightForwarder?.Id || 0,
-      Code: freightForwarderCode || "",
-      CRUEI: freightForwarderCruei || "",
-      Name: freightForwardName || "",
-      Name1: freightForwardName1 || "",
-      TouchUser: (user?.username).toUpperCase(),
-      TouchTime: new Date().toISOString(),
-      Status: "Active",
-    };
-
-    try {
-      // Save to CommonFreightForwarderTable only
-      const response = await API.post("/postFreightForwarderTable/", payload);
-
-      alert(
-        response.data?.message ||
-          response.data?.Result ||
-          "FreightForwarder saved successfully!",
-      );
-      console.log("Saved data:", response.data);
-
-      setCommonFreightForwarderCodes((prev) =>
-        new Set(prev).add(freightForwarderCode.toLowerCase()),
-      );
-    } catch (err) {
-      console.error(
-        "Failed to save FreightForwarder:",
-        err.response?.data || err,
-      );
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.Result ||
-          "Failed to save FreightForwarder, check console for details",
-      );
-    }
-  };
 
   // ======================== CLAIMANT PARTY========================
   const claimantCodeRef = useRef(null);
@@ -1205,16 +1298,104 @@ function Party({ setActiveTab, isViewMode }) {
     }, 100);
   };
   // ======================== CLAIMANT PARTY SAVE FUNCTION ========================
+  const saveClaimanParty = async () => {
+    if (!claimantCode) {
+      setClaimantError(true);
+      alert("Code is required!");
+      return;
+    }
+    const duplicate = commonClaimantCodes.has(claimantCode.toLowerCase());
+    if (duplicate) {
+      alert("Duplicate code found! Claimant Party not saved.");
+      return;
+    }
+
+    const code = claimantCode || "";
+    const cruei = claimantCruei || "";
+    const name = claimantName || "";
+    const name1 = claimantName1 || "";
+    const cName = claimantcmantName || "";
+    const cName1 = claimantcmantName1 || "";
+    const touchUser = (user?.username || "").toUpperCase();
+    const touchTime = new Date().toISOString();
+
+    const commonPayload = {
+      Id: claimant?.Id || 0,
+      Name: name,
+      Name1: name1,
+      CRUEI: cruei,
+      ClaimantName: cName,
+      ClaimantName1: cName1,
+      ClaimantCode: code,
+      Name2: "",
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    const inpaymentPayload = {
+      Id: claimant?.Id || 0,
+      Name: name,
+      Name1: name1,
+      CRUEI: cruei,
+      ClaimantName: cName,
+      ClaimantName1: cName1,
+      ClaimantCode: code,
+      Name2: "",
+      TouchUser: touchUser,
+      TouchTime: touchTime,
+      Status: "Active",
+    };
+
+    let commonSaved = false;
+    try {
+      const commonResponse = await API.post(
+        "/postClaimantPartyTable/",
+        commonPayload,
+      );
+      commonSaved = true;
+      console.log("Saved to CommonClaimantParty:", commonResponse.data);
+
+      const inpaymentResponse = await API.post(
+        "inpayment/postInClaimantPartyTable/",
+        inpaymentPayload,
+      );
+      console.log("Saved to ClaimantParty:", inpaymentResponse.data);
+
+      alert("Claimant Party saved successfully in both tables!");
+      setCommonClaimantCodes((prev) =>
+        new Set(prev).add(claimantCode.toLowerCase()),
+      );
+    } catch (err) {
+      console.error(
+        "Failed to save Claimant Party:",
+        err.response?.data || err,
+      );
+      if (commonSaved) {
+        alert(
+          `Warning: Code "${code}" was saved to CommonClaimantParty but FAILED to save to ClaimantParty table. ` +
+            `Tables are now inconsistent.\n\nError: ${err.response?.data?.error || err.response?.data?.Result || err.message}`,
+        );
+        setCommonClaimantCodes((prev) =>
+          new Set(prev).add(claimantCode.toLowerCase()),
+        );
+      } else {
+        alert(
+          err.response?.data?.error ||
+            err.response?.data?.Result ||
+            "Failed to save Claimant Party, check console for details",
+        );
+      }
+    }
+  };
+
   // const saveClaimanParty = async () => {
   //   if (!claimantCode) {
   //     setClaimantError(true);
   //     alert("Code is required!");
   //     return;
   //   }
-  //   // Check for duplicate
-  //   const duplicate = claimantSuggestions.some(
-  //     (i) => i.split(":")[0].toLowerCase() === claimantCode.toLowerCase(),
-  //   );
+  //   const duplicate = commonClaimantCodes.has(claimantCode.toLowerCase());
   //   if (duplicate) {
   //     alert("Duplicate code found! Freight Forwarder not saved.");
   //     return;
@@ -1232,72 +1413,33 @@ function Party({ setActiveTab, isViewMode }) {
   //     TouchTime: new Date().toISOString(),
   //     Status: "Active",
   //   };
-  //   console.log("Payload to save:", payload);
+
   //   try {
+  //     // Save to CommonClaimantPartyTable only
   //     const response = await API.post("/postClaimantPartyTable/", payload);
-  //     alert(response.data?.message || "Claimant Party saved successfully!");
+
+  //     alert(
+  //       response.data?.message ||
+  //         response.data?.Result ||
+  //         "Claimant Party saved successfully!",
+  //     );
   //     console.log("Saved data:", response.data);
+
+  //     setCommonClaimantCodes((prev) =>
+  //       new Set(prev).add(claimantCode.toLowerCase()),
+  //     );
   //   } catch (err) {
-  //     if (err.response?.status === 400) {
-  //       alert(err.response.data?.error || "Failed to save Claimant Party");
-  //     } else {
-  //       console.error("Failed to save Claimant Party:", err);
-  //       alert("Failed to save Claimant Party, check console for details");
-  //     }
+  //     console.error(
+  //       "Failed to save Claimant Party:",
+  //       err.response?.data || err,
+  //     );
+  //     alert(
+  //       err.response?.data?.error ||
+  //         err.response?.data?.Result ||
+  //         "Failed to save Claimant Party, check console for details",
+  //     );
   //   }
   // };
-
-  const saveClaimanParty = async () => {
-    if (!claimantCode) {
-      setClaimantError(true);
-      alert("Code is required!");
-      return;
-    }
-    const duplicate = commonClaimantCodes.has(claimantCode.toLowerCase());
-    if (duplicate) {
-      alert("Duplicate code found! Freight Forwarder not saved.");
-      return;
-    }
-    const payload = {
-      Id: claimant?.Id || 0,
-      Name: claimantName || "",
-      Name1: claimantName1 || "",
-      CRUEI: claimantCruei || "",
-      ClaimantName: claimantcmantName || "",
-      ClaimantName1: claimantcmantName1 || "",
-      ClaimantCode: claimantCode || "",
-      Name2: "",
-      TouchUser: (user?.username).toUpperCase(),
-      TouchTime: new Date().toISOString(),
-      Status: "Active",
-    };
-
-    try {
-      // Save to CommonClaimantPartyTable only
-      const response = await API.post("/postClaimantPartyTable/", payload);
-
-      alert(
-        response.data?.message ||
-          response.data?.Result ||
-          "Claimant Party saved successfully!",
-      );
-      console.log("Saved data:", response.data);
-
-      setCommonClaimantCodes((prev) =>
-        new Set(prev).add(claimantCode.toLowerCase()),
-      );
-    } catch (err) {
-      console.error(
-        "Failed to save Claimant Party:",
-        err.response?.data || err,
-      );
-      alert(
-        err.response?.data?.error ||
-          err.response?.data?.Result ||
-          "Failed to save Claimant Party, check console for details",
-      );
-    }
-  };
 
   // ============================Party Filled Order Check=========================
 
@@ -1848,22 +1990,22 @@ function Party({ setActiveTab, isViewMode }) {
               }
               placeholder="CODE"
               value={freightForwarderCode}
-                 onChange={(e) => {
-      handleFreightForwarderChange(e);
-      if (showFreightForwarderMandatoryError) {
-        setShowFreightForwarderMandatoryError(false);
-      }
-    }}
+              onChange={(e) => {
+                handleFreightForwarderChange(e);
+                if (showFreightForwarderMandatoryError) {
+                  setShowFreightForwarderMandatoryError(false);
+                }
+              }}
               onKeyDown={handleFreightForwarderKeyDown}
               onBlur={handleFreightForwarderFocusOut}
               onFocus={() => setFreightForwarderError(false)}
               tabIndex={19}
             />
-              {showFreightForwarderMandatoryError && (
-    <span className="ErrorColor">
-      Freight Forwarder is required when Cargo HAWB/HBL is entered.
-    </span>
-  )}
+            {showFreightForwarderMandatoryError && (
+              <span className="ErrorColor">
+                Freight Forwarder is required when Cargo HAWB/HBL is entered.
+              </span>
+            )}
             {showFreightForwarderDropdown &&
               filteredFreightForwarderSuggestions.length > 0 && (
                 <div className="dropdown-suggestions">

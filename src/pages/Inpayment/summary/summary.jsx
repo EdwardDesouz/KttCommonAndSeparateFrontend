@@ -50,7 +50,7 @@ function Summary({ setActiveTab, isViewMode }) {
     setShowInwardNameError,
     freightForwarderCode,
     claimantCode,
-        showFreightForwarderMandatoryError,
+    showFreightForwarderMandatoryError,
     setShowFreightForwarderMandatoryError,
     showCargoHawbMandatoryError,
     setShowCargoHawbMandatoryError,
@@ -370,9 +370,6 @@ function Summary({ setActiveTab, isViewMode }) {
     let isValid = true;
 
     // _______FREIGHT FORWARDER CARGO HAWB_________________________________
-    
-
-
 
     // ── HEADER ──────────────────────────────────────────────────────────
     setShowDeclarationTypeError(false);
@@ -545,7 +542,7 @@ function Summary({ setActiveTab, isViewMode }) {
       }
     }
 
-     // ── FREIGHT FORWARDER <-> HAWB CROSS VALIDATION ─────────────────────
+    // ── FREIGHT FORWARDER <-> HAWB CROSS VALIDATION ─────────────────────
     setShowFreightForwarderMandatoryError(false);
     setShowCargoHawbMandatoryError(false);
 
@@ -760,11 +757,11 @@ function Summary({ setActiveTab, isViewMode }) {
   //     PreviousPermit: prevPermitNo || "",
   //     CargoPackType: cargo || "",
   //     InwardTransportMode: transportMode || "",
-  //     BGIndicator: bgInd || "",
-  //     SupplyIndicator: supplyInd ? "Y" : "N",
-  //     ReferenceDocuments: refDocs ? "Y" : "N",
-  //     License: Licence || "",
-  //     Recipient: Recipients || "",
+  //     BGIndicator: bgInd || "--Select--",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     License: Licence || ",,,,",
+  //     Recipient: Recipients || "--",
 
   //     // Party
   //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
@@ -799,7 +796,7 @@ function Summary({ setActiveTab, isViewMode }) {
   //     GrossReference: summaryCrossReference || "",
   //     TradeRemarks: summaryRemarks || "",
   //     InternalRemarks: summaryInternalReamarks || "",
-  //     DeclareIndicator: declarationChecked ? "Y" : "N",
+  //     DeclareIndicator: declarationChecked ? "true" : "false",
   //     gstVerified: summaryApprovedBy || "",
   //     CustomerRemarks: summaryCustomerRemarks || "",
   //     // Totals
@@ -819,7 +816,7 @@ function Summary({ setActiveTab, isViewMode }) {
   //     prmtStatus: PermitStatus,
 
   //     // Other
-  //     Cnb: cnBChecked ? "Y" : "N",
+  //     Cnb: cnBChecked ? "true" : "false",
   //     DeclarningFor: declFor || "--Select--",
   //     MRDate: formatDate(summaryDate) || null,
   //     MRTime: summaryTime || "",
@@ -955,11 +952,11 @@ function Summary({ setActiveTab, isViewMode }) {
   //     PreviousPermit: prevPermitNo || "",
   //     CargoPackType: cargo || "",
   //     InwardTransportMode: transportMode || "",
-  //     BGIndicator: bgInd || "",
-  //     SupplyIndicator: supplyInd ? "Y" : "N",
-  //     ReferenceDocuments: refDocs ? "Y" : "N",
-  //     License: Licence || "",
-  //     Recipient: Recipients || "",
+  //     BGIndicator: bgInd || "--Select--",
+  //     SupplyIndicator: supplyInd ? "true" : "false",
+  //     ReferenceDocuments: refDocs ? "true" : "false",
+  //     License: Licence || ",,,,",
+  //     Recipient: Recipients || "--",
   //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
   //     ImporterCompanyCode: importerCode || "",
   //     InwardCarrierAgentCode: inwardCode || "",
@@ -988,7 +985,7 @@ function Summary({ setActiveTab, isViewMode }) {
   //     GrossReference: summaryCrossReference || "",
   //     TradeRemarks: summaryRemarks || "",
   //     InternalRemarks: summaryInternalReamarks || "",
-  //     DeclareIndicator: declarationChecked ? "Y" : "N",
+  //     DeclareIndicator: declarationChecked ? "true" : "false",
   //     gstVerified: summaryApprovedBy || "",
   //     CustomerRemarks: summaryCustomerRemarks || "",
   //     NumberOfItems: toDecimal(itemTable.length),
@@ -1003,7 +1000,7 @@ function Summary({ setActiveTab, isViewMode }) {
   //     TouchTime: touchTime,
   //     PermitNumber: PermitNumber,
   //     prmtStatus: PermitStatus,
-  //     Cnb: cnBChecked ? "Y" : "N",
+  //     Cnb: cnBChecked ? "true" : "false",
   //     DeclarningFor: declFor || "--Select--",
   //     MRDate: formatDate(summaryDate) || null,
   //     MRTime: summaryTime || "",
@@ -1051,15 +1048,15 @@ function Summary({ setActiveTab, isViewMode }) {
       PermitId: (permitDetails?.PermitId || "").toUpperCase(),
       TradeNetMailboxID: permitDetails?.MailBoxId || "",
       MessageType: "IPTDEC",
-      DeclarationType: decType || "",
+      DeclarationType: decType || "--Select--",
       PreviousPermit: prevPermitNo || "",
-      CargoPackType: cargo || "",
-      InwardTransportMode: transportMode || "",
-      BGIndicator: bgInd || "",
-      SupplyIndicator: supplyInd ? "Y" : "N",
-      ReferenceDocuments: refDocs ? "Y" : "N",
-      License: Licence || "",
-      Recipient: Recipients || "",
+      CargoPackType: cargo || "--Select--",
+      InwardTransportMode: transportMode || "--Select--",
+      BGIndicator: bgInd || "--Select--",
+      SupplyIndicator: supplyInd ? "true" : "false",
+      ReferenceDocuments: refDocs ? "true" : "false",
+      License: Licence || ",,,,",
+      Recipient: Recipients || "--",
       DeclarantCompanyCode: permitDetails?.Code || "",
       ImporterCompanyCode: importerCode.toUpperCase() || "",
       InwardCarrierAgentCode: inwardCode.toUpperCase() || "",
@@ -1092,7 +1089,7 @@ function Summary({ setActiveTab, isViewMode }) {
       GrossReference: summaryCrossReference || "",
       TradeRemarks: summaryRemarks.toUpperCase() || "",
       InternalRemarks: summaryInternalReamarks.toUpperCase() || "",
-      DeclareIndicator: declarationChecked ? "Y" : "N",
+      DeclareIndicator: declarationChecked ? "true" : "false",
       gstVerified: summaryApprovedBy || "",
       CustomerRemarks: summaryCustomerRemarks || "",
       NumberOfItems: toDecimal(itemTable.length),
@@ -1107,7 +1104,7 @@ function Summary({ setActiveTab, isViewMode }) {
       TouchTime: touchTime,
       PermitNumber: PermitNumber,
       prmtStatus: PermitStatus,
-      Cnb: cnBChecked ? "Y" : "N",
+      Cnb: cnBChecked ? "true" : "false",
       DeclarningFor: declFor || "--Select--",
       MRDate: formatDate(summaryDate) || null,
       MRTime: summaryTime || "",
@@ -1127,6 +1124,8 @@ function Summary({ setActiveTab, isViewMode }) {
 
       const inHeaderPayload = {
         ...headerPayload,
+        JobId: commonResponse.data.JobId, 
+        MSGId: commonResponse.data.MSGId,
         ReleaseLocName: releaseLocationDescription || "",
       };
       delete inHeaderPayload.ResLoaName;
@@ -1227,12 +1226,12 @@ function Summary({ setActiveTab, isViewMode }) {
         PreviousPermit: prevPermitNo || "",
         CargoPackType: cargo || "",
         InwardTransportMode: transportMode || "",
-        BGIndicator: bgInd || "",
+        BGIndicator: bgInd || "--Select--",
         SupplyIndicator: supplyInd ? "true" : "false",
         ReferenceDocuments: refDocs ? "true" : "false",
         DeclarningFor: declFor || "--Select--",
-        License: Licence || "",
-        Recipient: Recipients || "",
+        License: Licence || ",,,,",
+        Recipient: Recipients || "--",
         DeclarantCompanyCode: permitDetails?.Code || "",
         ImporterCompanyCode: importerCode || "",
         InwardCarrierAgentCode: inwardCode || "",
@@ -1266,7 +1265,7 @@ function Summary({ setActiveTab, isViewMode }) {
         TradeRemarks: summaryRemarks || "",
         Message: draftReason.trim().toUpperCase(),
         CustomerRemarks: summaryCustomerRemarks || "",
-        DeclareIndicator: declarationChecked ? "Y" : "N",
+        DeclareIndicator: declarationChecked ? "true" : "false",
         Status: "SAVEASDRF",
         prmtStatus: "SAVEASDRF",
         TouchUser,
@@ -1320,12 +1319,12 @@ function Summary({ setActiveTab, isViewMode }) {
   //     PreviousPermit: prevPermitNo || "",
   //     CargoPackType: cargo || "",
   //     InwardTransportMode: transportMode || "",
-  //     BGIndicator: bgInd || "",
+  //     BGIndicator: bgInd || "--Select--",
   //     SupplyIndicator: supplyInd ? "true" : "false",
   //     ReferenceDocuments: refDocs ? "true" : "false",
-  //     DeclarningFor: declFor || "",
-  //     License: Licence || "",
-  //     Recipient: Recipients || "",
+  //     DeclarningFor: declFor || "--Select--",
+  //     License: Licence || ",,,,",
+  //     Recipient: Recipients || "--",
   //     // party fields
   //     DeclarantCompanyCode: permitDetails?.DeclarantCode || "",
   //     ImporterCompanyCode: importerCode || "",
@@ -1359,7 +1358,7 @@ function Summary({ setActiveTab, isViewMode }) {
   //     TradeRemarks: summaryRemarks || "",
   //     InternalRemarks: summaryInternalReamarks || "",
   //     CustomerRemarks: "",
-  //     DeclareIndicator: declarationChecked ? "Y" : "N",
+  //     DeclareIndicator: declarationChecked ? "true" : "false",
   //     DeclarningForSummary: summaryDeclaringFor || "",
 
   //     NumberOfItems: toDecimal(itemTable.length),
