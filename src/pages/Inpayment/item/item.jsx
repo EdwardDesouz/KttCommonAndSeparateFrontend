@@ -2847,15 +2847,25 @@ function Item({ setActiveTab, isViewMode }) {
     setImmostPackQuantity(fmt(item.ImPQty, 2));
     setImmostPackQuantityUom(item.ImPUOM || "");
 
+    // const hasPacking =
+    //   item.OPQty > 0 ||
+    //   (item.OPUOM || "").trim() !== "" ||
+    //   item.IPQty > 0 ||
+    //   (item.IPUOM || "").trim() !== "" ||
+    //   item.InPqty > 0 ||
+    //   (item.InPUOM || "").trim() !== "" ||
+    //   item.ImPQty > 0 ||
+    //   (item.ImPUOM || "").trim() !== "";
+
     const hasPacking =
       item.OPQty > 0 ||
-      (item.OPUOM || "").trim() !== "" ||
+      hasValue(item.OPUOM) ||
       item.IPQty > 0 ||
-      (item.IPUOM || "").trim() !== "" ||
+      hasValue(item.IPUOM) ||
       item.InPqty > 0 ||
-      (item.InPUOM || "").trim() !== "" ||
+      hasValue(item.InPUOM) ||
       item.ImPQty > 0 ||
-      (item.ImPUOM || "").trim() !== "";
+      hasValue(item.ImPUOM);
 
     const chkVal = item.ChkUnitPrice;
     const isUnitPriceChecked =
@@ -2884,10 +2894,14 @@ function Item({ setActiveTab, isViewMode }) {
     setOtherTaxAmount(fmt(item.OtherTaxAmount, 2));
     setLastSellingPrice(fmt(item.LSPValue, 2));
 
+    // const hasLotId =
+    //   item.CurrentLot?.trim() ||
+    //   item.Making?.trim() ||
+    //   item.PreviousLot?.trim();
     const hasLotId =
-      item.CurrentLot?.trim() ||
-      item.Making?.trim() ||
-      item.PreviousLot?.trim();
+      hasValue(item.CurrentLot) ||
+      hasValue(item.Making) ||
+      hasValue(item.PreviousLot);
     setShowLotId(!!hasLotId);
     setCurrentLot(item.CurrentLot || "");
     setMaking(item.Making || "");
@@ -3158,6 +3172,11 @@ function Item({ setActiveTab, isViewMode }) {
   const fmt = (val, decimals = 2) => {
     const num = parseFloat(val);
     return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
+
+  const hasValue = (val) => {
+    const v = (val ?? "").toString().trim();
+    return v !== "" && v.toUpperCase() !== "--SELECT--";
   };
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
@@ -6410,7 +6429,7 @@ function Item({ setActiveTab, isViewMode }) {
                       <td style={cellStyle}>{fmt(item.TotalLineAmount, 2)}</td>
                       <td style={cellStyle}>
                         <FaPlus
-                          className="view-show"
+                          // className="view-show"
                           style={{ width: "30px", cursor: "pointer" }}
                           className="AddContainerBtn"
                           onClick={() => copyItem(item.ItemNo)}
