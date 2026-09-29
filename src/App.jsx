@@ -3,7 +3,7 @@ import { UserProvider } from "./userContex/userContex";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import LoginPage from "./pages/loginPage";
-import Index from "./pages/indexpage";
+import Index from "./pages/indexPage";
 import Inpayment from "./pages/Inpayment/inPaymentList";
 import InpaymentNew from "./pages/Inpayment/inpaymentNew";
 import Innonpayment from "./pages/Innonpayment/innonPayment";
