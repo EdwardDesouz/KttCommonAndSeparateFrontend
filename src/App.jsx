@@ -13,7 +13,7 @@ import OutNew from "./pages/Out/outNew";
 import Transhipment from "./pages/Transhipment/transhipmentList";
 import TranshipmentNew from "./pages/Transhipment/transhipmentNew";
 import Coo from "./pages/Coo/cooList";
-import CooNew from "./pages/Coo/CooNew";
+import CooNew from "./pages/Coo/cooNew";
 import { InpaymentProvider } from "./pages/Inpayment/context/inpaymentContext";
 import { InnonpaymentProvider } from "./pages/Innonpayment/context/innonpaymentContext";
 import { OutProvider } from "./pages/Out/context/outContext";
