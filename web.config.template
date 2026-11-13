@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
-    <handlers>
-      <remove name="DjangoHandler" />
-    </handlers>
-
     <rewrite>
       <rules>
         <rule name="React Router Fallback" stopProcessing="true">
@@ -17,7 +13,6 @@
         </rule>
       </rules>
     </rewrite>
-
     <staticContent>
       <remove fileExtension=".json" />
       <mimeMap fileExtension=".json" mimeType="application/json" />
