@@ -15,6 +15,12 @@ function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
+  // Hscode Helper Function For Vechicle Check
+  const isVehicleHs = (code) => {
+    const c = String(code || "").trim();
+    return c.length === 8 && c.startsWith("87") && c.endsWith("87");
+  };
+
   const {
     permitDetails,
     updatePermitDetails,
@@ -638,8 +644,8 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonDeleted) {
         alert(
           `Warning: Casc row (${cascId}, row ${rowNo}) was deleted from the Common table but FAILED to delete from OutCasc. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
         const updated = [...itemCasc];
         updated[itemIndex].casc.splice(rowIndex, 1);
@@ -647,7 +653,7 @@ function Item({ setActiveTab, isViewMode }) {
       } else {
         alert(
           error.response?.data?.error ||
-            "Failed to delete casc row, check console for details",
+          "Failed to delete casc row, check console for details",
         );
       }
     }
@@ -2030,14 +2036,14 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonSaved) {
         alert(
           `Warning: Item "${payload.HSCode}" (Item No ${itemNumber}) was saved to CommonItemDtl but FAILED to save to ItemDtl. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else if (error.response?.status === 400) {
         alert(
           error.response.data?.error ||
-            error.response.data?.Result ||
-            "Failed to save item",
+          error.response.data?.Result ||
+          "Failed to save item",
         );
       } else {
         alert("Failed to save item, check console for details");
@@ -2200,15 +2206,15 @@ function Item({ setActiveTab, isViewMode }) {
       } catch (syncErr) {
         alert(
           "Warning: Items were deleted from CommonItemDtl but FAILED to sync to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${syncErr.response?.data?.error || syncErr.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${syncErr.response?.data?.error || syncErr.message}`,
         );
       }
     } catch (error) {
       console.error("Bulk delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete items, check console for details",
+        "Failed to delete items, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2290,14 +2296,14 @@ function Item({ setActiveTab, isViewMode }) {
       } catch (mirrorErr) {
         alert(
           `Warning: Item No ${itemNo} was deleted from CommonItemDtl but FAILED to sync to InNonItemDtl. ` +
-            `Please contact support or retry.\n\nError: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+          `Please contact support or retry.\n\nError: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
         );
       }
     } catch (error) {
       console.error("Delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete item, check console for details",
+        "Failed to delete item, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2466,9 +2472,9 @@ function Item({ setActiveTab, isViewMode }) {
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -2692,9 +2698,9 @@ function Item({ setActiveTab, isViewMode }) {
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -3026,8 +3032,8 @@ function Item({ setActiveTab, isViewMode }) {
         console.error("Mirror upload failed", mirrorError);
         alert(
           "Warning: Excel data was uploaded to CommonItemDtl but FAILED to mirror to InItemDtl. " +
-            "Please contact support or re-upload.\n\n" +
-            `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
+          "Please contact support or re-upload.\n\n" +
+          `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
         );
       }
 
@@ -3322,8 +3328,8 @@ function Item({ setActiveTab, isViewMode }) {
         console.error("Mirror edit-all failed", mirrorError);
         alert(
           "Warning: Items were updated in CommonItemDtl but FAILED to mirror to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
         );
         return;
       }
@@ -3364,8 +3370,8 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonCleared) {
         alert(
           "Warning: HAWB/HBL was cleared in CommonItemDtl but FAILED to clear in ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${error.response?.data?.error || error.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else {
         alert("Failed to clear HAWB/HBL");

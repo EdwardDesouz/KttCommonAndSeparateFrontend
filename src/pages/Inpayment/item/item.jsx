@@ -11,6 +11,14 @@ import ToastNotification, {
   useToast,
 } from "../../../components/ToastNotification/toastNotification";
 import { CircleLoader } from "react-spinners";
+
+// Hscode Helper Function For Vechicle Check
+const isVehicleHs = (code) => {
+  const c = String(code || "").trim();
+  return c.length === 8 && c.startsWith("87") && c.endsWith("87");
+};
+
+
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -652,8 +660,8 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonDeleted) {
         alert(
           `Warning: Casc row (${cascId}, row ${rowNo}) was deleted from the Common table but FAILED to delete from InnonCasc. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
         const updated = [...itemCasc];
         updated[itemIndex].casc.splice(rowIndex, 1);
@@ -661,7 +669,7 @@ function Item({ setActiveTab, isViewMode }) {
       } else {
         alert(
           error.response?.data?.error ||
-            "Failed to delete casc row, check console for details",
+          "Failed to delete casc row, check console for details",
         );
       }
     }
@@ -716,9 +724,13 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeError(false);
     setHighlightedHsCodeIndex(0);
 
+    if (!isVehicleHs(val)) {
+      setShowVehicle(false);
+      setShowOptionalCharges(false);
+    }
+
     if (!val) {
       setShowHsCodeDropdown(false);
-      setShowVehicle(false);
       return;
     }
 
@@ -1263,7 +1275,8 @@ function Item({ setActiveTab, isViewMode }) {
     }
 
     // VEHICLE (HSCode starts with 87)
-    if (HSCode && HSCode.startsWith("87")) {
+    // if (HSCode && HSCode.startsWith("87")) {
+    if (isVehicleHs(HSCode)) {
       setShowVehicle(true);
       setShowDutiableQuantity(true);
       setShowOptionalCharges(true);
@@ -1315,10 +1328,12 @@ function Item({ setActiveTab, isViewMode }) {
         (i) => i.HSCode.toLowerCase() === hsCode.toLowerCase(),
       );
 
-      // if (!selected) {
-      //   setHsCodeError(true);
-      //   return;
-      // }
+      if (!selected) {
+        setHsCodeRow(null);
+        setShowVehicle(false);
+        setShowOptionalCharges(false);
+        return;
+      }
 
       setHsCodeRow(selected);
       setHsCode(selected.HSCode);
@@ -1812,7 +1827,8 @@ function Item({ setActiveTab, isViewMode }) {
     const total2 = TotalLineAmd + invoiceCharge;
     setCifFob(total2.toFixed(2));
 
-    if (hsCode.startsWith("87")) {
+    // if (hsCode.startsWith("87")) {
+    if (isVehicleHs(hsCode)) {
       const vehicleExcise = (total2 * Number(exciseDutyRate)) / 100;
       setExciseDutyAmount(vehicleExcise.toFixed(2));
     }
@@ -1826,7 +1842,8 @@ function Item({ setActiveTab, isViewMode }) {
     } else {
       const typeId = dutyTypeId;
       if (totDuit !== "") {
-        if (!typeId.startsWith("87")) {
+        // if (!typeId.startsWith("87")) {
+        if (!isVehicleHs(hsCode)) {
           const excise = totDuit * Number(exciseDutyRate);
           setExciseDutyAmount(excise);
         }
@@ -1943,7 +1960,8 @@ function Item({ setActiveTab, isViewMode }) {
     else if (TDQUOM === "KGM" && kgmvis === "MULTIPLE") {
       totalQty = pckqty * totduti;
       setTotalDuitableQuantity(totalQty.toFixed(2));
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1958,7 +1976,8 @@ function Item({ setActiveTab, isViewMode }) {
       totalQty = (pckqty * totduti) / 1000;
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1974,7 +1993,8 @@ function Item({ setActiveTab, isViewMode }) {
       setTotalDuitableQuantity(totalQty.toFixed(2));
       setHsQuantity(((pckqty * totduti) / 1000).toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = pckqty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1991,7 +2011,8 @@ function Item({ setActiveTab, isViewMode }) {
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -2008,7 +2029,8 @@ function Item({ setActiveTab, isViewMode }) {
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -2025,7 +2047,8 @@ function Item({ setActiveTab, isViewMode }) {
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -2042,7 +2065,8 @@ function Item({ setActiveTab, isViewMode }) {
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -2053,15 +2077,13 @@ function Item({ setActiveTab, isViewMode }) {
       setGstSum(gst.toFixed(2));
     }
     // ================= vechile =================
-    else if (TDQUOM === "NMB" && hsCode.startsWith("87")) {
-      if (HsVal.startsWith("87")) {
-        excise = (T2 * T1) / 100;
-      }
+    // else if (TDQUOM === "NMB" && hsCode.startsWith("87")) {
+    else if (TDQUOM === "NMB" && isVehicleHs(hsCode)) {
+      excise = (T2 * T1) / 100;
       setExciseDutyAmount(excise.toFixed(2));
 
       let T3 = excise;
       gst = T2 * gstperval + T3 * gstperval;
-
       setGstSum(gst.toFixed(2));
     }
   };
@@ -2409,14 +2431,14 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonSaved) {
         alert(
           `Warning: Item "${payload.HSCode}" (Item No ${itemNumber}) was saved to CommonItemDtl but FAILED to save to ItemDtl. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else if (error.response?.status === 400) {
         alert(
           error.response.data?.error ||
-            error.response.data?.Result ||
-            "Failed to save item",
+          error.response.data?.Result ||
+          "Failed to save item",
         );
       } else {
         alert("Failed to save item, check console for details");
@@ -2677,15 +2699,15 @@ function Item({ setActiveTab, isViewMode }) {
       } catch (syncErr) {
         alert(
           "Warning: Items were deleted from CommonItemDtl but FAILED to sync to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${syncErr.response?.data?.error || syncErr.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${syncErr.response?.data?.error || syncErr.message}`,
         );
       }
     } catch (error) {
       console.error("Bulk delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete items, check console for details",
+        "Failed to delete items, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2771,14 +2793,14 @@ function Item({ setActiveTab, isViewMode }) {
       if (inRes.status === "rejected") {
         alert(
           `Warning: Item No ${itemNo} was deleted from CommonItemDtl but FAILED to delete from ItemDtl. ` +
-            `Please contact support or retry.\n\nError: ${inRes.reason.response?.data?.error || inRes.reason.message}`,
+          `Please contact support or retry.\n\nError: ${inRes.reason.response?.data?.error || inRes.reason.message}`,
         );
       }
     } catch (error) {
       console.error("Delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete item, check console for details",
+        "Failed to delete item, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2922,9 +2944,9 @@ function Item({ setActiveTab, isViewMode }) {
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -3106,9 +3128,9 @@ function Item({ setActiveTab, isViewMode }) {
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -3421,8 +3443,8 @@ function Item({ setActiveTab, isViewMode }) {
         console.error("Mirror upload failed", mirrorError);
         alert(
           "Warning: Excel data was uploaded to CommonItemDtl but FAILED to mirror to InItemDtl. " +
-            "Please contact support or re-upload.\n\n" +
-            `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
+          "Please contact support or re-upload.\n\n" +
+          `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
         );
       }
 
@@ -3821,10 +3843,10 @@ function Item({ setActiveTab, isViewMode }) {
           InvoiceNo: item.InvoiceNo || "",
           ChkUnitPrice:
             item.ChkUnitPrice === true ||
-            item.ChkUnitPrice === 1 ||
-            item.ChkUnitPrice === "1" ||
-            (typeof item.ChkUnitPrice === "string" &&
-              ["true", "yes"].includes(item.ChkUnitPrice.trim().toLowerCase()))
+              item.ChkUnitPrice === 1 ||
+              item.ChkUnitPrice === "1" ||
+              (typeof item.ChkUnitPrice === "string" &&
+                ["true", "yes"].includes(item.ChkUnitPrice.trim().toLowerCase()))
               ? "True"
               : "False",
 
@@ -3898,8 +3920,8 @@ function Item({ setActiveTab, isViewMode }) {
         console.error("Mirror edit-all failed", mirrorError);
         alert(
           "Warning: Items were updated in CommonItemDtl but FAILED to mirror to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
         );
         return;
       }
@@ -3949,8 +3971,8 @@ function Item({ setActiveTab, isViewMode }) {
         console.error("Mirror brand update failed", mirrorErr);
         alert(
           "Warning: Brand was updated in CommonItemDtl but FAILED to mirror to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
         );
         return; // keep input so user can retry
       }
@@ -3965,7 +3987,7 @@ function Item({ setActiveTab, isViewMode }) {
       console.error("Bulk brand update failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to update brand for all items, check console for details",
+        "Failed to update brand for all items, check console for details",
       );
     } finally {
       setIsItemEditall(false);
@@ -4009,8 +4031,8 @@ function Item({ setActiveTab, isViewMode }) {
       if (commonCleared) {
         alert(
           "Warning: HAWB/HBL was cleared in CommonItemDtl but FAILED to clear in ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${error.response?.data?.error || error.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else {
         alert("Failed to clear HAWB/HBL");
@@ -5448,7 +5470,7 @@ function Item({ setActiveTab, isViewMode }) {
                       defaultValue="0.00"
                       value={sumExchangeRate}
                       readOnly
-                      // onChange={(e) => setSumExchangeRate(e.target.value)}
+                    // onChange={(e) => setSumExchangeRate(e.target.value)}
                     />
                   </div>
                 </div>

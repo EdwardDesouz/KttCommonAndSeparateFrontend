@@ -12,6 +12,12 @@ import ToastNotification, {
 } from "../../../components/ToastNotification/toastNotification";
 import { CircleLoader } from "react-spinners";
 
+// Hscode Helper Function For Vechicle Check
+const isVehicleHs = (code) => {
+  const c = String(code || "").trim();
+  return c.length === 8 && c.startsWith("87") && c.endsWith("87");
+};
+
 function Item({ setActiveTab, isViewMode }) {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -51,10 +57,10 @@ function Item({ setActiveTab, isViewMode }) {
     setHsCodeDescription,
     hsCodeRow,
     setHsCodeRow,
-            hsCodeSuggestions,
-setHsCodeSuggestions,
-filteredHsCodeSuggestions,
-setFilteredHsCodeSuggestions,
+    hsCodeSuggestions,
+    setHsCodeSuggestions,
+    filteredHsCodeSuggestions,
+    setFilteredHsCodeSuggestions,
     countryCode,
     setCountryCode,
     countryDescription,
@@ -89,9 +95,9 @@ setFilteredHsCodeSuggestions,
     setInvoiceCurrencyItem,
     invoiceExRateItem,
     setInvoiceExRateItem,
-        invoiceCurrency,
+    invoiceCurrency,
     setInvoiceCurrency,
-        invoiceExRate,
+    invoiceExRate,
     setInvoiceExRate,
     unitPrice,
     setUnitPrice,
@@ -632,8 +638,8 @@ setFilteredHsCodeSuggestions,
       if (commonDeleted) {
         alert(
           `Warning: Casc row (${cascId}, row ${rowNo}) was deleted from the Common table but FAILED to delete from OutCasc. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
         const updated = [...itemCasc];
         updated[itemIndex].casc.splice(rowIndex, 1);
@@ -641,7 +647,7 @@ setFilteredHsCodeSuggestions,
       } else {
         alert(
           error.response?.data?.error ||
-            "Failed to delete casc row, check console for details",
+          "Failed to delete casc row, check console for details",
         );
       }
     }
@@ -688,9 +694,13 @@ setFilteredHsCodeSuggestions,
     setHsCodeError(false);
     setHighlightedHsCodeIndex(0);
 
+    if (!isVehicleHs(val)) {
+      setShowVehicle(false);
+      setShowOptionalCharges(false);
+    }
+
     if (!val) {
       setShowHsCodeDropdown(false);
-      setShowVehicle(false);
       return;
     }
 
@@ -944,7 +954,8 @@ setFilteredHsCodeSuggestions,
     }
 
     // VEHICLE (HSCode starts with 87)
-    if (HSCode && HSCode.startsWith("87")) {
+    // if (HSCode && HSCode.startsWith("87")) {
+    if (isVehicleHs(HSCode)) {
       setShowVehicle(true);
       setShowDutiableQuantity(true);
       setShowOptionalCharges(true);
@@ -985,15 +996,18 @@ setFilteredHsCodeSuggestions,
         (i) => i.HSCode.toLowerCase() === hsCode.toLowerCase(),
       );
 
-      // if (!selected) {
-      //   setHsCodeError(true);
-      //   return;
-      // }
+      if (!selected) {
+        setHsCodeRow(null);
+        setShowVehicle(false);
+        setShowOptionalCharges(false);
+        return;
+      }
 
       setHsCodeRow(selected);
       setHsCode(selected.HSCode);
       setHsCodeDescription(selected.Description);
       setHsCodeError(false);
+
 
       applyHsLogic(selected);
 
@@ -1153,7 +1167,7 @@ setFilteredHsCodeSuggestions,
         total = itemqty;
       }
 
-       if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
+      if (hsopt === "KGM" || hsopt === "LTR" || hsopt === "TNE") {
         if (Number(itemqty) > Number(totalGrossWeight)) {
           alert(
             "The Total Gross Weight is Less Than The Sum Of The Item Weight Please Check!!!",
@@ -1504,7 +1518,8 @@ setFilteredHsCodeSuggestions,
     } else {
       const typeId = dutyTypeId;
       if (totDuit !== "") {
-        if (!typeId.startsWith("87")) {
+        // if (!typeId.startsWith("87")) {
+        if (!isVehicleHs(hsCode)) {
           const excise = totDuit * Number(exciseDutyRate);
           setExciseDutyAmount(excise);
         }
@@ -1619,7 +1634,8 @@ setFilteredHsCodeSuggestions,
     else if (TDQUOM === "KGM" && kgmvis === "MULTIPLE") {
       totalQty = pckqty * totduti;
       setTotalDuitableQuantity(totalQty.toFixed(2));
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1634,7 +1650,8 @@ setFilteredHsCodeSuggestions,
       totalQty = (pckqty * totduti) / 1000;
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1650,7 +1667,8 @@ setFilteredHsCodeSuggestions,
       setTotalDuitableQuantity(totalQty.toFixed(2));
       setHsQuantity(((pckqty * totduti) / 1000).toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = pckqty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1667,7 +1685,8 @@ setFilteredHsCodeSuggestions,
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1684,7 +1703,8 @@ setFilteredHsCodeSuggestions,
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1701,7 +1721,8 @@ setFilteredHsCodeSuggestions,
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1718,7 +1739,8 @@ setFilteredHsCodeSuggestions,
 
       setTotalDuitableQuantity(totalQty.toFixed(2));
 
-      if (!HsVal.startsWith("87")) {
+      // if (!HsVal.startsWith("87")) {
+      if (!isVehicleHs(HsVal)) {
         excise = totalQty * T1;
         setExciseDutyAmount(excise.toFixed(2));
       }
@@ -1729,15 +1751,13 @@ setFilteredHsCodeSuggestions,
       setGstSum(gst.toFixed(2));
     }
     // ================= vechile =================
-    else if (TDQUOM === "NMB" && hsCode.startsWith("87")) {
-      if (HsVal.startsWith("87")) {
-        excise = (T2 * T1) / 100;
-      }
+    // else if (TDQUOM === "NMB" && hsCode.startsWith("87")) {
+    else if (TDQUOM === "NMB" && isVehicleHs(hsCode)) {
+      excise = (T2 * T1) / 100;
       setExciseDutyAmount(excise.toFixed(2));
 
       let T3 = excise;
       gst = T2 * gstperval + T3 * gstperval;
-
       setGstSum(gst.toFixed(2));
     }
   };
@@ -2108,14 +2128,14 @@ setFilteredHsCodeSuggestions,
       if (commonSaved) {
         alert(
           `Warning: Item "${payload.HSCode}" (Item No ${itemNumber}) was saved to CommonItemDtl but FAILED to save to ItemDtl. ` +
-            `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
-            `Error: ${error.response?.data?.error || error.message}`,
+          `Please contact support or retry — this record is now inconsistent between tables.\n\n` +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else if (error.response?.status === 400) {
         alert(
           error.response.data?.error ||
-            error.response.data?.Result ||
-            "Failed to save item",
+          error.response.data?.Result ||
+          "Failed to save item",
         );
       } else {
         alert("Failed to save item, check console for details");
@@ -2283,8 +2303,8 @@ setFilteredHsCodeSuggestions,
         console.error("Sync failed", mirrorErr);
         alert(
           "Warning: Items were deleted from CommonItemDtl but FAILED to sync to OutItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
         );
         return;
       }
@@ -2292,7 +2312,7 @@ setFilteredHsCodeSuggestions,
       console.error("Bulk delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete items, check console for details",
+        "Failed to delete items, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2373,14 +2393,14 @@ setFilteredHsCodeSuggestions,
       } catch (mirrorErr) {
         alert(
           `Warning: Item No ${itemNo} was deleted from CommonItemDtl but FAILED to sync to OutItemDtl. ` +
-            `Please contact support or retry.\n\nError: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
+          `Please contact support or retry.\n\nError: ${mirrorErr.response?.data?.error || mirrorErr.message}`,
         );
       }
     } catch (error) {
       console.error("Delete failed", error);
       alert(
         error.response?.data?.error ||
-          "Failed to delete item, check console for details",
+        "Failed to delete item, check console for details",
       );
     } finally {
       setIsDeletingItem(false);
@@ -2413,7 +2433,7 @@ setFilteredHsCodeSuggestions,
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
 
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2426,7 +2446,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
 
     // -----------------------------------------------------
 
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2470,7 +2490,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2507,7 +2527,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setOptionalCharges(item.Optioncahrge || 0);
     // setOptionlAmount(item.OptionalSumtotal || 0);
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2520,10 +2540,10 @@ setPreferentialCode(item.PreferentialCode || "");
       setManuDate(`${day}/${month}/${year}`);
     }
 
-setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
-   
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2548,9 +2568,9 @@ setTextileCategory(item.TexCat || "");
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -2612,14 +2632,14 @@ setTextileCategory(item.TexCat || "");
     }
   };
 
-    // ---------------------------COPY ITEM -----------------
+  // ---------------------------COPY ITEM -----------------
 
   const copyItem = async (itemNo) => {
     const item = itemTable.find((i) => i.ItemNo === itemNo);
     if (!item) return;
     const permitId = permitDetails?.PermitId;
     // setSerialNumber(item.ItemNo?.toString().padStart(3));
-   const selectedHs = hsCodeSuggestions.find(
+    const selectedHs = hsCodeSuggestions.find(
       (i) => i.HSCode.toLowerCase() === item.HSCode?.toLowerCase(),
     );
     if (selectedHs) {
@@ -2638,7 +2658,7 @@ setTextileCategory(item.TexCat || "");
     setHawb(item.InHAWBOBL || "");
     setOutHawb(item.OutHAWBOBL || "");
 
-setDuitableQuantity(fmt(item.DutiableQty, 2));
+    setDuitableQuantity(fmt(item.DutiableQty, 2));
     setDuitableQuantityUom(item.DutiableUOM || "--Select--");
     setTotalDuitableQuantity(fmt(item.TotalDutiableQty, 4));
     setTotalDuitableQuantityUom(item.TotalDutiableUOM || "--Select--");
@@ -2651,7 +2671,7 @@ setDuitableQuantity(fmt(item.DutiableQty, 2));
 
     // -----------------------------------------------------
 
-setHsQuantity(fmt(item.HSQty, 4));
+    setHsQuantity(fmt(item.HSQty, 4));
     setHsUom(item.HSUOM || "--Select--");
     setAlcoholPercentage(fmt(item.AlcoholPer, 2));
     setSelectedInvoice(item.InvoiceNo || "");
@@ -2695,7 +2715,7 @@ setHsQuantity(fmt(item.HSQty, 4));
     setPackingChecked(hasPacking);
     setShowPacking(hasPacking);
 
-setPreferentialCode(item.PreferentialCode || "");
+    setPreferentialCode(item.PreferentialCode || "");
     setGstRateValue(fmt(item.GSTRate, 4));
     setGstUom(item.GSTUOM || "");
     setGstSum(fmt(item.GSTAmount, 2));
@@ -2732,7 +2752,7 @@ setPreferentialCode(item.PreferentialCode || "");
     setOptionalCharges(item.Optioncahrge || 0);
     // setOptionlAmount(item.OptionalSumtotal || 0);
 
-// Certificate of Origin
+    // Certificate of Origin
     setCerItemQty(fmt(item.CerItemQty, 2));
     setCerItemUOM(item.CerItemUOM || "--Select--");
     setCifCerValue(fmt(item.CIFValOfCer, 2));
@@ -2745,10 +2765,10 @@ setPreferentialCode(item.PreferentialCode || "");
       setManuDate(`${day}/${month}/${year}`);
     }
 
-setTextileCategory(item.TexCat || "");
+    setTextileCategory(item.TexCat || "");
     setTextileQuotaQty(fmt(item.TexQuotaQty, 2));
     setTextileQuotaUOM(item.TexQuotaUOM || "--Select--");
-   
+
     setCerInvoiceNumber(item.CerInvNo || "");
 
     if (item.CerInvDate) {
@@ -2773,9 +2793,9 @@ setTextileCategory(item.TexCat || "");
     setSelectedCurrency(
       item.OptionalChrgeUOM
         ? {
-            CurrencyUOM: item.OptionalChrgeUOM,
-            CurrencyRate: item.OptionalSumExchage,
-          }
+          CurrencyUOM: item.OptionalChrgeUOM,
+          CurrencyRate: item.OptionalSumExchage,
+        }
         : null,
     );
     setEditingSNo(item.ItemNo);
@@ -2837,11 +2857,11 @@ setTextileCategory(item.TexCat || "");
     }
   };
 
-    //------------------------Decimel helper------------------------
+  //------------------------Decimel helper------------------------
   const fmt = (val, decimals = 2) => {
-  const num = parseFloat(val);
-  return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
-};
+    const num = parseFloat(val);
+    return isNaN(num) ? (0).toFixed(decimals) : num.toFixed(decimals);
+  };
   //----------------------------Reset Item-----------
   const resetItemForm = () => {
     // ---------------- BASIC DETAILS ----------------
@@ -3103,8 +3123,8 @@ setTextileCategory(item.TexCat || "");
         console.error("Mirror upload failed", mirrorError);
         alert(
           "Warning: Excel data was uploaded to CommonItemDtl but FAILED to mirror to InItemDtl. " +
-            "Please contact support or re-upload.\n\n" +
-            `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
+          "Please contact support or re-upload.\n\n" +
+          `Error: ${mirrorError.response?.data?.error || mirrorError.message}`,
         );
       }
 
@@ -3287,8 +3307,8 @@ setTextileCategory(item.TexCat || "");
         console.error("Mirror edit-all failed", mirrorError);
         alert(
           "Warning: Items were updated in CommonItemDtl but FAILED to mirror to ItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${mirrorError.response?.data?.message || mirrorError.message}`,
         );
         return;
       }
@@ -3330,8 +3350,8 @@ setTextileCategory(item.TexCat || "");
       if (commonCleared) {
         alert(
           "Warning: HAWB/HBL was cleared in CommonItemDtl but FAILED to clear in OutItemDtl. " +
-            "Please contact support or retry.\n\n" +
-            `Error: ${error.response?.data?.error || error.message}`,
+          "Please contact support or retry.\n\n" +
+          `Error: ${error.response?.data?.error || error.message}`,
         );
       } else {
         alert("Failed to clear HAWB/HBL");
@@ -3386,9 +3406,9 @@ setTextileCategory(item.TexCat || "");
       alert("No previous item found.");
     }
   };
-    const sortedItemTable = useMemo(() => {
-      return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
-    }, [itemTable]);
+  const sortedItemTable = useMemo(() => {
+    return [...itemTable].sort((a, b) => Number(a.ItemNo) - Number(b.ItemNo));
+  }, [itemTable]);
 
   // ===================== SAVE AS DRAFT =====================
   const [showDraftModal, setShowDraftModal] = useState(false);
@@ -4895,7 +4915,7 @@ setTextileCategory(item.TexCat || "");
                     placeholder="0.00"
                     className="inputStyle"
                     value={totalInvoiceCharge}
-                    onChange={(e)=>setTotalInvoiceCharge(e.target.value)}
+                    onChange={(e) => setTotalInvoiceCharge(e.target.value)}
                   />
                 </div>
               </div>
@@ -4911,7 +4931,7 @@ setTextileCategory(item.TexCat || "");
                     placeholder="0.00"
                     className="inputStyle"
                     value={cifFob}
-                    onChange={(e)=>setCifFob(e.target.value)}
+                    onChange={(e) => setCifFob(e.target.value)}
                   />
                 </div>
               </div>
@@ -5981,7 +6001,7 @@ setTextileCategory(item.TexCat || "");
                       h.HSCode?.toLowerCase() === item.HSCode?.toLowerCase(),
                   );
                   const isControlled = hsRow?.Out === "1";
-               const cellStyle = {
+                  const cellStyle = {
                     textTransform: "uppercase",
                     fontWeight: "bold",
                   };
@@ -6014,7 +6034,7 @@ setTextileCategory(item.TexCat || "");
                           onClick={() => editItem(item.ItemNo)}
                         />
                       </td>
-             <td style={cellStyle}>{item.ItemNo}</td>
+                      <td style={cellStyle}>{item.ItemNo}</td>
                       <td style={cellStyle}>{item.HSCode}</td>
                       <td style={cellStyle}>{item.Description}</td>
                       <td style={cellStyle}>{item.Contry}</td>
